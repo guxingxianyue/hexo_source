@@ -3,22 +3,18 @@
 <head>
   <meta charset="utf-8">
   
-  <title>关于对java多线程的一些基础认识 | 陈金星写字的地方</title>
+  <title>陈金星写字的地方</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="一.线程的生命周期及五种基本状态 上图中基本上囊括了Java中多线程各重要知识点。掌握了上图中的各知识点，Java中的多线程也就基本上掌握了。主要包括： Java线程具有五中基本状态 新建状态（New）：当线程对象对创建后，即进入了新建状态，如：Thread t = new MyThread();  就绪状态（Runnable）：当调用线程对象的start()方法（t.start();），线程即进">
-<meta name="keywords" content="技术文章">
-<meta property="og:type" content="article">
-<meta property="og:title" content="关于对java多线程的一些基础认识">
-<meta property="og:url" content="http://yoursite.com/2016/03/05/关于对java多线程的一些基础认识/index.html">
+  <meta name="description" content="less is more">
+<meta property="og:type" content="website">
+<meta property="og:title" content="陈金星写字的地方">
+<meta property="og:url" content="http://yoursite.com/page/2/index.html">
 <meta property="og:site_name" content="陈金星写字的地方">
-<meta property="og:description" content="一.线程的生命周期及五种基本状态 上图中基本上囊括了Java中多线程各重要知识点。掌握了上图中的各知识点，Java中的多线程也就基本上掌握了。主要包括： Java线程具有五中基本状态 新建状态（New）：当线程对象对创建后，即进入了新建状态，如：Thread t = new MyThread();  就绪状态（Runnable）：当调用线程对象的start()方法（t.start();），线程即进">
+<meta property="og:description" content="less is more">
 <meta property="og:locale" content="zh-CN">
-<meta property="og:image" content="https://i.imgur.com/IE4s56r.jpg">
-<meta property="og:updated_time" content="2018-07-20T15:00:26.726Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="关于对java多线程的一些基础认识">
-<meta name="twitter:description" content="一.线程的生命周期及五种基本状态 上图中基本上囊括了Java中多线程各重要知识点。掌握了上图中的各知识点，Java中的多线程也就基本上掌握了。主要包括： Java线程具有五中基本状态 新建状态（New）：当线程对象对创建后，即进入了新建状态，如：Thread t = new MyThread();  就绪状态（Runnable）：当调用线程对象的start()方法（t.start();），线程即进">
-<meta name="twitter:image" content="https://i.imgur.com/IE4s56r.jpg">
+<meta name="twitter:title" content="陈金星写字的地方">
+<meta name="twitter:description" content="less is more">
   
   
   <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
@@ -58,7 +54,171 @@
   </div>
 </header>
       <div class="outer">
-        <section id="main"><article id="post-关于对java多线程的一些基础认识" class="article article-type-post" itemscope itemprop="blogPost">
+        <section id="main">
+  
+    <article id="post-JAVA多线程的应用场景和目的" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2016/03/20/JAVA多线程的应用场景和目的/" class="article-date">
+  <time datetime="2016-03-20T13:03:08.000Z" itemprop="datePublished">2016-03-20</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2016/03/20/JAVA多线程的应用场景和目的/">JAVA多线程的应用场景和目的</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h4 id="多线程使用的主要目的在于："><a href="#多线程使用的主要目的在于：" class="headerlink" title="多线程使用的主要目的在于："></a>多线程使用的主要目的在于：</h4><ul>
+<li><p>吞吐量：你做WEB，容器帮你做了多线程，但是他只能帮你做请求层面的。简单的说，可能就是一个请求一个线程。或多个请求一个线程。如果是单线程，那同时只能处理一个用户的请求。</p>
+</li>
+<li><p>伸缩性：也就是说，你可以通过增加CPU核数来提升性能。如果是单线程，那程序执行到死也就利用了单核，肯定没办法通过增加CPU核数来提升性能。</p>
+</li>
+</ul>
+<p>鉴于是做WEB的，第1点可能你几乎不涉及。这里就讲第二点。</p>
+<p>举个简单的例子：<br>假设有个请求，这个请求服务端的处理需要执行3个很缓慢的IO操作（比如数据库查询或文件查询），那么正常的顺序可能是（括号里面代表执行时间）：</p>
+<ul>
+<li>a读取文件1  （10ms）</li>
+<li>b处理1的数据（1ms）</li>
+<li>c读取文件2  （10ms）</li>
+<li>d处理2的数据（1ms）</li>
+<li>e读取文件3  （10ms）</li>
+<li>f处理3的数据（1ms）</li>
+<li>g整合1、2、3的数据结果 （1ms）</li>
+</ul>
+<p>单线程总共就需要34ms。<br>那如果你在这个请求内，把ab、cd、ef分别分给3个线程去做，就只需要12ms了。</p>
+<p>所以多线程不是没怎么用，而是，你平常要善于发现一些可优化的点。然后评估方案是否应该使用。<br>假设还是上面那个相同的问题：但是每个步骤的执行时间不一样了。</p>
+<ul>
+<li>a读取文件1  （1ms）</li>
+<li>b处理1的数据（1ms）</li>
+<li>c读取文件2  （1ms）</li>
+<li>d处理2的数据（1ms）</li>
+<li>e读取文件3  （28ms）</li>
+<li>f处理3的数据（1ms）</li>
+<li>g整合1、2、3的数据结果 （1ms）</li>
+</ul>
+<p>单线程总共就需要34ms。<br>如果还是按上面的划分方案（上面方案和木桶原理一样，耗时取决于最慢的那个线程的执行速度），在这个例子中是第三个线程，执行29ms。<br>那么最后这个请求耗时是30ms。比起不用单线程，就节省了4ms。但是有可能线程调度切换也要花费个1、2ms。因此，这个方案显得优势就不明显了，<br>还带来程序复杂度提升。不太值得。</p>
+<p>那么现在优化的点，就不是第一个例子那样的任务分割多线程完成。而是优化文件3的读取速度。<br>可能是采用缓存和减少一些重复读取。<br>首先，假设有一种情况，所有用户都请求这个请求，那其实相当于所有用户都需要读取文件3。那你想想，100个人进行了这个请求，相当于你花在读取<br>这个文件上的时间就是28×100=2800ms了。那么，如果你把文件缓存起来，那只要第一个用户的请求读取了，第二个用户不需要读取了，从内存取是很<br>快速的，可能1ms都不到。</p>
+<p>伪代码：</p>
+<pre><code>public class MyServlet extends Servlet{
+    private static Map&lt;String, String&gt; fileName2Data = new HashMap&lt;String, String&gt;();
+    private void processFile3(String fName){
+        String data = fileName2Data.get(fName);
+        if(data==null){
+            data = readFromFile(fName);    //耗时28ms
+            fileName2Data.put(fName, data);
+        }
+        //process with data
+    }
+}
+</code></pre><p>看起来好像还不错，建立一个文件名和文件数据的映射。如果读取一个map中已经存在的数据，那么就不不用读取文件了。<br>可是问题在于，Servlet是并发，上面会导致一个很严重的问题，死循环。因为，HashMap在并发修改的时候，可能是导致循环链表的构成！！！<br>（具体你可以自行阅读HashMap源码）如果你没接触过多线程，可能到时候发现服务器没请求也巨卡，也不知道什么情况！<br>好的，那就用ConcurrentHashMap，正如他的名字一样，他是一个线程安全的HashMap，这样能轻松解决问题。</p>
+<pre><code>public class MyServlet extends Servlet{
+    private static ConcurrentHashMap&lt;String, String&gt; fileName2Data = new ConcurrentHashMap&lt;String, String&gt;();
+    private void processFile3(String fName){
+        String data = fileName2Data.get(fName);
+        if(data==null){
+            data = readFromFile(fName);    //耗时28ms
+            fileName2Data.put(fName, data);
+        }
+        //process with data
+    }
+}
+</code></pre><p>这样真的解决问题了吗，这样虽然只要有用户访问过文件a，那另一个用户想访问文件a，也会从fileName2Data中拿数据，然后也不会引起死循环。</p>
+<p>可是，如果你觉得这样就已经完了，那你把多线程也想的太简单了，骚年！<br>你会发现，1000个用户首次访问同一个文件的时候，居然读取了1000次文件（这是最极端的，可能只有几百）。What the fuckin hell!!!</p>
+<p>难道代码错了吗！</p>
+<p>好好分析下。Servlet是多线程的，那么</p>
+<pre><code>public class MyServlet extends Servlet{
+    private static ConcurrentHashMap&lt;String, String&gt; fileName2Data = new ConcurrentHashMap&lt;String, String&gt;();
+    private void processFile3(String fName){
+        String data = fileName2Data.get(fName);
+        //“偶然”-- 1000个线程同时到这里，同时发现data为null
+        if(data==null){
+            data = readFromFile(fName);    //耗时28ms
+            fileName2Data.put(fName, data);
+        }
+        //process with data
+    }
+}
+</code></pre><p>上面注释的“偶然”，这是完全有可能的，因此，这样做还是有问题。</p>
+<p>因此，可以自己简单的封装一个任务来处理。</p>
+<pre><code>public class MyServlet extends Servlet{
+
+    private static ConcurrentHashMap&lt;String, FutureTask&lt;String&gt;&gt; fileName2Data = new ConcurrentHashMap&lt;String, FutureTask&lt;String&gt;&gt;();
+
+    private static ExecutorService exec = Executors.newCachedThreadPool();
+
+
+    private void processFile3(String fName){
+        FutureTask&lt;String&gt; data = fileName2Data.get(fName);
+        //“偶然”-- 1000个线程同时到这里，同时发现data为null
+        if(data == null){
+            data = newFutureTask(fName);
+            FutureTask&lt;String&gt; old = fileName2Data.putIfAbsent(fName, data);
+            if(old == null){
+                exec.execute(data);
+            }else{
+                data = old;
+            }
+        }
+        Object d = null ;
+        try {
+            d = data.get();
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        System.out.println(Thread.currentThread().getName() + &quot;method-&gt;processFile3&quot; + d);
+    }
+
+    private FutureTask&lt;String&gt; newFutureTask(final String file){
+        return  new FutureTask&lt;String&gt;(new Callable&lt;String&gt;(){
+            public String call(){
+                return readFromFile(file);
+            }
+
+            private String readFromFile(String file){
+                System.out.println(Thread.currentThread().getName() + &quot;method-&gt;readFromFile,do readFromFile&quot;);
+                return &quot; do readFromFile&quot;;
+            }
+        });
+    }
+}
+</code></pre><p>多线程最多的场景：web服务器本身；各种专用服务器（如游戏服务器）；</p>
+<p>多线程的常见应用场景：</p>
+<ul>
+<li>后台任务，例如：定时向大量（100w以上）的用户发送邮件；</li>
+<li>异步处理，例如：发微博、记录日志等；</li>
+<li>分布式计算</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2016/03/20/JAVA多线程的应用场景和目的/" data-id="cjjztqw7l0000vkpxtkb8bngh" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/技术文章/">技术文章</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-关于对java多线程的一些基础认识" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2016/03/05/关于对java多线程的一些基础认识/" class="article-date">
   <time datetime="2016-03-05T12:47:08.000Z" itemprop="datePublished">2016-03-05</time>
@@ -71,8 +231,8 @@
       <header class="article-header">
         
   
-    <h1 class="article-title" itemprop="name">
-      关于对java多线程的一些基础认识
+    <h1 itemprop="name">
+      <a class="article-title" href="/2016/03/05/关于对java多线程的一些基础认识/">关于对java多线程的一些基础认识</a>
     </h1>
   
 
@@ -331,29 +491,109 @@ class MyRunnable implements Runnable {
     </footer>
   </div>
   
-    
-<nav id="article-nav">
-  
-    <a href="/2016/03/20/JAVA多线程的应用场景和目的/" id="article-nav-newer" class="article-nav-link-wrap">
-      <strong class="article-nav-caption">Newer</strong>
-      <div class="article-nav-title">
-        
-          JAVA多线程的应用场景和目的
-        
-      </div>
-    </a>
-  
-  
-    <a href="/2016/01/05/my-new-post/" id="article-nav-older" class="article-nav-link-wrap">
-      <strong class="article-nav-caption">Older</strong>
-      <div class="article-nav-title">Github+hexo 搭建个人独立博客</div>
-    </a>
-  
-</nav>
+</article>
 
+
+  
+    <article id="post-my-new-post" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2016/01/05/my-new-post/" class="article-date">
+  <time datetime="2016-01-05T15:47:08.000Z" itemprop="datePublished">2016-01-05</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2016/01/05/my-new-post/">Github+hexo 搭建个人独立博客</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="关于自建独立博客"><a href="#关于自建独立博客" class="headerlink" title="关于自建独立博客"></a>关于自建独立博客</h2><hr>
+<p>这里引用某位知友的原话：</p>
+<pre><code>自主权比较高，博客平台的话会有这样那样的限制，技术上，可能会限制插件的代码使用，内容上，各种审查以防触雷以及广告等等。
+</code></pre><p>作为一个技术宅，没有比“show me the code”“show me the writings”更有说服力。当然这话是我说的。</p>
+<h2 id="什么是hexo"><a href="#什么是hexo" class="headerlink" title="什么是hexo"></a>什么是hexo</h2><hr>
+<p>一个基于Node.js的静态博客程序，可以方便的生成静态网页托管在github上，可以绑定自己的域名，用markdown写文章（简直不要太爽）。</p>
+<pre><code>快速、简单且功能强大的 Node.js 博客框架。
+A fast, simple &amp; powerful blog framework, powered by Node.js.
+</code></pre><h2 id="为什么要用hexo"><a href="#为什么要用hexo" class="headerlink" title="为什么要用hexo"></a>为什么要用hexo</h2><hr>
+<ul>
+<li>不可思议的快速，眨眼即可完成</li>
+<li>支持markdown，支持markdown，支持markdown，重要的话说三遍</li>
+<li>一道指令即可将文章部署到 GitHub Pages</li>
+<li>高扩展性、自定义性</li>
+<li>兼容于 Windows &amp; Mac &amp; Linux</li>
+<li>易用。不仅部署简单，平时使用中仅需要hexo new、hexo generate、hexo server、hexo deploy四个命令。</li>
+<li>轻、文件少、小，易理解，方便自定义，</li>
+</ul>
+<h2 id="谁能使用hexo"><a href="#谁能使用hexo" class="headerlink" title="谁能使用hexo"></a>谁能使用hexo</h2><hr>
+<p>这是一个免费开源的博客程序，任何人都可以使用和修改，整个独立博客搭建过程仅需要用到Github,Git,Markdown,Node.js这样的工具。好多插件、widget都需要自己安装、设置。比较适合那些有一定计算机基础，喜欢折腾的人。下面我们开始吧!</p>
+<h2 id="搭建hexo博客（一）"><a href="#搭建hexo博客（一）" class="headerlink" title="搭建hexo博客（一）"></a>搭建hexo博客（一）</h2><hr>
+<p><strong>注意：本节教程只针对Windows用户，Linux和Mac用户请移步</strong></p>
+<h3 id="安装Git"><a href="#安装Git" class="headerlink" title="安装Git"></a>安装Git</h3><hr>
+<p>下载<a href="http://pan.baidu.com/s/1bcsvP8" title="git" target="_blank" rel="noopener">msysgit</a>,版本最好不要用高于1.8.5，有bug，至少截至2015-12-7年为止，这个bug是有的，此处用的是1.8.4。</p>
+<h3 id="安装Node-js"><a href="#安装Node-js" class="headerlink" title="安装Node.js"></a>安装Node.js</h3><hr>
+<p>在 Windows 环境下安装 Node.js很简单，仅须<a href="http://pan.baidu.com/s/1dDYO1w9" target="_blank" rel="noopener">点此下载</a>安装文件并一步一步往下执行即可完成安装。</p>
+<h3 id="安装hexo"><a href="#安装hexo" class="headerlink" title="安装hexo"></a>安装hexo</h3><hr>
+<p>利用 npm 命令即可安装。（在任意位置点击鼠标右键，选择Git bash）</p>
+<pre><code>npm install -g hexo
+</code></pre><h3 id="创建hexo文件夹"><a href="#创建hexo文件夹" class="headerlink" title="创建hexo文件夹"></a>创建hexo文件夹</h3><hr>
+<p>安装完成后，在你喜爱的文件夹下（如H:\hexo），执行以下指令(在H:\hexo内点击鼠标右键，选择Git bash)，Hexo 即会自动在目标文件夹建立网站所需要的所有文件。</p>
+<pre><code>hexo init
+</code></pre><h3 id="安装依赖包"><a href="#安装依赖包" class="headerlink" title="安装依赖包"></a>安装依赖包</h3><hr>
+<pre><code>npm install
+</code></pre><h3 id="本地查看"><a href="#本地查看" class="headerlink" title="本地查看"></a>本地查看</h3><hr>
+<p>现在我们已经搭建起本地的hexo博客了，执行以下命令(在H:\hexo)，然后到浏览器输入<code>localhost:4000</code>看看。</p>
+<pre><code>hexo generate
+hexo server
+</code></pre><p>至此，本地博客已经搭建起来了，嘘~~~现在只有你自己能看到，别人是看不到的。下面，我们要部署到Github，让所有人都能看到你的博客。</p>
+<h3 id="注册Github账号"><a href="#注册Github账号" class="headerlink" title="注册Github账号"></a>注册Github账号</h3><hr>
+<p>已有账号可以跳过，没有的，<a href="https://www.github.com" target="_blank" rel="noopener">请在此进行注册</a>，很简单，这里就不介绍了。</p>
+<h3 id="创建repository"><a href="#创建repository" class="headerlink" title="创建repository"></a>创建repository</h3><hr>
+<p>在自己Github主页右下角，创建一个新的repository。比如我的Github账号是guxingxianyue，那么我应该创建的repository名字应该是guxingxianyue.github.io。</p>
+<h3 id="部署到Github"><a href="#部署到Github" class="headerlink" title="部署到Github"></a>部署到Github</h3><hr>
+<p>编辑_config.yml(在H:\hexo下)。你在部署时，要把下面的guxingxianyue都换成你的账号名。</p>
+<pre><code>deploy:
+  type: git
+  repository: https://github.com/guxingxianyue/guxingxianyue.github.io.git
+  branch: master
+</code></pre><h3 id="执行下列指令即可完成部署。"><a href="#执行下列指令即可完成部署。" class="headerlink" title="执行下列指令即可完成部署。"></a>执行下列指令即可完成部署。</h3><hr>
+<pre><code>npm install hexo-deployer-git --save(有的哥们竟然不需要这个指令也能部署成功)
+hexo generate
+hexo deploy
+</code></pre><p><strong>注意：</strong>有些新用户需要设置ssh，否则上述命令会失败。ssh 的介绍和设置方法请看<a href="https://help.github.com/articles/generating-ssh-keys/" target="_blank" rel="noopener">官方教程</a>不用担心，很简单。</p>
+<p><strong>记住：</strong>每次修改本地文件后，需要hexo generate才能保存。每次使用命令时，都要在H:\hexo目录下右键选择Git Bash指令窗口。</p>
+<p>Okay,至此博客已经完全搭建起来了，在浏览器访问guxingxianyue.github.io就能看到你的成就了！Good luck。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2016/01/05/my-new-post/" data-id="cjjztqw7y0002vkpxx144qzep" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/技术文章/">技术文章</a></li></ul>
+
+    </footer>
+  </div>
   
 </article>
 
+
+  
+  
+    <nav id="page-nav">
+      <a class="extend prev" rel="prev" href="/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="page-number current">2</span>
+    </nav>
+  
 </section>
         
       </div>

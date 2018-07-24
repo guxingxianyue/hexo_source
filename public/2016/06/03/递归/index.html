@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>递归 | 陈金星写字的地方</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="递归介绍递归在程序语言中简单的理解是：方法自己调用自己。 递归其实和循环是非常像的，循环都可以改写成递归，递归未必能改写成循环，这是一个充分不必要的条件。  那么，有了循环，为什么还要用递归呢？？在某些情况下(费波纳切数列，汉诺塔)，使用递归会比循环简单很多很多  想要用递归必须知道两个条件：  递归出口(终止递归的条件) 递归表达式(规律)  技巧：在递归中常常是将问题切割成两个部分(1和整体的">
+<meta name="keywords" content="数据结构与算法">
+<meta property="og:type" content="article">
+<meta property="og:title" content="递归">
+<meta property="og:url" content="http://yoursite.com/2016/06/03/递归/index.html">
+<meta property="og:site_name" content="陈金星写字的地方">
+<meta property="og:description" content="递归介绍递归在程序语言中简单的理解是：方法自己调用自己。 递归其实和循环是非常像的，循环都可以改写成递归，递归未必能改写成循环，这是一个充分不必要的条件。  那么，有了循环，为什么还要用递归呢？？在某些情况下(费波纳切数列，汉诺塔)，使用递归会比循环简单很多很多  想要用递归必须知道两个条件：  递归出口(终止递归的条件) 递归表达式(规律)  技巧：在递归中常常是将问题切割成两个部分(1和整体的">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2018-07-24T14:25:32.814Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="递归">
+<meta name="twitter:description" content="递归介绍递归在程序语言中简单的理解是：方法自己调用自己。 递归其实和循环是非常像的，循环都可以改写成递归，递归未必能改写成循环，这是一个充分不必要的条件。  那么，有了循环，为什么还要用递归呢？？在某些情况下(费波纳切数列，汉诺塔)，使用递归会比循环简单很多很多  想要用递归必须知道两个条件：  递归出口(终止递归的条件) 递归表达式(规律)  技巧：在递归中常常是将问题切割成两个部分(1和整体的">
+  
+  
+  <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">陈金星写字的地方</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">less is more</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-递归" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2016/06/03/递归/" class="article-date">
+  <time datetime="2016-06-03T14:16:29.000Z" itemprop="datePublished">2016-06-03</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      递归
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="递归介绍"><a href="#递归介绍" class="headerlink" title="递归介绍"></a>递归介绍</h2><p>递归在程序语言中简单的理解是：方法自己调用自己。</p>
+<p>递归其实和循环是非常像的，循环都可以改写成递归，递归未必能改写成循环，这是一个充分不必要的条件。</p>
+<ul>
+<li>那么，有了循环，为什么还要用递归呢？？在某些情况下(费波纳切数列，汉诺塔)，使用递归会比循环简单很多很多</li>
+</ul>
+<p>想要用递归必须知道两个条件：</p>
+<ul>
+<li>递归出口(终止递归的条件)</li>
+<li>递归表达式(规律)</li>
+</ul>
+<p>技巧：在递归中常常是将问题切割成两个部分(1和整体的思想)，这能够让我们快速找到递归表达式(规律)</p>
+<h2 id="求和"><a href="#求和" class="headerlink" title="求和"></a>求和</h2><p>如果我们使用for循环来进行求和1+2+3+4+….+100，那是很简单的：</p>
+<pre><code>int sum = 0;
+for (int i = 1; i &lt;= 100; i++) {
+
+    sum = sum + i;
+
+}
+System.out.println(&quot;公众号：Java3y：&quot; + sum);
+</code></pre><p>for循环都可以使用递归来进行改写，而使用递归必须要知道两个条件：</p>
+<ul>
+<li>递归出口</li>
+<li>递归表达式(规律)</li>
+</ul>
+<p>我们来找出它的规律：1+2+3+…+n，这是一个求和的运算，那么我们可以假设X=1+2+3+…+n，可以将1+2+3+…+(n-1)看成是一个整体。而这个整体做的事又和我们的初始目的(求和)相同。以我们的高中数学知识我们又可以将上面的式子看成X=sum(n-1)+n</p>
+<p>我们找到我们的递归表达式(规律)，它就是sum(n-1)+n,那递归出口呢，这个题目的递归出口就有很多了，我列举一下：</p>
+<p>如果n=1时，那么就返回1<br>如果n=2时，那么就返回(1+2)=3<br>如果n=3时，那么就返回(1+2+3)=6</p>
+<p>递归表达式和递归出口我们都找到了，下面就代码演示：</p>
+<p>递归出口为1：</p>
+<pre><code>public static void main(String[] args) {
+    System.out.println(sum(100));
+}
+
+/**
+ *
+ * @param n 要加到的数字，比如题目的100
+ * @return
+ */
+public static int sum(int n) {
+
+    if (n == 1) {
+        return 1;
+    } else {
+        return sum(n - 1) + n;
+    }
+}
+</code></pre><h2 id="数组内部的最大值"><a href="#数组内部的最大值" class="headerlink" title="数组内部的最大值"></a>数组内部的最大值</h2><p>使用的是循环，那么我们通常这样实现：</p>
+<pre><code>int[] arrays = {2, 3, 4, 5, 1, 5, 2, 9, 5, 6, 8, 3, 2};
+
+//将数组的第一个假设是最大值
+int max = arrays[0];
+
+for (int i = 1; i &lt; arrays.length; i++) {
+
+    if (arrays[i] &gt; max) {
+        max = arrays[i];
+    }
+}
+
+System.out.println(max);
+</code></pre><p>如果我们用递归的话，那怎么用弄呢？首先还是先要找到递归表达式(规律)和递归出口</p>
+<ul>
+<li>我们又可以运用1和整体的思想来找到规律<ul>
+<li>将数组第一个数-&gt;2与数组后面的数-&gt;{3, 4, 5, 1, 5, 2, 9, 5, 6, 8, 3, 2}进行切割，将数组后面的数看成是一个整体X={3, 4, 5, 1, 5, 2, 9, 5, 6, 8, 3, 2}，那么我们就可以看成是第一个数和一个整体进行比较if(2&gt;X) return 2  else(2&lt;X) return X</li>
+<li>而我们要做的就是找出这个整体的最大值与2进行比较。找出整体的最大值又是和我们的初始目的(找出最大值)是一样的</li>
+<li>也就可以写成if( 2&gt;findMax() )return 2 else return findMax()</li>
+</ul>
+</li>
+<li>递归出口，如果数组只有1个元素时，那么这个数组最大值就是它了。</li>
+</ul>
+<p>使用到数组的时候，我们通常为数组设定左边界和右边界，这样比较好地进行切割。</p>
+<ul>
+<li>L表示左边界，往往表示的是数组第一个元素，也就会赋值为0(角标为0是数组的第一个元素)</li>
+<li>R表示右边界，往往表示的是数组的长度，也就会赋值为arrays.length-1（长度-1在角标中才是代表最后一个元素)</li>
+</ul>
+<p>那么我们递归的写法就是：</p>
+<pre><code>public static void main(String[] args) {
+
+      int[] arrays = {2, 3, 4, 5, 1, 5, 2, 9, 5, 6, 8, 3, 1};
+
+      System.out.println(findMax(arrays, 0, arrays.length - 1));
+
+  }
+
+
+  /**
+   * 递归，找出数组最大的值
+   * @param arrays 数组
+   * @param L      左边界，第一个数
+   * @param R      右边界，数组的长度
+   * @return
+   */
+
+  public static int findMax(int[] arrays, int L, int R) {
+
+      //如果该数组只有一个数，那么最大的就是该数组第一个值了
+      if (L == R) {
+          return arrays[L];
+      } else {
+
+          int a = arrays[L];
+          int b = findMax(arrays, L + 1, R);//找出整体的最大值
+
+          if (a &gt; b) {
+              return a;
+          } else {
+              return b;
+          }
+      }
+
+  }
+</code></pre><h2 id="斐波那契数列"><a href="#斐波那契数列" class="headerlink" title="斐波那契数列"></a>斐波那契数列</h2><p>菲波那切数列长这个样子：{1 1 2 3 5 8 13 21 34 55….. n }</p>
+<p>数学好的同学可能很容易就找到规律了：前两项之和等于第三项</p>
+<p>如果让我们求出第n项是多少，那么我们就可以很简单写出对应的递归表达式了：Z = (n-2) + (n-1)</p>
+<p>递归出口在本题目是需要有两个的，因为它是前两项加起来才得出第三项的值</p>
+<p>同样地，那么我们的递归出口可以写成这样：</p>
+<pre><code>if(n==1) retrun 1;
+if(n==2) return 2;
+</code></pre><p>看一下完整的代码:</p>
+<pre><code>public static void main(String[] args) {
+
+    int[] arrays = {1, 1, 2, 3, 5, 8, 13, 21};
+    //bubbleSort(arrays, 0, arrays.length - 1);
+
+    int fibonacci = fibonacci(10);
+    System.out.println(fibonacci);
+
+}
+
+public static int fibonacci(int n) {
+    if (n == 1) {
+        return 1;
+    } else if (n == 2) {
+        return 1;
+    } else {
+        return (fibonacci(n - 1) + fibonacci(n - 2));
+    }
+
+}
+</code></pre><h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>要使用递归首先要知道两件事：</p>
+<ul>
+<li>递归出口(终止递归的条件)</li>
+<li>递归表达式(规律)</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2016/06/03/递归/" data-id="cjjztqw870005vkpx4sok4yux" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/数据结构与算法/">数据结构与算法</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2016/06/03/冒泡排序/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          冒泡排序
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2016/04/11/Mybatis【与Spring整合】/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Mybatis【与Spring整合】</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2018 Jinxing Chen<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+
+<script src="/js/script.js"></script>
+
+  </div>
+</body>
+</html>

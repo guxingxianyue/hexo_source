@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>冒泡排序 | 陈金星写字的地方</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="冒泡排序就这么简单排序对我们来说是一点也不陌生了，当你打Dota的时候也有天梯分，从高往下数，这个排名是有规律的，就是一种排序。 冒泡排序的实现 冒泡排序是一种简单的排序算法。它重复地走访过要排序的数列，一次比较两个元素，如果他们的顺序错误就把他们交换过来。走访数列的工作是重复地进行直到没有再需要交换，也就是说该数列已经排序完成。这个算法的名字由来是因为越大的元素会经由交换慢慢“浮”到数列的顶端，">
+<meta name="keywords" content="数据结构与算法">
+<meta property="og:type" content="article">
+<meta property="og:title" content="冒泡排序">
+<meta property="og:url" content="http://yoursite.com/2016/06/03/冒泡排序/index.html">
+<meta property="og:site_name" content="陈金星写字的地方">
+<meta property="og:description" content="冒泡排序就这么简单排序对我们来说是一点也不陌生了，当你打Dota的时候也有天梯分，从高往下数，这个排名是有规律的，就是一种排序。 冒泡排序的实现 冒泡排序是一种简单的排序算法。它重复地走访过要排序的数列，一次比较两个元素，如果他们的顺序错误就把他们交换过来。走访数列的工作是重复地进行直到没有再需要交换，也就是说该数列已经排序完成。这个算法的名字由来是因为越大的元素会经由交换慢慢“浮”到数列的顶端，">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2018-07-24T14:25:32.936Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="冒泡排序">
+<meta name="twitter:description" content="冒泡排序就这么简单排序对我们来说是一点也不陌生了，当你打Dota的时候也有天梯分，从高往下数，这个排名是有规律的，就是一种排序。 冒泡排序的实现 冒泡排序是一种简单的排序算法。它重复地走访过要排序的数列，一次比较两个元素，如果他们的顺序错误就把他们交换过来。走访数列的工作是重复地进行直到没有再需要交换，也就是说该数列已经排序完成。这个算法的名字由来是因为越大的元素会经由交换慢慢“浮”到数列的顶端，">
+  
+  
+  <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">陈金星写字的地方</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">less is more</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-冒泡排序" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2016/06/03/冒泡排序/" class="article-date">
+  <time datetime="2016-06-03T14:16:29.000Z" itemprop="datePublished">2016-06-03</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      冒泡排序
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="冒泡排序就这么简单"><a href="#冒泡排序就这么简单" class="headerlink" title="冒泡排序就这么简单"></a>冒泡排序就这么简单</h2><p>排序对我们来说是一点也不陌生了，当你打Dota的时候也有天梯分，从高往下数，这个排名是有规律的，就是一种排序。</p>
+<h2 id="冒泡排序的实现"><a href="#冒泡排序的实现" class="headerlink" title="冒泡排序的实现"></a>冒泡排序的实现</h2><blockquote>
+<p>冒泡排序是一种简单的排序算法。它重复地走访过要排序的数列，一次比较两个元素，如果他们的顺序错误就把他们交换过来。走访数列的工作是重复地进行直到没有再需要交换，也就是说该数列已经排序完成。这个算法的名字由来是因为越大的元素会经由交换慢慢“浮”到数列的顶端，故名冒泡排序。</p>
+</blockquote>
+<p>算法描述：</p>
+<ul>
+<li>i从0开始，i与i+1比较，如果i&gt;i+1，那么就互换</li>
+<li>i不断增加，直到i&lt;n-1（n是数组元素的个数，n-1是数组已经最后一个元素） ，一趟下来，可以让数组元素中最大值排在数组的最后面</li>
+</ul>
+<p>从最简单开始，首先我们创建一个数组，该数组有6位数字：</p>
+<pre><code>int[] arrays = {8, 3, 2, 6, 7, 9};
+</code></pre><p>6位数的数组需要5躺排序的，每躺排序之后次数减1(因为前一趟已经把前一趟数的最大值确定下来了)！</p>
+<p>于是我们可以根据for循环和变量将上面的代码进行排序：</p>
+<pre><code>int temp;
+
+//外层循环是排序的趟数
+for (int i = 0; i &lt; arrays.length - 1 ; i++) {
+
+    //内层循环是当前趟数需要比较的次数
+    for (int j = 0; j &lt; arrays.length - i - 1; j++) {
+
+        //前一位与后一位与前一位比较，如果前一位比后一位要大，那么交换
+        if (arrays[j] &gt; arrays[j + 1]) {
+            temp = arrays[j];
+            arrays[j] = arrays[j + 1];
+            arrays[j + 1] = temp;
+        }
+    }
+}
+</code></pre><h2 id="冒泡排序优化"><a href="#冒泡排序优化" class="headerlink" title="冒泡排序优化"></a>冒泡排序优化</h2><p>从上面的例子我们可以看出来，如果数据足够乱的情况下是需要经过5躺比较才能将数组完整排好序。但是我们在第二躺比较后就已经得到排好序的数组了。</p>
+<p>但是，我们的程序在第二趟排序后仍会执行第三趟、第四趟排序。这是没有必要的，因此我们可以对其进行优化一下：</p>
+<ul>
+<li>如果在某躺排序中没有发生交换位置，那么我们可以认为该数组已经排好序了<ul>
+<li>因为我们每趟排序的目的就是将当前趟最大的数置换到对应的位置上，没有发生置换说明就已经排好序了</li>
+</ul>
+</li>
+</ul>
+<p>代码如下：</p>
+<pre><code>//装载临时变量
+int temp;
+
+//记录是否发生了置换， 0 表示没有发生置换、 1 表示发生了置换
+int isChange;
+
+//外层循环是排序的趟数
+for (int i = 0; i &lt; arrays.length - 1; i++) {
+
+    //每比较一趟就重新初始化为0
+    isChange = 0;
+
+    //内层循环是当前趟数需要比较的次数
+    for (int j = 0; j &lt; arrays.length - i - 1; j++) {
+
+        //前一位与后一位与前一位比较，如果前一位比后一位要大，那么交换
+        if (arrays[j] &gt; arrays[j + 1]) {
+            temp = arrays[j];
+            arrays[j] = arrays[j + 1];
+            arrays[j + 1] = temp;
+
+            //如果进到这里面了，说明发生置换了
+            isChange = 1;
+
+        }
+    }
+    //如果比较完一趟没有发生置换，那么说明已经排好序了，不需要再执行下去了
+    if (isChange == 0) {
+        break;
+    }
+}
+</code></pre>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2016/06/03/冒泡排序/" data-id="cjjztqw850004vkpxl928y5fd" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/数据结构与算法/">数据结构与算法</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2016/06/03/递归/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">递归</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2018 Jinxing Chen<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+
+<script src="/js/script.js"></script>
+
+  </div>
+</body>
+</html>

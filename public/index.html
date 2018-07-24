@@ -56,10 +56,10 @@
       <div class="outer">
         <section id="main">
   
-    <article id="post-JAVA多线程的应用场景和目的" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-冒泡排序" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2016/03/20/JAVA多线程的应用场景和目的/" class="article-date">
-  <time datetime="2016-03-20T13:03:08.000Z" itemprop="datePublished">2016-03-20</time>
+    <a href="/2016/06/03/冒泡排序/" class="article-date">
+  <time datetime="2016-06-03T14:16:29.000Z" itemprop="datePublished">2016-06-03</time>
 </a>
     
   </div>
@@ -70,7 +70,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2016/03/20/JAVA多线程的应用场景和目的/">JAVA多线程的应用场景和目的</a>
+      <a class="article-title" href="/2016/06/03/冒泡排序/">冒泡排序</a>
     </h1>
   
 
@@ -78,415 +78,83 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h4 id="多线程使用的主要目的在于："><a href="#多线程使用的主要目的在于：" class="headerlink" title="多线程使用的主要目的在于："></a>多线程使用的主要目的在于：</h4><ul>
-<li><p>吞吐量：你做WEB，容器帮你做了多线程，但是他只能帮你做请求层面的。简单的说，可能就是一个请求一个线程。或多个请求一个线程。如果是单线程，那同时只能处理一个用户的请求。</p>
-</li>
-<li><p>伸缩性：也就是说，你可以通过增加CPU核数来提升性能。如果是单线程，那程序执行到死也就利用了单核，肯定没办法通过增加CPU核数来提升性能。</p>
-</li>
-</ul>
-<p>鉴于是做WEB的，第1点可能你几乎不涉及。这里就讲第二点。</p>
-<p>举个简单的例子：<br>假设有个请求，这个请求服务端的处理需要执行3个很缓慢的IO操作（比如数据库查询或文件查询），那么正常的顺序可能是（括号里面代表执行时间）：</p>
+        <h2 id="冒泡排序就这么简单"><a href="#冒泡排序就这么简单" class="headerlink" title="冒泡排序就这么简单"></a>冒泡排序就这么简单</h2><p>排序对我们来说是一点也不陌生了，当你打Dota的时候也有天梯分，从高往下数，这个排名是有规律的，就是一种排序。</p>
+<h2 id="冒泡排序的实现"><a href="#冒泡排序的实现" class="headerlink" title="冒泡排序的实现"></a>冒泡排序的实现</h2><blockquote>
+<p>冒泡排序是一种简单的排序算法。它重复地走访过要排序的数列，一次比较两个元素，如果他们的顺序错误就把他们交换过来。走访数列的工作是重复地进行直到没有再需要交换，也就是说该数列已经排序完成。这个算法的名字由来是因为越大的元素会经由交换慢慢“浮”到数列的顶端，故名冒泡排序。</p>
+</blockquote>
+<p>算法描述：</p>
 <ul>
-<li>a读取文件1  （10ms）</li>
-<li>b处理1的数据（1ms）</li>
-<li>c读取文件2  （10ms）</li>
-<li>d处理2的数据（1ms）</li>
-<li>e读取文件3  （10ms）</li>
-<li>f处理3的数据（1ms）</li>
-<li>g整合1、2、3的数据结果 （1ms）</li>
+<li>i从0开始，i与i+1比较，如果i&gt;i+1，那么就互换</li>
+<li>i不断增加，直到i&lt;n-1（n是数组元素的个数，n-1是数组已经最后一个元素） ，一趟下来，可以让数组元素中最大值排在数组的最后面</li>
 </ul>
-<p>单线程总共就需要34ms。<br>那如果你在这个请求内，把ab、cd、ef分别分给3个线程去做，就只需要12ms了。</p>
-<p>所以多线程不是没怎么用，而是，你平常要善于发现一些可优化的点。然后评估方案是否应该使用。<br>假设还是上面那个相同的问题：但是每个步骤的执行时间不一样了。</p>
+<p>从最简单开始，首先我们创建一个数组，该数组有6位数字：</p>
+<pre><code>int[] arrays = {8, 3, 2, 6, 7, 9};
+</code></pre><p>6位数的数组需要5躺排序的，每躺排序之后次数减1(因为前一趟已经把前一趟数的最大值确定下来了)！</p>
+<p>于是我们可以根据for循环和变量将上面的代码进行排序：</p>
+<pre><code>int temp;
+
+//外层循环是排序的趟数
+for (int i = 0; i &lt; arrays.length - 1 ; i++) {
+
+    //内层循环是当前趟数需要比较的次数
+    for (int j = 0; j &lt; arrays.length - i - 1; j++) {
+
+        //前一位与后一位与前一位比较，如果前一位比后一位要大，那么交换
+        if (arrays[j] &gt; arrays[j + 1]) {
+            temp = arrays[j];
+            arrays[j] = arrays[j + 1];
+            arrays[j + 1] = temp;
+        }
+    }
+}
+</code></pre><h2 id="冒泡排序优化"><a href="#冒泡排序优化" class="headerlink" title="冒泡排序优化"></a>冒泡排序优化</h2><p>从上面的例子我们可以看出来，如果数据足够乱的情况下是需要经过5躺比较才能将数组完整排好序。但是我们在第二躺比较后就已经得到排好序的数组了。</p>
+<p>但是，我们的程序在第二趟排序后仍会执行第三趟、第四趟排序。这是没有必要的，因此我们可以对其进行优化一下：</p>
 <ul>
-<li>a读取文件1  （1ms）</li>
-<li>b处理1的数据（1ms）</li>
-<li>c读取文件2  （1ms）</li>
-<li>d处理2的数据（1ms）</li>
-<li>e读取文件3  （28ms）</li>
-<li>f处理3的数据（1ms）</li>
-<li>g整合1、2、3的数据结果 （1ms）</li>
-</ul>
-<p>单线程总共就需要34ms。<br>如果还是按上面的划分方案（上面方案和木桶原理一样，耗时取决于最慢的那个线程的执行速度），在这个例子中是第三个线程，执行29ms。<br>那么最后这个请求耗时是30ms。比起不用单线程，就节省了4ms。但是有可能线程调度切换也要花费个1、2ms。因此，这个方案显得优势就不明显了，<br>还带来程序复杂度提升。不太值得。</p>
-<p>那么现在优化的点，就不是第一个例子那样的任务分割多线程完成。而是优化文件3的读取速度。<br>可能是采用缓存和减少一些重复读取。<br>首先，假设有一种情况，所有用户都请求这个请求，那其实相当于所有用户都需要读取文件3。那你想想，100个人进行了这个请求，相当于你花在读取<br>这个文件上的时间就是28×100=2800ms了。那么，如果你把文件缓存起来，那只要第一个用户的请求读取了，第二个用户不需要读取了，从内存取是很<br>快速的，可能1ms都不到。</p>
-<p>伪代码：</p>
-<pre><code>public class MyServlet extends Servlet{
-    private static Map&lt;String, String&gt; fileName2Data = new HashMap&lt;String, String&gt;();
-    private void processFile3(String fName){
-        String data = fileName2Data.get(fName);
-        if(data==null){
-            data = readFromFile(fName);    //耗时28ms
-            fileName2Data.put(fName, data);
-        }
-        //process with data
-    }
-}
-</code></pre><p>看起来好像还不错，建立一个文件名和文件数据的映射。如果读取一个map中已经存在的数据，那么就不不用读取文件了。<br>可是问题在于，Servlet是并发，上面会导致一个很严重的问题，死循环。因为，HashMap在并发修改的时候，可能是导致循环链表的构成！！！<br>（具体你可以自行阅读HashMap源码）如果你没接触过多线程，可能到时候发现服务器没请求也巨卡，也不知道什么情况！<br>好的，那就用ConcurrentHashMap，正如他的名字一样，他是一个线程安全的HashMap，这样能轻松解决问题。</p>
-<pre><code>public class MyServlet extends Servlet{
-    private static ConcurrentHashMap&lt;String, String&gt; fileName2Data = new ConcurrentHashMap&lt;String, String&gt;();
-    private void processFile3(String fName){
-        String data = fileName2Data.get(fName);
-        if(data==null){
-            data = readFromFile(fName);    //耗时28ms
-            fileName2Data.put(fName, data);
-        }
-        //process with data
-    }
-}
-</code></pre><p>这样真的解决问题了吗，这样虽然只要有用户访问过文件a，那另一个用户想访问文件a，也会从fileName2Data中拿数据，然后也不会引起死循环。</p>
-<p>可是，如果你觉得这样就已经完了，那你把多线程也想的太简单了，骚年！<br>你会发现，1000个用户首次访问同一个文件的时候，居然读取了1000次文件（这是最极端的，可能只有几百）。What the fuckin hell!!!</p>
-<p>难道代码错了吗！</p>
-<p>好好分析下。Servlet是多线程的，那么</p>
-<pre><code>public class MyServlet extends Servlet{
-    private static ConcurrentHashMap&lt;String, String&gt; fileName2Data = new ConcurrentHashMap&lt;String, String&gt;();
-    private void processFile3(String fName){
-        String data = fileName2Data.get(fName);
-        //“偶然”-- 1000个线程同时到这里，同时发现data为null
-        if(data==null){
-            data = readFromFile(fName);    //耗时28ms
-            fileName2Data.put(fName, data);
-        }
-        //process with data
-    }
-}
-</code></pre><p>上面注释的“偶然”，这是完全有可能的，因此，这样做还是有问题。</p>
-<p>因此，可以自己简单的封装一个任务来处理。</p>
-<pre><code>public class MyServlet extends Servlet{
-
-    private static ConcurrentHashMap&lt;String, FutureTask&lt;String&gt;&gt; fileName2Data = new ConcurrentHashMap&lt;String, FutureTask&lt;String&gt;&gt;();
-
-    private static ExecutorService exec = Executors.newCachedThreadPool();
-
-
-    private void processFile3(String fName){
-        FutureTask&lt;String&gt; data = fileName2Data.get(fName);
-        //“偶然”-- 1000个线程同时到这里，同时发现data为null
-        if(data == null){
-            data = newFutureTask(fName);
-            FutureTask&lt;String&gt; old = fileName2Data.putIfAbsent(fName, data);
-            if(old == null){
-                exec.execute(data);
-            }else{
-                data = old;
-            }
-        }
-        Object d = null ;
-        try {
-            d = data.get();
-        } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        System.out.println(Thread.currentThread().getName() + &quot;method-&gt;processFile3&quot; + d);
-    }
-
-    private FutureTask&lt;String&gt; newFutureTask(final String file){
-        return  new FutureTask&lt;String&gt;(new Callable&lt;String&gt;(){
-            public String call(){
-                return readFromFile(file);
-            }
-
-            private String readFromFile(String file){
-                System.out.println(Thread.currentThread().getName() + &quot;method-&gt;readFromFile,do readFromFile&quot;);
-                return &quot; do readFromFile&quot;;
-            }
-        });
-    }
-}
-</code></pre><p>多线程最多的场景：web服务器本身；各种专用服务器（如游戏服务器）；</p>
-<p>多线程的常见应用场景：</p>
-<ul>
-<li>后台任务，例如：定时向大量（100w以上）的用户发送邮件；</li>
-<li>异步处理，例如：发微博、记录日志等；</li>
-<li>分布式计算</li>
-</ul>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="http://yoursite.com/2016/03/20/JAVA多线程的应用场景和目的/" data-id="cjju48ttw0000fcpxla6pgat0" class="article-share-link">Share</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/技术文章/">技术文章</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-关于对java多线程的一些基础认识" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2016/03/05/关于对java多线程的一些基础认识/" class="article-date">
-  <time datetime="2016-03-05T12:47:08.000Z" itemprop="datePublished">2016-03-05</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2016/03/05/关于对java多线程的一些基础认识/">关于对java多线程的一些基础认识</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="一-线程的生命周期及五种基本状态"><a href="#一-线程的生命周期及五种基本状态" class="headerlink" title="一.线程的生命周期及五种基本状态"></a>一.线程的生命周期及五种基本状态</h2><p><img src="https://i.imgur.com/IE4s56r.jpg" alt="五种基本状态"></p>
-<p>上图中基本上囊括了Java中多线程各重要知识点。掌握了上图中的各知识点，Java中的多线程也就基本上掌握了。主要包括：</p>
-<h4 id="Java线程具有五中基本状态"><a href="#Java线程具有五中基本状态" class="headerlink" title="Java线程具有五中基本状态"></a>Java线程具有五中基本状态</h4><ul>
-<li><p>新建状态（New）：当线程对象对创建后，即进入了新建状态，如：Thread t = new MyThread();</p>
-</li>
-<li><p>就绪状态（Runnable）：当调用线程对象的start()方法（t.start();），线程即进入就绪状态。处于就绪状态的线程，只是说明此线程已经做好了准备，随时等待CPU调度执行，并不是说执行了t.start()此线程立即就会执行；</p>
-</li>
-<li><p>运行状态（Running）：当CPU开始调度处于就绪状态的线程时，此时线程才得以真正执行，即进入到运行状态。注：就     绪状态是进入到运行状态的唯一入口，也就是说，线程要想进入运行状态执行，首先必须处于就绪状态中；</p>
-</li>
-<li><p>阻塞状态（Blocked）：处于运行状态中的线程由于某种原因，暂时放弃对CPU的使用权，停止执行，此时进入阻塞状态，直到其进入到就绪状态，才 有机会再次被CPU调用以进入到运行状态。根据阻塞产生的原因不同，阻塞状态又可以分为三种：</p>
-<ul>
-<li><p>等待阻塞：运行状态中的线程执行wait()方法，使本线程进入到等待阻塞状态；</p>
-</li>
-<li><p>同步阻塞 – 线程在获取synchronized同步锁失败(因为锁被其它线程所占用)，它会进入同步阻塞状态；</p>
-</li>
-<li><p>其他阻塞 – 通过调用线程的sleep()或join()或发出了I/O请求时，线程会进入到阻塞状态。当sleep()状态超时、join()等待线程终止或者超时、或者I/O处理完毕时，线程重新转入就绪状态。</p>
-</li>
+<li>如果在某躺排序中没有发生交换位置，那么我们可以认为该数组已经排好序了<ul>
+<li>因为我们每趟排序的目的就是将当前趟最大的数置换到对应的位置上，没有发生置换说明就已经排好序了</li>
 </ul>
 </li>
-<li><p>死亡状态（Dead）：线程执行完了或者因异常退出了run()方法，该线程结束生命周期。</p>
-</li>
 </ul>
-<h2 id="二-Java多线程的创建及启动"><a href="#二-Java多线程的创建及启动" class="headerlink" title="二. Java多线程的创建及启动"></a>二. Java多线程的创建及启动</h2><h6 id="Java中线程的创建常见有如三种基本形式"><a href="#Java中线程的创建常见有如三种基本形式" class="headerlink" title="Java中线程的创建常见有如三种基本形式"></a>Java中线程的创建常见有如三种基本形式</h6><h4 id="1-继承Thread类，重写该类的run-方法。"><a href="#1-继承Thread类，重写该类的run-方法。" class="headerlink" title="1.继承Thread类，重写该类的run()方法。"></a>1.继承Thread类，重写该类的run()方法。</h4><pre><code>class MyThread extends Thread {
+<p>代码如下：</p>
+<pre><code>//装载临时变量
+int temp;
 
-    private int i = 0;
+//记录是否发生了置换， 0 表示没有发生置换、 1 表示发生了置换
+int isChange;
 
-    @Override
-    public void run() {
-        for (i = 0; i &lt; 100; i++) {
-            System.out.println(Thread.currentThread().getName() + &quot; &quot; + i);
+//外层循环是排序的趟数
+for (int i = 0; i &lt; arrays.length - 1; i++) {
+
+    //每比较一趟就重新初始化为0
+    isChange = 0;
+
+    //内层循环是当前趟数需要比较的次数
+    for (int j = 0; j &lt; arrays.length - i - 1; j++) {
+
+        //前一位与后一位与前一位比较，如果前一位比后一位要大，那么交换
+        if (arrays[j] &gt; arrays[j + 1]) {
+            temp = arrays[j];
+            arrays[j] = arrays[j + 1];
+            arrays[j + 1] = temp;
+
+            //如果进到这里面了，说明发生置换了
+            isChange = 1;
+
         }
     }
-}
-
-public class ThreadTest {
-
-    public static void main(String[] args) {
-        for (int i = 0; i &lt; 100; i++) {
-            System.out.println(Thread.currentThread().getName() + &quot; &quot; + i);
-            if (i == 30) {
-                Thread myThread1 = new MyThread();     // 创建一个新的线程  myThread1  此线程进入新建状态
-                Thread myThread2 = new MyThread();     // 创建一个新的线程 myThread2 此线程进入新建状态
-                myThread1.start();                     // 调用start()方法使得线程进入就绪状态
-                myThread2.start();                     // 调用start()方法使得线程进入就绪状态
-            }
-        }
+    //如果比较完一趟没有发生置换，那么说明已经排好序了，不需要再执行下去了
+    if (isChange == 0) {
+        break;
     }
-}
-</code></pre><p>如上所示，继承Thread类，通过重写run()方法定义了一个新的线程类MyThread，其中run()方法的方法体代表了线程需要完成的任务，称之为线程执行体。当创建此线程类对象时一个新的线程得以创建，并进入到线程新建状态。通过调用线程对象引用的start()方法，使得该线程进入到就绪状态，此时此线程并不一定会马上得以执行，这取决于CPU调度时机。</p>
-<h4 id="2-实现Runnable接口，并重写该接口的run-方法，该run-方法同样是线程执行体，创建Runnable实现类的实例，并以此实例作为Thread类的target来创建Thread对象，该Thread对象才是真正的线程对象。"><a href="#2-实现Runnable接口，并重写该接口的run-方法，该run-方法同样是线程执行体，创建Runnable实现类的实例，并以此实例作为Thread类的target来创建Thread对象，该Thread对象才是真正的线程对象。" class="headerlink" title="2.实现Runnable接口，并重写该接口的run()方法，该run()方法同样是线程执行体，创建Runnable实现类的实例，并以此实例作为Thread类的target来创建Thread对象，该Thread对象才是真正的线程对象。"></a>2.实现Runnable接口，并重写该接口的run()方法，该run()方法同样是线程执行体，创建Runnable实现类的实例，并以此实例作为Thread类的target来创建Thread对象，该Thread对象才是真正的线程对象。</h4><pre><code>class MyRunnable implements Runnable {
-    private int i = 0;
-
-    @Override
-    public void run() {
-        for (i = 0; i &lt; 100; i++) {
-            System.out.println(Thread.currentThread().getName() + &quot; &quot; + i);
-        }
-    }
-}
-
-
-public class ThreadTest {
-
-    public static void main(String[] args) {
-        for (int i = 0; i &lt; 100; i++) {
-            System.out.println(Thread.currentThread().getName() + &quot; &quot; + i);
-            if (i == 30) {
-                Runnable myRunnable = new MyRunnable(); // 创建一个Runnable实现类的对象
-                Thread thread1 = new Thread(myRunnable); // 将myRunnable作为Thread target创建新的线程
-                Thread thread2 = new Thread(myRunnable);
-                thread1.start(); // 调用start()方法使得线程进入就绪状态
-                thread2.start();
-            }
-        }
-    }
-}
-</code></pre><p>相信以上两种创建新线程的方式大家都很熟悉了，那么Thread和Runnable之间到底是什么关系呢？我们首先来看一下下面这个例子。</p>
-<pre><code>public class ThreadTest {
-
-    public static void main(String[] args) {
-        for (int i = 0; i &lt; 100; i++) {
-            System.out.println(Thread.currentThread().getName() + &quot; &quot; + i);
-            if (i == 30) {
-                Runnable myRunnable = new MyRunnable();
-                Thread thread = new MyThread(myRunnable);
-                thread.start();
-            }
-        }
-    }
-}
-
-class MyRunnable implements Runnable {
-    private int i = 0;
-
-    @Override
-    public void run() {
-        System.out.println(&quot;in MyRunnable run&quot;);
-        for (i = 0; i &lt; 100; i++) {
-            System.out.println(Thread.currentThread().getName() + &quot; &quot; + i);
-        }
-    }
-}
-
-class MyThread extends Thread {
-
-    private int i = 0;
-
-    public MyThread(Runnable runnable){
-        super(runnable);
-    }
-
-    @Override
-    public void run() {
-        System.out.println(&quot;in MyThread run&quot;);
-        for (i = 0; i &lt; 100; i++) {
-            System.out.println(Thread.currentThread().getName() + &quot; &quot; + i);
-        }
-    }
-}
-</code></pre><p>同样的，与实现Runnable接口创建线程方式相似，不同的地方在于</p>
-<pre><code>Thread thread = new MyThread(myRunnable);
-</code></pre><p>那么这种方式可以顺利创建出一个新的线程么？答案是肯定的。至于此时的线程执行体到底是MyRunnable接口中的run()方法还是MyThread类中的run()方法呢？通过输出我们知道线程执行体是MyThread类中的run()方法。其实原因很简单，因为Thread类本身也是实现了Runnable接口，而run()方法最先是在Runnable接口中定义的方法。</p>
-<pre><code>public interface Runnable {
-
-    public abstract void run();
-
-}    
-</code></pre><p>我们看一下Thread类中对Runnable接口中run()方法的实现：</p>
-<pre><code>@Override
-public void run() {
-    if (target != null) {
-        target.run();
-    }
-}
-</code></pre><p>也就是说，当执行到Thread类中的run()方法时，会首先判断target是否存在，存在则执行target中的run()方法，也就是实现了Runnable接口并重写了run()方法的类中的run()方法。但是上述给到的列子中，由于多态的存在，根本就没有执行到Thread类中的run()方法，而是直接先执行了运行时类型即MyThread类中的run()方法。</p>
-<h4 id="3-使用Callable和Future接口创建线程。具体是创建Callable接口的实现类，并实现clall-方法。并使用FutureTask类来包装Callable实现类的对象，且以此FutureTask对象作为Thread对象的target来创建线程。"><a href="#3-使用Callable和Future接口创建线程。具体是创建Callable接口的实现类，并实现clall-方法。并使用FutureTask类来包装Callable实现类的对象，且以此FutureTask对象作为Thread对象的target来创建线程。" class="headerlink" title="3.使用Callable和Future接口创建线程。具体是创建Callable接口的实现类，并实现clall()方法。并使用FutureTask类来包装Callable实现类的对象，且以此FutureTask对象作为Thread对象的target来创建线程。"></a>3.使用Callable和Future接口创建线程。具体是创建Callable接口的实现类，并实现clall()方法。并使用FutureTask类来包装Callable实现类的对象，且以此FutureTask对象作为Thread对象的target来创建线程。</h4><p>看着好像有点复杂，直接来看一个例子就清晰了。</p>
-<pre><code>public class ThreadTest {
-
-    public static void main(String[] args) {
-
-        Callable&lt;Integer&gt; myCallable = new MyCallable();    // 创建MyCallable对象
-        FutureTask&lt;Integer&gt; ft = new FutureTask&lt;Integer&gt;(myCallable); //使用FutureTask来包装MyCallable对象
-
-        for (int i = 0; i &lt; 100; i++) {
-            System.out.println(Thread.currentThread().getName() + &quot; &quot; + i);
-            if (i == 30) {
-                Thread thread = new Thread(ft);   //FutureTask对象作为Thread对象的target创建新的线程
-                thread.start();                      //线程进入到就绪状态
-            }
-        }
-
-        System.out.println(&quot;主线程for循环执行完毕..&quot;);
-
-        try {
-            int sum = ft.get();            //取得新创建的新线程中的call()方法返回的结果
-            System.out.println(&quot;sum = &quot; + sum);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        }
-
-    }
-}
-
-
-class MyCallable implements Callable&lt;Integer&gt; {
-
-    private int i = 0;
-
-    // 与run()方法不同的是，call()方法具有返回值
-    @Override
-    public Integer call() {
-        int sum = 0;
-        for (; i &lt; 100; i++) {
-            System.out.println(Thread.currentThread().getName() + &quot; &quot; + i);
-            sum += i;
-        }
-        return sum;
-    }
-
-}
-</code></pre><p>首先，我们发现，在实现Callable接口中，此时不再是run()方法了，而是call()方法，此call()方法作为线程执行体，同时还具有返回值！在创建新的线程时，是通过FutureTask来包装MyCallable对象，同时作为了Thread对象的target。那么看下FutureTask类的定义：</p>
-<pre><code>public class FutureTask&lt;V&gt; implements RunnableFuture&lt;V&gt; {
-    //....
-}
-
-public interface RunnableFuture&lt;V&gt; extends Runnable, Future&lt;V&gt; {
-    void run();
-}
-</code></pre><p>于是，我们发现FutureTask类实际上是同时实现了Runnable和Future接口，由此才使得其具有Future和Runnable双重特性。通过Runnable特性，可以作为Thread对象的target，而Future特性，使得其可以取得新创建线程中的call()方法的返回值。</p>
-<p>执行下此程序，我们发现sum = 4950永远都是最后输出的。而“主线程for循环执行完毕..”则很可能是在子线程循环中间输出。由CPU的线程调度机制，我们知道，“主线程for循环执行完毕..”的输出时机是没有任何问题的，那么为什么sum =4950会永远最后输出呢？</p>
-<p>原因在于通过ft.get()方法获取子线程call()方法的返回值时，当子线程此方法还未执行完毕，ft.get()方法会一直阻塞，直到call()方法执行完毕才能取到返回值。</p>
-<p>上述主要讲解了三种常见的线程创建方式，对于线程的启动而言，都是调用线程对象的start()方法，需要特别注意的是：<br>不能对同一线程对象两次调用start()方法。</p>
-<h2 id="三-Java多线程的就绪、运行和死亡状态"><a href="#三-Java多线程的就绪、运行和死亡状态" class="headerlink" title="三. Java多线程的就绪、运行和死亡状态"></a>三. Java多线程的就绪、运行和死亡状态</h2><ul>
-<li><p>就绪状态转换为运行状态：当此线程得到处理器资源；</p>
-</li>
-<li><p>运行状态转换为就绪状态：当此线程主动调用yield()方法或在运行过程中失去处理器资源。</p>
-</li>
-<li><p>运行状态转换为死亡状态：当此线程线程执行体执行完毕或发生了异常。</p>
-</li>
-</ul>
-<p>此处需要特别注意的是：当调用线程的yield()方法时，线程从运行状态转换为就绪状态，但接下来CPU调度就绪状态中的哪个线程具有一定的随机性，因此，可能会出现A线程调用了yield()方法后，接下来CPU仍然调度了A线程的情况。</p>
-<p>由于实际的业务需要，常常会遇到需要在特定时机终止某一线程的运行，使其进入到死亡状态。目前最通用的做法是设置一boolean型的变量，当条件满足时，使线程执行体快速执行完毕。如：</p>
-<pre><code>public class ThreadTest {
-
-    public static void main(String[] args) {
-
-        MyRunnable myRunnable = new MyRunnable();
-        Thread thread = new Thread(myRunnable);
-
-        for (int i = 0; i &lt; 100; i++) {
-            System.out.println(Thread.currentThread().getName() + &quot; &quot; + i);
-            if (i == 30) {
-                thread.start();
-            }
-            if(i == 40){
-                myRunnable.stopThread();
-            }
-        }
-    }
-}
-
-class MyRunnable implements Runnable {
-
-    private boolean stop;
-
-    @Override
-    public void run() {
-        for (int i = 0; i &lt; 100 &amp;&amp; !stop; i++) {
-            System.out.println(Thread.currentThread().getName() + &quot; &quot; + i);
-        }
-    }
-
-    public void stopThread() {
-        this.stop = true;
-    }
-
 }
 </code></pre>
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2016/03/05/关于对java多线程的一些基础认识/" data-id="cjju48tuh0004fcpxxy94lfca" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2016/06/03/冒泡排序/" data-id="cjjztqw850004vkpxl928y5fd" class="article-share-link">Share</a>
       
       
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/技术文章/">技术文章</a></li></ul>
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/数据结构与算法/">数据结构与算法</a></li></ul>
 
     </footer>
   </div>
@@ -495,10 +163,10 @@ class MyRunnable implements Runnable {
 
 
   
-    <article id="post-my-new-post" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-递归" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2015/11/05/my-new-post/" class="article-date">
-  <time datetime="2015-11-05T15:47:08.000Z" itemprop="datePublished">2015-11-05</time>
+    <a href="/2016/06/03/递归/" class="article-date">
+  <time datetime="2016-06-03T14:16:29.000Z" itemprop="datePublished">2016-06-03</time>
 </a>
     
   </div>
@@ -509,7 +177,7 @@ class MyRunnable implements Runnable {
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2015/11/05/my-new-post/">Github+hexo 搭建个人独立博客</a>
+      <a class="article-title" href="/2016/06/03/递归/">递归</a>
     </h1>
   
 
@@ -517,67 +185,416 @@ class MyRunnable implements Runnable {
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="关于自建独立博客"><a href="#关于自建独立博客" class="headerlink" title="关于自建独立博客"></a>关于自建独立博客</h2><hr>
-<p>这里引用某位知友的原话：</p>
-<pre><code>自主权比较高，博客平台的话会有这样那样的限制，技术上，可能会限制插件的代码使用，内容上，各种审查以防触雷以及广告等等。
-</code></pre><p>作为一个技术宅，没有比“show me the code”“show me the writings”更有说服力。当然这话是我说的。</p>
-<h2 id="什么是hexo"><a href="#什么是hexo" class="headerlink" title="什么是hexo"></a>什么是hexo</h2><hr>
-<p>一个基于Node.js的静态博客程序，可以方便的生成静态网页托管在github上，可以绑定自己的域名，用markdown写文章（简直不要太爽）。</p>
-<pre><code>快速、简单且功能强大的 Node.js 博客框架。
-A fast, simple &amp; powerful blog framework, powered by Node.js.
-</code></pre><h2 id="为什么要用hexo"><a href="#为什么要用hexo" class="headerlink" title="为什么要用hexo"></a>为什么要用hexo</h2><hr>
+        <h2 id="递归介绍"><a href="#递归介绍" class="headerlink" title="递归介绍"></a>递归介绍</h2><p>递归在程序语言中简单的理解是：方法自己调用自己。</p>
+<p>递归其实和循环是非常像的，循环都可以改写成递归，递归未必能改写成循环，这是一个充分不必要的条件。</p>
 <ul>
-<li>不可思议的快速，眨眼即可完成</li>
-<li>支持markdown，支持markdown，支持markdown，重要的话说三遍</li>
-<li>一道指令即可将文章部署到 GitHub Pages</li>
-<li>高扩展性、自定义性</li>
-<li>兼容于 Windows &amp; Mac &amp; Linux</li>
-<li>易用。不仅部署简单，平时使用中仅需要hexo new、hexo generate、hexo server、hexo deploy四个命令。</li>
-<li>轻、文件少、小，易理解，方便自定义，</li>
+<li>那么，有了循环，为什么还要用递归呢？？在某些情况下(费波纳切数列，汉诺塔)，使用递归会比循环简单很多很多</li>
 </ul>
-<h2 id="谁能使用hexo"><a href="#谁能使用hexo" class="headerlink" title="谁能使用hexo"></a>谁能使用hexo</h2><hr>
-<p>这是一个免费开源的博客程序，任何人都可以使用和修改，整个独立博客搭建过程仅需要用到Github,Git,Markdown,Node.js这样的工具。好多插件、widget都需要自己安装、设置。比较适合那些有一定计算机基础，喜欢折腾的人。下面我们开始吧!</p>
-<h2 id="搭建hexo博客（一）"><a href="#搭建hexo博客（一）" class="headerlink" title="搭建hexo博客（一）"></a>搭建hexo博客（一）</h2><hr>
-<p><strong>注意：本节教程只针对Windows用户，Linux和Mac用户请移步</strong></p>
-<h3 id="安装Git"><a href="#安装Git" class="headerlink" title="安装Git"></a>安装Git</h3><hr>
-<p>下载<a href="http://pan.baidu.com/s/1bcsvP8" title="git" target="_blank" rel="noopener">msysgit</a>,版本最好不要用高于1.8.5，有bug，至少截至2015-12-7年为止，这个bug是有的，此处用的是1.8.4。</p>
-<h3 id="安装Node-js"><a href="#安装Node-js" class="headerlink" title="安装Node.js"></a>安装Node.js</h3><hr>
-<p>在 Windows 环境下安装 Node.js很简单，仅须<a href="http://pan.baidu.com/s/1dDYO1w9" target="_blank" rel="noopener">点此下载</a>安装文件并一步一步往下执行即可完成安装。</p>
-<h3 id="安装hexo"><a href="#安装hexo" class="headerlink" title="安装hexo"></a>安装hexo</h3><hr>
-<p>利用 npm 命令即可安装。（在任意位置点击鼠标右键，选择Git bash）</p>
-<pre><code>npm install -g hexo
-</code></pre><h3 id="创建hexo文件夹"><a href="#创建hexo文件夹" class="headerlink" title="创建hexo文件夹"></a>创建hexo文件夹</h3><hr>
-<p>安装完成后，在你喜爱的文件夹下（如H:\hexo），执行以下指令(在H:\hexo内点击鼠标右键，选择Git bash)，Hexo 即会自动在目标文件夹建立网站所需要的所有文件。</p>
-<pre><code>hexo init
-</code></pre><h3 id="安装依赖包"><a href="#安装依赖包" class="headerlink" title="安装依赖包"></a>安装依赖包</h3><hr>
-<pre><code>npm install
-</code></pre><h3 id="本地查看"><a href="#本地查看" class="headerlink" title="本地查看"></a>本地查看</h3><hr>
-<p>现在我们已经搭建起本地的hexo博客了，执行以下命令(在H:\hexo)，然后到浏览器输入<code>localhost:4000</code>看看。</p>
-<pre><code>hexo generate
-hexo server
-</code></pre><p>至此，本地博客已经搭建起来了，嘘~~~现在只有你自己能看到，别人是看不到的。下面，我们要部署到Github，让所有人都能看到你的博客。</p>
-<h3 id="注册Github账号"><a href="#注册Github账号" class="headerlink" title="注册Github账号"></a>注册Github账号</h3><hr>
-<p>已有账号可以跳过，没有的，<a href="https://www.github.com" target="_blank" rel="noopener">请在此进行注册</a>，很简单，这里就不介绍了。</p>
-<h3 id="创建repository"><a href="#创建repository" class="headerlink" title="创建repository"></a>创建repository</h3><hr>
-<p>在自己Github主页右下角，创建一个新的repository。比如我的Github账号是guxingxianyue，那么我应该创建的repository名字应该是guxingxianyue.github.io。</p>
-<h3 id="部署到Github"><a href="#部署到Github" class="headerlink" title="部署到Github"></a>部署到Github</h3><hr>
-<p>编辑_config.yml(在H:\hexo下)。你在部署时，要把下面的guxingxianyue都换成你的账号名。</p>
-<pre><code>deploy:
-  type: git
-  repository: https://github.com/guxingxianyue/guxingxianyue.github.io.git
-  branch: master
-</code></pre><h3 id="执行下列指令即可完成部署。"><a href="#执行下列指令即可完成部署。" class="headerlink" title="执行下列指令即可完成部署。"></a>执行下列指令即可完成部署。</h3><hr>
-<pre><code>npm install hexo-deployer-git --save(有的哥们竟然不需要这个指令也能部署成功)
-hexo generate
-hexo deploy
-</code></pre><p><strong>注意：</strong>有些新用户需要设置ssh，否则上述命令会失败。ssh 的介绍和设置方法请看<a href="https://help.github.com/articles/generating-ssh-keys/" target="_blank" rel="noopener">官方教程</a>不用担心，很简单。</p>
-<p><strong>记住：</strong>每次修改本地文件后，需要hexo generate才能保存。每次使用命令时，都要在H:\hexo目录下右键选择Git Bash指令窗口。</p>
-<p>Okay,至此博客已经完全搭建起来了，在浏览器访问guxingxianyue.github.io就能看到你的成就了！Good luck。</p>
+<p>想要用递归必须知道两个条件：</p>
+<ul>
+<li>递归出口(终止递归的条件)</li>
+<li>递归表达式(规律)</li>
+</ul>
+<p>技巧：在递归中常常是将问题切割成两个部分(1和整体的思想)，这能够让我们快速找到递归表达式(规律)</p>
+<h2 id="求和"><a href="#求和" class="headerlink" title="求和"></a>求和</h2><p>如果我们使用for循环来进行求和1+2+3+4+….+100，那是很简单的：</p>
+<pre><code>int sum = 0;
+for (int i = 1; i &lt;= 100; i++) {
+
+    sum = sum + i;
+
+}
+System.out.println(&quot;公众号：Java3y：&quot; + sum);
+</code></pre><p>for循环都可以使用递归来进行改写，而使用递归必须要知道两个条件：</p>
+<ul>
+<li>递归出口</li>
+<li>递归表达式(规律)</li>
+</ul>
+<p>我们来找出它的规律：1+2+3+…+n，这是一个求和的运算，那么我们可以假设X=1+2+3+…+n，可以将1+2+3+…+(n-1)看成是一个整体。而这个整体做的事又和我们的初始目的(求和)相同。以我们的高中数学知识我们又可以将上面的式子看成X=sum(n-1)+n</p>
+<p>我们找到我们的递归表达式(规律)，它就是sum(n-1)+n,那递归出口呢，这个题目的递归出口就有很多了，我列举一下：</p>
+<p>如果n=1时，那么就返回1<br>如果n=2时，那么就返回(1+2)=3<br>如果n=3时，那么就返回(1+2+3)=6</p>
+<p>递归表达式和递归出口我们都找到了，下面就代码演示：</p>
+<p>递归出口为1：</p>
+<pre><code>public static void main(String[] args) {
+    System.out.println(sum(100));
+}
+
+/**
+ *
+ * @param n 要加到的数字，比如题目的100
+ * @return
+ */
+public static int sum(int n) {
+
+    if (n == 1) {
+        return 1;
+    } else {
+        return sum(n - 1) + n;
+    }
+}
+</code></pre><h2 id="数组内部的最大值"><a href="#数组内部的最大值" class="headerlink" title="数组内部的最大值"></a>数组内部的最大值</h2><p>使用的是循环，那么我们通常这样实现：</p>
+<pre><code>int[] arrays = {2, 3, 4, 5, 1, 5, 2, 9, 5, 6, 8, 3, 2};
+
+//将数组的第一个假设是最大值
+int max = arrays[0];
+
+for (int i = 1; i &lt; arrays.length; i++) {
+
+    if (arrays[i] &gt; max) {
+        max = arrays[i];
+    }
+}
+
+System.out.println(max);
+</code></pre><p>如果我们用递归的话，那怎么用弄呢？首先还是先要找到递归表达式(规律)和递归出口</p>
+<ul>
+<li>我们又可以运用1和整体的思想来找到规律<ul>
+<li>将数组第一个数-&gt;2与数组后面的数-&gt;{3, 4, 5, 1, 5, 2, 9, 5, 6, 8, 3, 2}进行切割，将数组后面的数看成是一个整体X={3, 4, 5, 1, 5, 2, 9, 5, 6, 8, 3, 2}，那么我们就可以看成是第一个数和一个整体进行比较if(2&gt;X) return 2  else(2&lt;X) return X</li>
+<li>而我们要做的就是找出这个整体的最大值与2进行比较。找出整体的最大值又是和我们的初始目的(找出最大值)是一样的</li>
+<li>也就可以写成if( 2&gt;findMax() )return 2 else return findMax()</li>
+</ul>
+</li>
+<li>递归出口，如果数组只有1个元素时，那么这个数组最大值就是它了。</li>
+</ul>
+<p>使用到数组的时候，我们通常为数组设定左边界和右边界，这样比较好地进行切割。</p>
+<ul>
+<li>L表示左边界，往往表示的是数组第一个元素，也就会赋值为0(角标为0是数组的第一个元素)</li>
+<li>R表示右边界，往往表示的是数组的长度，也就会赋值为arrays.length-1（长度-1在角标中才是代表最后一个元素)</li>
+</ul>
+<p>那么我们递归的写法就是：</p>
+<pre><code>public static void main(String[] args) {
+
+      int[] arrays = {2, 3, 4, 5, 1, 5, 2, 9, 5, 6, 8, 3, 1};
+
+      System.out.println(findMax(arrays, 0, arrays.length - 1));
+
+  }
+
+
+  /**
+   * 递归，找出数组最大的值
+   * @param arrays 数组
+   * @param L      左边界，第一个数
+   * @param R      右边界，数组的长度
+   * @return
+   */
+
+  public static int findMax(int[] arrays, int L, int R) {
+
+      //如果该数组只有一个数，那么最大的就是该数组第一个值了
+      if (L == R) {
+          return arrays[L];
+      } else {
+
+          int a = arrays[L];
+          int b = findMax(arrays, L + 1, R);//找出整体的最大值
+
+          if (a &gt; b) {
+              return a;
+          } else {
+              return b;
+          }
+      }
+
+  }
+</code></pre><h2 id="斐波那契数列"><a href="#斐波那契数列" class="headerlink" title="斐波那契数列"></a>斐波那契数列</h2><p>菲波那切数列长这个样子：{1 1 2 3 5 8 13 21 34 55….. n }</p>
+<p>数学好的同学可能很容易就找到规律了：前两项之和等于第三项</p>
+<p>如果让我们求出第n项是多少，那么我们就可以很简单写出对应的递归表达式了：Z = (n-2) + (n-1)</p>
+<p>递归出口在本题目是需要有两个的，因为它是前两项加起来才得出第三项的值</p>
+<p>同样地，那么我们的递归出口可以写成这样：</p>
+<pre><code>if(n==1) retrun 1;
+if(n==2) return 2;
+</code></pre><p>看一下完整的代码:</p>
+<pre><code>public static void main(String[] args) {
+
+    int[] arrays = {1, 1, 2, 3, 5, 8, 13, 21};
+    //bubbleSort(arrays, 0, arrays.length - 1);
+
+    int fibonacci = fibonacci(10);
+    System.out.println(fibonacci);
+
+}
+
+public static int fibonacci(int n) {
+    if (n == 1) {
+        return 1;
+    } else if (n == 2) {
+        return 1;
+    } else {
+        return (fibonacci(n - 1) + fibonacci(n - 2));
+    }
+
+}
+</code></pre><h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>要使用递归首先要知道两件事：</p>
+<ul>
+<li>递归出口(终止递归的条件)</li>
+<li>递归表达式(规律)</li>
+</ul>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2015/11/05/my-new-post/" data-id="cjju48tv10006fcpxegwn7t2i" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2016/06/03/递归/" data-id="cjjztqw870005vkpx4sok4yux" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/数据结构与算法/">数据结构与算法</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-Mybatis【与Spring整合】" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2016/04/11/Mybatis【与Spring整合】/" class="article-date">
+  <time datetime="2016-04-11T12:36:29.000Z" itemprop="datePublished">2016-04-11</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2016/04/11/Mybatis【与Spring整合】/">Mybatis【与Spring整合】</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h4 id="导入jar包"><a href="#导入jar包" class="headerlink" title="导入jar包"></a>导入jar包</h4><p>以下使用的是Oracle数据库来进行测试</p>
+<ul>
+<li>aopalliance.jar</li>
+<li>asm-3.3.1.jar</li>
+<li>aspectjweaver.jar</li>
+<li>c3p0-0.9.1.2.jar</li>
+<li>cglib-2.2.2.jar</li>
+<li>commons-logging.jar</li>
+<li>log4j-1.2.16.jar</li>
+<li>mybatis-3.1.1.jar</li>
+<li>mybatis-spring-1.1.1.jar</li>
+<li>mysql-connector-java-5.1.7-bin.jar</li>
+<li>ojdbc5.jar</li>
+<li>org.springframework.aop-3.0.5.RELEASE.jar</li>
+<li>org.springframework.asm-3.0.5.RELEASE.jar</li>
+<li>org.springframework.beans-3.0.5.RELEASE.jar</li>
+<li>org.springframework.context-3.0.5.RELEASE.jar</li>
+<li>org.springframework.core-3.0.5.RELEASE.jar</li>
+<li>org.springframework.expression-3.0.5.RELEASE.jar</li>
+<li>org.springframework.jdbc-3.0.5.RELEASE.jar</li>
+<li>org.springframework.orm-3.0.5.RELEASE.jar</li>
+<li>org.springframework.transaction-3.0.5.RELEASE.jar</li>
+<li>org.springframework.web.servlet-3.0.5.RELEASE.jar</li>
+<li>org.springframework.web-3.0.5.RELEASE.jar</li>
+</ul>
+<h4 id="创建表"><a href="#创建表" class="headerlink" title="创建表"></a>创建表</h4><p>create table emps(<br>  eid number(5) primary key,<br>  ename varchar2(20),<br>  esal number(8,2),<br>  esex varchar2(2)<br>);</p>
+<h4 id="创建实体"><a href="#创建实体" class="headerlink" title="创建实体"></a>创建实体</h4><pre><code>package entity;
+
+/**
+ * 员工
+ * @author AdminTC
+ */
+public class Emp {
+    private Integer id;
+    private String name;
+    private Double sal;
+    private String sex;
+    public Emp(){}
+    public Emp(Integer id, String name, Double sal, String sex) {
+        this.id = id;
+        this.name = name;
+        this.sal = sal;
+        this.sex = sex;
+    }
+    public Integer getId() {
+        return id;
+    }
+    public void setId(Integer id) {
+        this.id = id;
+    }
+    public String getName() {
+        return name;
+    }
+    public void setName(String name) {
+        this.name = name;
+    }
+    public Double getSal() {
+        return sal;
+    }
+    public void setSal(Double sal) {
+        this.sal = sal;
+    }
+    public String getSex() {
+        return sex;
+    }
+    public void setSex(String sex) {
+        this.sex = sex;
+    }
+}
+</code></pre><h4 id="创建实体与表的映射文件"><a href="#创建实体与表的映射文件" class="headerlink" title="创建实体与表的映射文件"></a>创建实体与表的映射文件</h4><p>&lt;?xml version=”1.0” encoding=”UTF-8” ?&gt;<br>&lt;!DOCTYPE mapper PUBLIC “-//mybatis.org//DTD Mapper 3.0//EN”<br>“<a href="http://mybatis.org/dtd/mybatis-3-mapper.dtd&quot;&gt;" target="_blank" rel="noopener">http://mybatis.org/dtd/mybatis-3-mapper.dtd&quot;&gt;</a></p>
+<mapper namespace="empNamespace"><br><br>    <resultmap type="entity.Emp" id="empMap"><br>        <id property="id" column="eid"><br>        <result property="name" column="ename"><br>        <result property="sal" column="esal"><br>        <result property="sex" column="esex"><br>    </result></result></result></id></resultmap><br><br>    <!-- 增加员工 --><br>    <insert id="add" parametertype="entity.Emp"><br>        insert into emps(eid,ename,esal,esex) values(#{id},#{name},#{sal},#{sex})<br>    </insert><br><br></mapper>
+
+<h4 id="创建Mybatis映射文件配置环境"><a href="#创建Mybatis映射文件配置环境" class="headerlink" title="创建Mybatis映射文件配置环境"></a>创建Mybatis映射文件配置环境</h4><p>数据库的信息交由Spring管理！Mybatis配置文件负责加载对应映射文件即可</p>
+<pre><code>&lt;configuration&gt;
+    &lt;mappers&gt;
+        &lt;mapper resource=&quot;zhongfucheng/entity/EmpMapper.xml&quot;/&gt;
+
+    &lt;/mappers&gt;
+&lt;/configuration&gt;
+</code></pre><h4 id="配置Spring核心过滤器【也是加载总配置文件】"><a href="#配置Spring核心过滤器【也是加载总配置文件】" class="headerlink" title="配置Spring核心过滤器【也是加载总配置文件】"></a>配置Spring核心过滤器【也是加载总配置文件】</h4><pre><code>&lt;!-- 核心springmvc核心控制器 --&gt;
+&lt;servlet&gt;
+    &lt;servlet-name&gt;DispatcherServlet&lt;/servlet-name&gt;
+    &lt;servlet-class&gt;org.springframework.web.servlet.DispatcherServlet&lt;/servlet-class&gt;
+    &lt;init-param&gt;
+        &lt;param-name&gt;contextConfigLocation&lt;/param-name&gt;
+        &lt;param-value&gt;classpath:spring.xml&lt;/param-value&gt;
+    &lt;/init-param&gt;
+&lt;/servlet&gt;
+&lt;servlet-mapping&gt;
+    &lt;servlet-name&gt;DispatcherServlet&lt;/servlet-name&gt;
+    &lt;url-pattern&gt;*.action&lt;/url-pattern&gt;
+&lt;/servlet-mapping&gt;
+</code></pre><h4 id="配置数据库信息、事务"><a href="#配置数据库信息、事务" class="headerlink" title="配置数据库信息、事务"></a>配置数据库信息、事务</h4><pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot;
+       xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot; xmlns:tx=&quot;http://www.springframework.org/schema/tx&quot;
+       xmlns:aop=&quot;http://www.springframework.org/schema/aop&quot;
+       xmlns:context=&quot;http://www.springframework.org/schema/context&quot;
+       xsi:schemaLocation=&quot;http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd&quot;&gt;
+
+
+    &lt;!-- 配置C3P0连接池,目的：管理数据库连接 --&gt;
+    &lt;bean id=&quot;comboPooledDataSourceID&quot; class=&quot;com.mchange.v2.c3p0.ComboPooledDataSource&quot;&gt;
+        &lt;property name=&quot;driverClass&quot; value=&quot;oracle.jdbc.driver.OracleDriver&quot;/&gt;
+        &lt;property name=&quot;jdbcUrl&quot; value=&quot;jdbc:oracle:thin:@127.0.0.1:1521:test&quot;/&gt;
+        &lt;property name=&quot;user&quot; value=&quot;scott&quot;/&gt;
+        &lt;property name=&quot;password&quot; value=&quot;tiger&quot;/&gt;
+    &lt;/bean&gt;
+
+
+    &lt;!-- 配置SqlSessionFactoryBean，目的：加载mybaits配置文件和映射文件，即替代原Mybatis工具类的作用 --&gt;
+    &lt;bean id=&quot;sqlSessionFactoryBeanID&quot; class=&quot;org.mybatis.spring.SqlSessionFactoryBean&quot;&gt;
+        &lt;property name=&quot;configLocation&quot; value=&quot;classpath:mybatis.xml&quot;/&gt;
+        &lt;property name=&quot;dataSource&quot; ref=&quot;comboPooledDataSourceID&quot;/&gt;
+    &lt;/bean&gt;
+
+
+    &lt;!-- 配置Mybatis的事务管理器，即因为Mybatis底层用的是JDBC事务管事器，所以在这里依然配置JDBC事务管理器 --&gt;
+    &lt;bean id=&quot;dataSourceTransactionManagerID&quot; class=&quot;org.springframework.jdbc.datasource.DataSourceTransactionManager&quot;&gt;
+        &lt;property name=&quot;dataSource&quot; ref=&quot;comboPooledDataSourceID&quot;/&gt;
+    &lt;/bean&gt;
+
+    &lt;!-- 配置事务通知，即让哪些方法需要事务支持 --&gt;
+    &lt;tx:advice id=&quot;tx&quot; transaction-manager=&quot;dataSourceTransactionManagerID&quot;&gt;
+        &lt;tx:attributes&gt;
+            &lt;tx:method name=&quot;*&quot; propagation=&quot;REQUIRED&quot;/&gt;
+        &lt;/tx:attributes&gt;
+    &lt;/tx:advice&gt;
+
+    &lt;!-- 配置事务切面，即让哪些包下的类需要事务 --&gt;
+    &lt;aop:config&gt;
+        &lt;aop:pointcut id=&quot;pointcut&quot; expression=&quot;execution(* cn.com.service.*.*(..))&quot;/&gt;
+        &lt;aop:advisor advice-ref=&quot;tx&quot; pointcut-ref=&quot;pointcut&quot;/&gt;
+    &lt;/aop:config&gt;
+
+    &lt;!--扫描注解--&gt;
+    &lt;context:component-scan base-package=&quot;cn.com&quot;/&gt;
+
+
+&lt;/beans&gt;
+</code></pre><h4 id="创建Dao、Service、Action"><a href="#创建Dao、Service、Action" class="headerlink" title="创建Dao、Service、Action"></a>创建Dao、Service、Action</h4><pre><code>@Repository
+public class EmpDao {
+    @Autowired
+    private SqlSessionFactory sqlSessionFactory;
+    /**
+     * 增加员工
+     */
+    public void add(Emp emp) throws Exception {
+        SqlSession sqlSession = sqlSessionFactory.openSession();
+        sqlSession.insert(&quot;empNamespace.add&quot;, emp);
+        sqlSession.close();
+    }
+
+
+}
+
+@Service
+public class EmpService {
+
+
+    @Autowired
+    private zhongfucheng.dao.EmpDao empDao;
+    public void addEmp(Emp emp) throws Exception {
+        empDao.add(emp);
+    }
+}
+
+@Controller
+@RequestMapping(&quot;/emp&quot;)
+public class EmpAction {
+
+    @Autowired
+    private EmpService empService;
+
+    @RequestMapping(&quot;/register&quot;)
+    public void register(Emp emp) throws Exception {
+        empService.addEmp(emp);
+        System.out.println(&quot;注册成功&quot;);
+    }
+
+}
+</code></pre><h4 id="JSP页面测试"><a href="#JSP页面测试" class="headerlink" title="JSP页面测试"></a>JSP页面测试</h4><pre><code>&lt;%@ page language=&quot;java&quot; pageEncoding=&quot;UTF-8&quot;%&gt;
+&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.01 Transitional//EN&quot;&gt;
+&lt;html&gt;
+  &lt;head&gt;
+    &lt;title&gt;员工注册&lt;/title&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;form action=&quot;${pageContext.request.contextPath}/emp/register.action&quot; method=&quot;POST&quot;&gt;
+        &lt;table border=&quot;2&quot; align=&quot;center&quot;&gt;
+            &lt;tr&gt;
+                &lt;th&gt;编号&lt;/th&gt;
+                &lt;td&gt;&lt;input type=&quot;text&quot; name=&quot;id&quot;&gt;&lt;/td&gt;
+            &lt;/tr&gt;
+            &lt;tr&gt;
+                &lt;th&gt;姓名&lt;/th&gt;
+                &lt;td&gt;&lt;input type=&quot;text&quot; name=&quot;name&quot;&gt;&lt;/td&gt;
+            &lt;/tr&gt;
+            &lt;tr&gt;
+                &lt;th&gt;薪水&lt;/th&gt;
+                &lt;td&gt;&lt;input type=&quot;text&quot; name=&quot;sal&quot;&gt;&lt;/td&gt;
+            &lt;/tr&gt;
+            &lt;tr&gt;
+                &lt;th&gt;性别&lt;/th&gt;
+                &lt;td&gt;
+                    &lt;input type=&quot;radio&quot; name=&quot;sex&quot; value=&quot;男&quot;/&gt;男
+                    &lt;input type=&quot;radio&quot; name=&quot;sex&quot; value=&quot;女&quot; checked/&gt;女
+                &lt;/td&gt;
+            &lt;/tr&gt;
+            &lt;tr&gt;
+                &lt;td colspan=&quot;2&quot; align=&quot;center&quot;&gt;
+                    &lt;input type=&quot;submit&quot; value=&quot;注册&quot;/&gt;
+                &lt;/td&gt;
+            &lt;/tr&gt;
+        &lt;/table&gt;
+    &lt;/form&gt;     
+  &lt;/body&gt;
+&lt;/html&gt;
+</code></pre><h4 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h4><ul>
+<li>web.xml加载Spring配置文件</li>
+<li>Spring配置文件配置数据连接池，SessionFactory、事务、扫描注解</li>
+<li>Mybatis总配置文件、实体以及相对应的映射文件</li>
+<li>将映射文件加入到总配置文件中</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2016/04/11/Mybatis【与Spring整合】/" data-id="cjjztqw8l000dvkpxioh8nk6x" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/技术文章/">技术文章</a></li></ul>
@@ -589,6 +606,999 @@ hexo deploy
 
 
   
+    <article id="post-Mybatis【入门】" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2016/04/10/Mybatis【入门】/" class="article-date">
+  <time datetime="2016-04-10T13:10:08.000Z" itemprop="datePublished">2016-04-10</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2016/04/10/Mybatis【入门】/">mybatis【入门】</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="什么是MyBatis"><a href="#什么是MyBatis" class="headerlink" title="什么是MyBatis"></a>什么是MyBatis</h2><p>Spring是一个开源框架，它由Rod Johnson创建。它是为了解决企业应用开发的复杂性而创建的。</p>
+<blockquote>
+<p>MyBatis 本是apache的一个开源项目iBatis, 2010年这个项目由apache software foundation 迁移到了google code，并且改名为MyBatis。是一个基于Java的持久层框架</p>
+</blockquote>
+<h2 id="为什么我们要用Mybatis？"><a href="#为什么我们要用Mybatis？" class="headerlink" title="为什么我们要用Mybatis？"></a>为什么我们要用Mybatis？</h2><p>无论是Mybatis、Hibernate都是ORM的一种实现框架，都是对JDBC的一种封装！</p>
+<p><img src="https://i.imgur.com/pUCRpyB.png" alt=""></p>
+<p>我们已经在持久层中学了几种技术了…</p>
+<ul>
+<li>Hibernate</li>
+<li>jdbc</li>
+<li>SpringDAO</li>
+</ul>
+<p>那我们为啥还要学Mybatis呢？？？现在Mybatis在业内大行其道，那为啥他能那么火呢？？</p>
+<p>Hibernate是一个比较老旧的框架，用过他的同学都知道，只要你会用，用起来十分舒服…啥sql代码都不用写…但是呢，它也是有的缺点：：处理复杂业务时，灵活度差, 复杂的HQL难写难理解，例如多表查询的HQL语句</p>
+<p>而JDBC很容易理解，就那么几个固定的步骤，就是开发起来太麻烦了，因为什么都要我们自己干</p>
+<p>而SpringDAO其实就是JDBC的一层封装，就类似于dbutils一样，没有特别出彩的地方</p>
+<p>我们可以认为，Mybatis就是jdbc和Hibernate之间的一个平衡点…毕竟现在业界都是用这个框架，我们也不能不学呀！</p>
+<h2 id="Mybatis快速入门"><a href="#Mybatis快速入门" class="headerlink" title="Mybatis快速入门"></a>Mybatis快速入门</h2><p>我们已经学过了Hibernate了，对于Mybatis入门其实就非常类似的，因此就很简单就能掌握基本的开发了。</p>
+<h4 id="导入开发包"><a href="#导入开发包" class="headerlink" title="导入开发包"></a>导入开发包</h4><p>导入Mybatis开发包</p>
+<ul>
+<li>mybatis-3.1.1.jar</li>
+<li>commons-logging-1.1.1.jar</li>
+<li>log4j-1.2.16.jar</li>
+<li>cglib-2.2.2.jar</li>
+<li>asm-3.3.1.jar</li>
+</ul>
+<p>导入mysql/oracle开发包</p>
+<ul>
+<li>mysql-connector-java-5.1.7-bin.jar</li>
+<li>Oracle 11g 11.2.0.1.0 JDBC_ojdbc6.jar</li>
+</ul>
+<h4 id="准备测试工作"><a href="#准备测试工作" class="headerlink" title="准备测试工作"></a>准备测试工作</h4><p>创建一张表:</p>
+<pre><code>create table students(
+  id  int(5) primary key,
+  name varchar(10),
+  sal double(8,2)
+);
+</code></pre><p>创建实体：</p>
+<pre><code>/**
+ * Created by xing on 2017/7/21.
+ */
+
+public class Student {
+    private Integer id;
+    private String name;
+    private Double sal;
+
+    public Student() {
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Double getSal() {
+        return sal;
+    }
+
+    public void setSal(Double sal) {
+        this.sal = sal;
+    }
+}
+</code></pre><h4 id="创建mybatis配置文件"><a href="#创建mybatis配置文件" class="headerlink" title="创建mybatis配置文件"></a>创建mybatis配置文件</h4><p>创建mybatis的配置文件，配置数据库的信息,数据库我们可以配置多个，但是默认的只能用一个.</p>
+<pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;!DOCTYPE configuration PUBLIC &quot;-//mybatis.org//DTD Config 3.0//EN&quot;
+&quot;http://mybatis.org/dtd/mybatis-3-config.dtd&quot;&gt;
+
+&lt;configuration&gt;
+
+
+    &lt;!-- 加载类路径下的属性文件 --&gt;
+    &lt;properties resource=&quot;db.properties&quot;/&gt;
+
+    &lt;!-- 设置一个默认的连接环境信息 --&gt;
+    &lt;environments default=&quot;mysql_developer&quot;&gt;
+        &lt;!-- 连接环境信息，取一个任意唯一的名字 --&gt;
+        &lt;environment id=&quot;mysql_developer&quot;&gt;
+            &lt;!-- mybatis使用jdbc事务管理方式 --&gt;
+            &lt;transactionManager type=&quot;jdbc&quot;/&gt;
+            &lt;!-- mybatis使用连接池方式来获取连接 --&gt;
+            &lt;dataSource type=&quot;pooled&quot;&gt;
+                &lt;!-- 配置与数据库交互的4个必要属性 --&gt;
+                &lt;property name=&quot;driver&quot; value=&quot;${mysql.driver}&quot;/&gt;
+                &lt;property name=&quot;url&quot; value=&quot;${mysql.url}&quot;/&gt;
+                &lt;property name=&quot;username&quot; value=&quot;${mysql.username}&quot;/&gt;
+                &lt;property name=&quot;password&quot; value=&quot;${mysql.password}&quot;/&gt;
+            &lt;/dataSource&gt;
+        &lt;/environment&gt;
+
+
+        &lt;!-- 连接环境信息，取一个任意唯一的名字 --&gt;
+        &lt;environment id=&quot;oracle_developer&quot;&gt;
+            &lt;!-- mybatis使用jdbc事务管理方式 --&gt;
+            &lt;transactionManager type=&quot;jdbc&quot;/&gt;
+            &lt;!-- mybatis使用连接池方式来获取连接 --&gt;
+            &lt;dataSource type=&quot;pooled&quot;&gt;
+                &lt;!-- 配置与数据库交互的4个必要属性 --&gt;
+                &lt;property name=&quot;driver&quot; value=&quot;${oracle.driver}&quot;/&gt;
+                &lt;property name=&quot;url&quot; value=&quot;${oracle.url}&quot;/&gt;
+                &lt;property name=&quot;username&quot; value=&quot;${oracle.username}&quot;/&gt;
+                &lt;property name=&quot;password&quot; value=&quot;${oracle.password}&quot;/&gt;
+            &lt;/dataSource&gt;
+        &lt;/environment&gt;
+    &lt;/environments&gt;
+
+
+&lt;/configuration&gt;
+</code></pre><h4 id="编写工具类测试是否获取到连接"><a href="#编写工具类测试是否获取到连接" class="headerlink" title="编写工具类测试是否获取到连接"></a>编写工具类测试是否获取到连接</h4><p>使用Mybatis的API来创建一个工具类，通过mybatis配置文件与数据库的信息，得到Connection对象</p>
+<pre><code>package cn.javaee.mybatis.util;
+
+import java.io.IOException;
+import java.io.Reader;
+import java.sql.Connection;
+import org.apache.ibatis.io.Resources;
+import org.apache.ibatis.session.SqlSession;
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.apache.ibatis.session.SqlSessionFactoryBuilder;
+
+/**
+ * 工具类
+ * @author xing
+ */
+public class MybatisUtil {
+    private static ThreadLocal&lt;SqlSession&gt; threadLocal = new ThreadLocal&lt;SqlSession&gt;();
+    private static SqlSessionFactory sqlSessionFactory;
+    /**
+     * 加载位于src/mybatis.xml配置文件
+     */
+    static{
+        try {
+            Reader reader = Resources.getResourceAsReader(&quot;mybatis.xml&quot;);
+            sqlSessionFactory = new SqlSessionFactoryBuilder().build(reader);
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+    }
+    /**
+     * 禁止外界通过new方法创建 
+     */
+    private MybatisUtil(){}
+    /**
+     * 获取SqlSession
+     */
+    public static SqlSession getSqlSession(){
+        //从当前线程中获取SqlSession对象
+        SqlSession sqlSession = threadLocal.get();
+        //如果SqlSession对象为空
+        if(sqlSession == null){
+            //在SqlSessionFactory非空的情况下，获取SqlSession对象
+            sqlSession = sqlSessionFactory.openSession();
+            //将SqlSession对象与当前线程绑定在一起
+            threadLocal.set(sqlSession);
+        }
+        //返回SqlSession对象
+        return sqlSession;
+    }
+    /**
+     * 关闭SqlSession与当前线程分开
+     */
+    public static void closeSqlSession(){
+        //从当前线程中获取SqlSession对象
+        SqlSession sqlSession = threadLocal.get();
+        //如果SqlSession对象非空
+        if(sqlSession != null){
+            //关闭SqlSession对象
+            sqlSession.close();
+            //分开当前线程与SqlSession对象的关系，目的是让GC尽早回收
+            threadLocal.remove();
+        }
+    }   
+    /**
+     * 测试
+     */
+    public static void main(String[] args) {
+        Connection conn = MybatisUtil.getSqlSession().getConnection();
+        System.out.println(conn!=null?&quot;连接成功&quot;:&quot;连接失败&quot;);
+    }
+}
+</code></pre><h4 id="创建实体与映射关系文件"><a href="#创建实体与映射关系文件" class="headerlink" title="创建实体与映射关系文件"></a>创建实体与映射关系文件</h4><p>配置实体与表的映射关系</p>
+<pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; ?&gt;
+&lt;!DOCTYPE mapper PUBLIC &quot;-//mybatis.org//DTD Mapper 3.0//EN&quot;
+&quot;http://mybatis.org/dtd/mybatis-3-mapper.dtd&quot;&gt;
+
+&lt;!-- namespace属性是名称空间，必须唯一 --&gt;
+&lt;mapper namespace=&quot;cn.com.Student&quot;&gt;    
+
+    &lt;!-- resultMap标签:映射实体与表 
+         type属性：表示实体全路径名
+         id属性：为实体与表的映射取一个任意的唯一的名字
+    --&gt;
+    &lt;resultMap type=&quot;student&quot; id=&quot;studentMap&quot;&gt;
+        &lt;!-- id标签:映射主键属性
+             result标签：映射非主键属性
+             property属性:实体的属性名
+             column属性：表的字段名  
+        --&gt;                         
+        &lt;id property=&quot;id&quot; column=&quot;id&quot;/&gt;
+        &lt;result property=&quot;name&quot; column=&quot;name&quot;/&gt;
+        &lt;result property=&quot;sal&quot; column=&quot;sal&quot;/&gt;
+    &lt;/resultMap&gt;
+
+&lt;/mapper&gt;
+</code></pre><p>现在我们已经有了Mybatis的配置文件和表与实体之前的映射文件了，因此我们要将配置文件和映射文件关联起来</p>
+<pre><code>&lt;mappers&gt;
+    &lt;mapper resource=&quot;StudentMapper.xml&quot;/&gt;
+&lt;/mappers&gt;
+</code></pre><h4 id="编写DAO"><a href="#编写DAO" class="headerlink" title="编写DAO"></a>编写DAO</h4><pre><code>public class StudentDao {
+
+
+    public void add(Student student) throws Exception {
+        //得到连接对象
+        SqlSession sqlSession = MybatisUtil.getSqlSession();
+        sqlSession.insert();
+    }
+
+    public static void main(String[] args) throws Exception {
+
+        StudentDao studentDao = new StudentDao();
+
+        Student student = new Student(1, &quot;zhongfucheng&quot;, 10000D);
+        studentDao.add(student);
+
+    }
+}
+</code></pre><p>到现在为止，我们实体与表的映射文件仅仅映射了实体属性与表的字段的关系,而我们Mybatis是需要自己手动编写SQL代码,在实体与表的映射文件中写。</p>
+<p><strong>==Mybatis实体与表的映射文件中提供了insert标签==【SQL代码片段】供我们使用</strong></p>
+<pre><code>//在JDBC中我们通常使用?号作为占位符，而在Mybatis中，我们是使用#{}作为占位符
+//parameterType我们指定了传入参数的类型
+//#{}实际上就是调用了Student属性的get方法
+
+&lt;insert id=&quot;add&quot; parameterType=&quot;Student&quot;&gt;
+
+    INSERT INTO ZHONGFUCHENG.STUDENTS (ID, NAME, SAL) VALUES (#{id},#{name},#{sal});
+&lt;/insert&gt;
+</code></pre><p>在程序中调用映射文件的SQL代码片段</p>
+<pre><code>public void add(Student student) throws Exception {
+    //得到连接对象
+    SqlSession sqlSession = MybatisUtil.getSqlSession();
+    try{
+        //映射文件的命名空间.SQL片段的ID，就可以调用对应的映射文件中的SQL
+        sqlSession.insert(&quot;StudentID.add&quot;, student);
+        sqlSession.commit();
+    }catch(Exception e){
+        e.printStackTrace();
+        sqlSession.rollback();
+        throw e;
+    }finally{
+        MybatisUtil.closeSqlSession();
+    }
+}
+</code></pre><p>值得注意的是：Mybatis中的事务是默认开启的，因此我们在完成操作以后，需要我们手动去提交事务！</p>
+<h4 id="Mybatis工作流程"><a href="#Mybatis工作流程" class="headerlink" title="Mybatis工作流程"></a>Mybatis工作流程</h4><ul>
+<li>通过Reader对象读取Mybatis映射文件</li>
+<li>通过SqlSessionFactoryBuilder对象创建SqlSessionFactory对象</li>
+<li>获取当前线程的SQLSession</li>
+<li>事务默认开启</li>
+<li>通过SQLSession读取映射文件中的操作编号，从而读取SQL语句</li>
+<li>提交事务</li>
+<li>关闭资源</li>
+</ul>
+<h4 id="Mybatis分页"><a href="#Mybatis分页" class="headerlink" title="Mybatis分页"></a>Mybatis分页</h4><p>分页是一个非常实用的技术点，我们也来学习一下使用Mybatis是怎么分页的!</p>
+<p>我们的分页是需要多个参数的，并不是像我们之前的例子中只有一个参数。当需要接收多个参数的时候，我们使用Map集合来装载！</p>
+<pre><code>public List&lt;Student&gt;  pagination(int start ,int end) throws Exception {
+    //得到连接对象
+    SqlSession sqlSession = MybatisUtil.getSqlSession();
+    try{
+        //映射文件的命名空间.SQL片段的ID，就可以调用对应的映射文件中的SQL
+
+
+        /**
+         * 由于我们的参数超过了两个，而方法中只有一个Object参数收集
+         * 因此我们使用Map集合来装载我们的参数
+         */
+        Map&lt;String, Object&gt; map = new HashMap();
+        map.put(&quot;start&quot;, start);
+        map.put(&quot;end&quot;, end);
+        return sqlSession.selectList(&quot;StudentID.pagination&quot;, map);
+    }catch(Exception e){
+        e.printStackTrace();
+        sqlSession.rollback();
+        throw e;
+    }finally{
+        MybatisUtil.closeSqlSession();
+    }
+}
+public static void main(String[] args) throws Exception {
+    StudentDao studentDao = new StudentDao();
+    List&lt;Student&gt; students = studentDao.pagination(0, 3);
+    for (Student student : students) {
+
+        System.out.println(student.getId());
+
+    }
+
+}
+</code></pre><p>那么在实体与表映射文件中，我们接收的参数就是map集合</p>
+<pre><code>&lt;!--分页查询--&gt;
+&lt;select id=&quot;pagination&quot; parameterType=&quot;map&quot; resultMap=&quot;studentMap&quot;&gt;
+
+    /*根据key自动找到对应Map集合的value*/
+    select * from students limit #{start},#{end};
+
+&lt;/select&gt;
+</code></pre><h2 id="Mapper代理方式"><a href="#Mapper代理方式" class="headerlink" title="Mapper代理方式"></a>Mapper代理方式</h2><p>Mapper代理方式的意思就是：程序员只需要写dao接口，dao接口实现对象由mybatis自动生成代理对象。</p>
+<p>我们可以发现DaoImpl是十分重复的：</p>
+<ul>
+<li>dao的实现类中存在重复代码，整个mybatis操作的过程代码模板重复（先创建sqlsession、调用sqlsession的方法、关闭sqlsession）</li>
+<li>dao的实现 类中存在硬编码，调用sqlsession方法时将statement的id硬编码。</li>
+</ul>
+<p>以前的重复代码和硬编码如下：</p>
+<pre><code>public class StudentDao {
+
+    public void add(Student student) throws Exception {
+        //得到连接对象
+        SqlSession sqlSession = MybatisUtil.getSqlSession();
+        try{
+            //映射文件的命名空间.SQL片段的ID，就可以调用对应的映射文件中的SQL
+            sqlSession.insert(&quot;StudentID.add&quot;, student);
+            sqlSession.commit();
+        }catch(Exception e){
+            e.printStackTrace();
+            sqlSession.rollback();
+            throw e;
+        }finally{
+            MybatisUtil.closeSqlSession();
+        }
+    }
+    public static void main(String[] args) throws Exception {
+        StudentDao studentDao = new StudentDao();
+        Student student = new Student(3, &quot;zhong3&quot;, 10000D);
+        studentDao.add(student);
+    }
+}
+</code></pre><h4 id="Mapper开发规范"><a href="#Mapper开发规范" class="headerlink" title="Mapper开发规范"></a>Mapper开发规范</h4><p>想要Mybatis帮我们自动生成Mapper代理的话，我们需要遵循以下的规范：</p>
+<ul>
+<li>mapper.xml中namespace指定为mapper接口的全限定名<ul>
+<li>此步骤目的：通过mapper.xml和mapper.java进行关联</li>
+</ul>
+</li>
+<li>mapper.xml中statement的id就是mapper.java中方法名</li>
+<li>mapper.xml中statement的parameterType和mapper.java中方法输入参数类型一致</li>
+<li>mapper.xml中statement的resultType和mapper.java中方法返回值类型一致</li>
+</ul>
+<p>==<strong>再次说明</strong>：statement就是我们在mapper.xml文件中命名空间+sql指定的id==</p>
+<h4 id="Mapper代理返回值问题"><a href="#Mapper代理返回值问题" class="headerlink" title="Mapper代理返回值问题"></a>Mapper代理返回值问题</h4><p>mapper接口方法返回值：</p>
+<ul>
+<li>如果是返回的单个对象，返回值类型是pojo类型，生成的代理对象内部通过selectOne获取记录</li>
+<li>如果返回值类型是集合对象，生成的代理对象内部通过selectList获取记录</li>
+</ul>
+<h4 id="Mybatis解决JDBC编程的问题"><a href="#Mybatis解决JDBC编程的问题" class="headerlink" title="Mybatis解决JDBC编程的问题"></a>Mybatis解决JDBC编程的问题</h4><ul>
+<li>数据库链接创建、释放频繁造成系统资源浪费从而影响系统性能，如果使用数据库链接池可解决此问题。<ul>
+<li>解决：在SqlMapConfig.xml中配置数据链接池，使用连接池管理数据库链接。</li>
+</ul>
+</li>
+<li>Sql语句写在代码中造成代码不易维护，实际应用sql变化的可能较大，sql变动需要改变java代码。<ul>
+<li>解决：将Sql语句配置在XXXXmapper.xml文件中与java代码分离。</li>
+</ul>
+</li>
+<li>向sql语句传参数麻烦，因为sql语句的where条件不一定，可能多也可能少，占位符需要和参数一一对应。<ul>
+<li>解决：Mybatis自动将java对象映射至sql语句，通过statement中的parameterType定义输入参数的类型。</li>
+</ul>
+</li>
+<li>对结果集解析麻烦，sql变化导致解析代码变化，且解析前需要遍历，如果能将数据库记录封装成pojo对象解析比较方便。<ul>
+<li>解决：Mybatis自动将sql执行结果映射至java对象，通过statement中的resultType定义输出结果的类型。</li>
+</ul>
+</li>
+</ul>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li>Mybatis的准备工作与Hibernate差不多，都需要一个总配置文件、一个映射文件。</li>
+<li>Mybatis的SQLSession工具类使用ThreadLocal来对线程中的Session来进行管理。</li>
+<li>Mybatis的事务默认是开启的，需要我们手动去提交事务。</li>
+<li>Mybatis的SQL语句是需要手写的，在程序中通过映射文件的命名空间.sql语句的id来进行调用!</li>
+<li>在Mybatis中，增删改查都是需要我们自己写SQL语句的，然后在程序中调用即可了。SQL由于是我们自己写的，于是就相对Hibernate灵活一些。</li>
+<li>如果需要传入多个参数的话，那么我们一般在映射文件中用Map来接收。<br>由于我们在开发中会经常用到条件查询，Mybatis的话，我们是自己手写SQL代码的。</li>
+<li>Mapper的代理方式简化开发<ul>
+<li>命名空间要与JavaBean的全类名相同</li>
+<li>sql片段语句的id要与Dao接口的方法名相同</li>
+<li>方法的参数和返回值要与SQL片段的接收参数类型和返回类型相同</li>
+</ul>
+</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2016/04/10/Mybatis【入门】/" data-id="cjjztqw90000ivkpx4tqiahta" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/技术文章/">技术文章</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-spring【入门】" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2016/04/02/spring【入门】/" class="article-date">
+  <time datetime="2016-04-02T11:21:08.000Z" itemprop="datePublished">2016-04-02</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2016/04/02/spring【入门】/">spring【入门】</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="spring介绍："><a href="#spring介绍：" class="headerlink" title="spring介绍："></a>spring介绍：</h2><p>Spring是一个开源框架，它由Rod Johnson创建。它是为了解决企业应用开发的复杂性而创建的。</p>
+<p>   Spring使用基本的JavaBean来完成以前只可能由EJB完成的事情。<br>  然而，Spring的用途不仅限于服务器端的开发。从简单性、可测试性和松耦合的角度而言，任何Java应用都可以从Spring中受益。</p>
+<ul>
+<li>目的：简化Java的开发<ul>
+<li>基于POJO轻量级和最小侵入式开发</li>
+<li>通过依赖注入和面向接口实现松耦合</li>
+<li>基于切面和惯例进行声明式编程</li>
+<li>通过切面和模板<strong>减少样板式代码 </strong></li>
+</ul>
+</li>
+<li>功能：使用基本的JavaBean代替EJB，并提供了更多的企业应用功能</li>
+<li>范围：任何Java应用</li>
+</ul>
+<p>它是一个容器框架，用来装javabean（java对象），中间层框架（万能胶）可以起一个连接作用，比如说把springMVC和Mybatis粘合在一起运用。简单来说，Spring是一个轻量级的控制反转(IoC)和面向切面(AOP)的容器框架。</p>
+<h4 id="侵入式概念"><a href="#侵入式概念" class="headerlink" title="侵入式概念"></a>侵入式概念</h4><p>Spring是一种非侵入式的框架…</p>
+<p>侵入式</p>
+<ul>
+<li><p>对于EJB、Struts2等一些传统的框架，通常是要实现特定的接口，继承特定的类才能增强功能</p>
+<ul>
+<li>改变了java类的结构</li>
+</ul>
+<p>非侵入式</p>
+<ul>
+<li>对于Hibernate、Spring等框架，对现有的类结构没有影响，就能够增强JavaBean的功能</li>
+<li></li>
+</ul>
+</li>
+</ul>
+<h4 id="松耦合"><a href="#松耦合" class="headerlink" title="松耦合"></a>松耦合</h4><p>一般我们在写程序的时候，都是面向接口编程，通过DaoFactroy等方法来实现松耦合</p>
+<pre><code>private CategoryDao categoryDao = DaoFactory.getInstance().createDao(&quot;zhongfucheng.dao.impl.CategoryDAOImpl&quot;, CategoryDao.class);
+
+private BookDao bookDao = DaoFactory.getInstance().createDao(&quot;zhongfucheng.dao.impl.BookDaoImpl&quot;, BookDao.class);
+
+private UserDao userDao = DaoFactory.getInstance().createDao(&quot;zhongfucheng.dao.impl.UserDaoImpl&quot;, UserDao.class);
+
+private OrderDao orderDao = DaoFactory.getInstance().createDao(&quot;zhongfucheng.dao.impl.OrderDaoImpl&quot;, OrderDao.class);
+</code></pre><p>DAO层和Service层通过DaoFactory来实现松耦合</p>
+<ul>
+<li>如果Serivce层直接new DaoBook()，那么DAO和Service就紧耦合了【Service层依赖紧紧依赖于Dao】</li>
+</ul>
+<p>而Spring给我们更加合适的方法来实现松耦合，并且更加灵活、功能更加强大！-&gt;IOC控制反转 </p>
+<h4 id="切面编程"><a href="#切面编程" class="headerlink" title="切面编程"></a>切面编程</h4><p>切面编程也就是AOP编程，其实我们在也接触过，动态代理就是一种切面编程了。</p>
+<p>AOP编程可以简单理解成：在执行某些代码前，执行另外的代码</p>
+<ul>
+<li>Struts2的拦截器也是面向切面编程【在执行Action业务方法之前执行拦截器】</li>
+</ul>
+<p>Spring也为我们提供更好地方式来实现面向切面编程！</p>
+<h2 id="引出Spring"><a href="#引出Spring" class="headerlink" title="引出Spring"></a>引出Spring</h2><p>我们试着回顾一下没学Spring的时候，是怎么开发Web项目的</p>
+<ul>
+<li><p>实体类—&gt;class User{ }</p>
+</li>
+<li><p>dao–&gt;  UserDao{  .. 访问db}</p>
+</li>
+<li><p>service—&gt;  UserService{  UserDao userDao = new UserDao();}</p>
+</li>
+<li><p>controller—&gt; UserControler{UserService userService = new UserService();}</p>
+</li>
+</ul>
+<p>用户访问：</p>
+<ul>
+<li>Tomcat-&gt;action-&gt;service-&gt;dao</li>
+</ul>
+<p>我们来思考几个问题：</p>
+<ul>
+<li><p>1、对象创建创建能否写死？</p>
+</li>
+<li><p>2、对象创建细节</p>
+<ul>
+<li><p>controller    访问时候创建</p>
+</li>
+<li><p>service   启动时候创建</p>
+</li>
+<li><p>dao       启动时候创建</p>
+</li>
+<li><p>controller  多个 </p>
+</li>
+<li><p>service 一个   </p>
+</li>
+<li><p>dao     一个   </p>
+</li>
+<li><p>对象数量</p>
+</li>
+<li><p>创建时间</p>
+</li>
+</ul>
+</li>
+<li><p>3、对象的依赖关系</p>
+<ul>
+<li><p>controller 依赖 service</p>
+</li>
+<li><p>service依赖 dao</p>
+</li>
+</ul>
+</li>
+</ul>
+<p>对于第一个问题和第三个问题，我们可以通过DaoFactory解决掉</p>
+<p>对于第二个问题，我们要控制对象的数量和创建事件就有点麻烦了</p>
+<p>而Spring框架通过IOC就很好地可以解决上面的问题</p>
+<h4 id="IOC控制反转"><a href="#IOC控制反转" class="headerlink" title="IOC控制反转"></a>IOC控制反转</h4><p><strong>Spring的核心思想之一：Inversion of Control , 控制反转 IOC</strong></p>
+<p>那么控制反转是什么意思呢？？？对象的创建交给外部容器完成，这个就做控制反转。</p>
+<ul>
+<li><p>Spring使用控制反转来实现对象不用在程序中写死</p>
+</li>
+<li><p>控制反转解决对象处理问题【把对象交给别人创建】</p>
+</li>
+</ul>
+<p>那么对象的对象之间的依赖关系Spring是怎么做的呢？？<strong>依赖注入，dependency injection.</strong></p>
+<ul>
+<li><p>Spring使用依赖注入来实现对象之间的依赖关系</p>
+</li>
+<li><p>在创建完对象之后，对象的关系处理就是依赖注入</p>
+</li>
+<li>上面已经说了，控制反转是通过外部容器完成的，而Spring又为我们提供了这么一个容器，我们一般将这个容器叫做：<strong>IOC容器.</strong></li>
+</ul>
+<p>无论是创建对象、处理对象之间的依赖关系、对象创建的时间还是对象的数量，我们都是在Spring为我们提供的IOC容器上配置对象的信息就好了。</p>
+<p>那么使用IOC控制反转这一思想有什么作用呢？</p>
+<p>摘取一下来自知乎的部分解释：</p>
+<blockquote>
+<p>ioc的思想最核心的地方在于，资源不由使用资源的双方管理，而由不使用资源的第三方管理，这可以带来很多好处。第一，资源集中管理，实现资源的可配置和易管理。第二，降低了使用资源双方的依赖程度，也就是我们说的耦合度。也就是说  ，甲方要达成某种目的不需要直接依赖乙方，它只需要达到的目的告诉第三方机构就可以了，比如甲方需要一双袜子，而乙方它卖一双袜子，它要把袜子卖出去，并不需要自己去直接找到一个卖家来完成袜子的卖出。它也只需要找第三方，告诉别人我要卖一双袜子。这下好了，甲乙双方进行交易活动，都不需要自己直接去找卖家，相当于程序内部开放接口，卖家由第三方作为参数传入。甲乙互相不依赖，而且只有在进行交易活动的时候，甲才和乙产生联系。反之亦然。这样做什么好处么呢，甲乙可以在对方不真实存在的情况下独立存在，而且保证不交易时候无联系，想交易的时候可以很容易的产生联系。甲乙交易活动不需要双方见面，避免了双方的互不信任造成交易失败的问题。因为交易由第三方来负责联系，而且甲乙都认为第三方可靠。那么交易就能很可靠很灵活的产生和进行了。这就是ioc的核心思想。生活中这种例子比比皆是，支付宝在整个淘宝体系里就是庞大的ioc容器，交易双方之外的第三方，提供可靠性可依赖可灵活变更交易方的资源管理中心。另外人事代理也是，雇佣机构和个人之外的第三方。<br>==========================update===========================<br>在以上的描述中，诞生了两个专业词汇，依赖注入和控制反转所谓的依赖注入，则是，甲方开放接口，在它需要的时候，能够讲乙方传递进来(注入)所谓的控制反转，甲乙双方不相互依赖，交易活动的进行不依赖于甲乙任何一方，整个活动的进行由第三方负责管理。</p>
+</blockquote>
+<ul>
+<li><p>不用自己组装，拿来就用。</p>
+</li>
+<li><p>享受单例的好处，效率高，不浪费空间。</p>
+</li>
+<li><p>便于单元测试，方便切换mock组件。</p>
+</li>
+<li><p>便于进行AOP操作，对于使用者是透明的。</p>
+</li>
+<li><p>统一配置，便于修改。</p>
+</li>
+</ul>
+<h4 id="Spring模块"><a href="#Spring模块" class="headerlink" title="Spring模块"></a>Spring模块</h4><p>Spring可以分为6大模块：</p>
+<ul>
+<li><p>Spring Core  spring的核心功能： IOC容器, 解决对象创建及依赖关系</p>
+</li>
+<li><p>Spring Web  Spring对web模块的支持。</p>
+<ul>
+<li><p>可以与struts整合,让struts的action创建交给spring</p>
+</li>
+<li><p>spring mvc模块</p>
+</li>
+</ul>
+</li>
+<li><p>Spring DAO  Spring 对jdbc操作的支持  【JdbcTemplate模板工具类】</p>
+</li>
+<li><p>Spring ORM  spring对orm的支持：</p>
+<ul>
+<li><p>既可以与hibernate整合，【session】</p>
+</li>
+<li><p>也可以使用spring的对hibernate操作的封装</p>
+</li>
+</ul>
+</li>
+<li><p>Spring AOP  切面编程</p>
+</li>
+<li><p>SpringEE   spring 对javaEE其他模块的支持</p>
+</li>
+</ul>
+<p><img src="https://i.imgur.com/jRfjJiS.jpg" alt=""> </p>
+<p>上面文主要引出了为啥我们需要使用Spring框架，以及大致了解了Spring是分为六大模块的….下面主要讲解Spring的core模块！</p>
+<h2 id="Core模块快速入门"><a href="#Core模块快速入门" class="headerlink" title="Core模块快速入门"></a>Core模块快速入门</h2><h4 id="搭建配置环境"><a href="#搭建配置环境" class="headerlink" title="搭建配置环境"></a>搭建配置环境</h4><p>引入jar包:</p>
+<p>本博文主要是core模块的内容，涉及到Spring core的开发jar包有五个：</p>
+<ul>
+<li><p>commons-logging-1.1.3.jar           日志</p>
+</li>
+<li><p>spring-beans-3.2.5.RELEASE.jar        bean节点</p>
+</li>
+<li><p>spring-context-3.2.5.RELEASE.jar       spring上下文节点</p>
+</li>
+<li><p>spring-core-3.2.5.RELEASE.jar         spring核心功能</p>
+</li>
+<li><p>spring-expression-3.2.5.RELEASE.jar    spring表达式相关表</p>
+</li>
+</ul>
+<p>主要使用的是Spring3.2版本</p>
+<p>编写配置文件:</p>
+<p>Spring核心的配置文件applicationContext.xml</p>
+<p>那这个配置文件怎么写呢？？一般地，我们都知道框架的配置文件都是有约束的…我们可以在spring-framework-3.2.5.RELEASE\docs\spring-framework-reference\htmlsingle\index.html找到XML配置文件的约束</p>
+<pre><code>&lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot;
+    xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+    xmlns:p=&quot;http://www.springframework.org/schema/p&quot;
+    xmlns:context=&quot;http://www.springframework.org/schema/context&quot;
+    xsi:schemaLocation=&quot;
+        http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd&quot;&gt;
+
+&lt;/beans&gt;  
+</code></pre><p>我是使用Intellij Idea集成开发工具的，可以选择自带的Spring配置文件,它长的是这样：</p>
+<pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot;
+       xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+       xsi:schemaLocation=&quot;http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd&quot;&gt;
+
+&lt;/beans&gt;
+</code></pre><p>前面在介绍Spring模块的时候已经说了，Core模块是：<strong>IOC容器，解决对象创建和之间的依赖关系。</strong></p>
+<p>因此<strong>Core模块主要是学习如何得到IOC容器，通过IOC容器来创建对象、解决对象之间的依赖关系、IOC细节。</strong></p>
+<h4 id="得到Spring容器对象【IOC容器】"><a href="#得到Spring容器对象【IOC容器】" class="headerlink" title="得到Spring容器对象【IOC容器】"></a>得到Spring容器对象【IOC容器】</h4><p>Spring容器不单单只有一个，可以归为两种类型</p>
+<ul>
+<li><p><strong>Bean工厂，BeanFactory【功能简单</strong></p>
+</li>
+<li><p><strong>应用上下文，ApplicationContext【功能强大，一般我们使用这个】</strong></p>
+</li>
+</ul>
+<p>==<strong>通过Resource获取BeanFactory</strong>==</p>
+<ul>
+<li>加载Spring配置文件</li>
+<li><p>通过XmlBeanFactory+配置文件来创建IOC容器</p>
+<pre><code>//加载Spring的资源文件
+Resource resource = new ClassPathResource(&quot;applicationContext.xml&quot;);
+
+//创建IOC容器对象【IOC容器=工厂类+applicationContext.xml】
+BeanFactory beanFactory = new XmlBeanFactory(resource);
+</code></pre></li>
+</ul>
+<p>==<strong>类路径下XML获取ApplicationContext</strong>==</p>
+<ul>
+<li><p>直接通过ClassPathXmlApplicationContext对象来获取</p>
+<pre><code>// 得到IOC容器对象
+ApplicationContext ac = new ClassPathXmlApplicationContext(&quot;applicationContext.xml&quot;);
+
+System.out.println(ac);
+</code></pre></li>
+</ul>
+<p>在Spring中总体来看可以通过三种方式来配置对象:</p>
+<ul>
+<li>使用XML文件配置</li>
+<li>使用注解来配置</li>
+</ul>
+<h4 id="XML配置方式"><a href="#XML配置方式" class="headerlink" title="XML配置方式"></a>XML配置方式</h4><p>在上面我们已经可以得到IOC容器对象了。接下来就是在applicationContext.xml文件中配置信息【让IOC容器根据applicationContext.xml文件来创建对象】</p>
+<pre><code>* 首先我们先有个JavaBean的类
+
+/**
+ * Created by ozc on 2017/5/10.
+ */
+public class User {
+
+    private String id;
+    private String username;
+
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+}
+</code></pre><p>以前我们是通过new User的方法创建对象</p>
+<p>现在我们有了IOC容器，可以让IOC容器帮我们创建对象了。在applicationContext.xml文件中配置对应的信息就行了</p>
+<pre><code>   &lt;!--
+使用bean节点来创建对象
+id属性标识着对象
+name属性代表着要创建对象的类全名
+--&gt;
+&lt;bean id=&quot;user&quot; class=&quot;User&quot;/&gt;
+</code></pre><p><strong>通过IOC容器对象获取对象:</strong></p>
+<ul>
+<li><p>在外界通过IOC容器对象得到User对象</p>
+<pre><code>// 得到IOC容器对象
+ApplicationContext ac = new ClassPathXmlApplicationContext(&quot;applicationContext.xml&quot;);
+
+User user = (User) ac.getBean(&quot;user&quot;);
+
+System.out.println(user);
+</code></pre></li>
+</ul>
+<p>上面我们使用的是IOC通过无参构造函数来创建对象，我们来回顾一下一般有几种创建对象的方式：</p>
+<ul>
+<li>无参构造函数创建对象</li>
+<li>带参数的构造函数创建对象</li>
+<li>工厂创建对象<ul>
+<li>静态方法创建对象</li>
+<li>非静态方法创建对象</li>
+</ul>
+</li>
+</ul>
+<p>使用无参的构造函数创建对象我们已经会了，接下来我们看看使用剩下的IOC容器是怎么创建对象的。</p>
+<p>==<strong>带参数的构造函数创建对象</strong>==</p>
+<p>首先，JavaBean就要提供带参数的构造函数：</p>
+<pre><code>public User(String id, String username) {
+    this.id = id;
+    this.username = username;
+}
+</code></pre><p>接下来，关键是怎么配置applicationContext.xml文件了。</p>
+<pre><code>&lt;bean id=&quot;user&quot; class=&quot;User&quot;&gt;
+    &lt;!--通过constructor这个节点来指定构造函数的参数类型、名称、第几个--&gt;
+    &lt;constructor-arg index=&quot;0&quot; name=&quot;id&quot; type=&quot;java.lang.String&quot; value=&quot;1&quot;&gt;&lt;/constructor-arg&gt;
+    &lt;constructor-arg index=&quot;1&quot; name=&quot;username&quot; type=&quot;java.lang.String&quot; value=&quot;zhongfucheng&quot;&gt;&lt;/constructor-arg&gt;
+&lt;/bean&gt;
+</code></pre><p>在constructor上如果构造函数的值是一个对象，而不是一个普通类型的值，我们就需要用到ref属性了，而不是value属性</p>
+<p>比如说：我在User对象上维护了Person对象的值，想要在构造函数中初始化它。因此，就需要用到ref属性了</p>
+<pre><code>&lt;bean id=&quot;person&quot; class=&quot;Person&quot;&gt;&lt;/bean&gt; 
+
+&lt;bean id=&quot;user&quot; class=&quot;User&quot; &gt;
+
+    &lt;!--通过constructor这个节点来指定构造函数的参数类型、名称、第几个--&gt;
+    &lt;constructor-arg index=&quot;0&quot; name=&quot;id&quot; type=&quot;java.lang.String&quot; value=&quot;1&quot;&gt;&lt;/constructor-arg&gt;
+    &lt;constructor-arg index=&quot;1&quot; name=&quot;username&quot; type=&quot;java.lang.String&quot; ref=&quot;person&quot;&gt;&lt;/constructor-arg&gt;
+&lt;/bean&gt;
+</code></pre><p><strong>==工厂静态方法创建对象==</strong></p>
+<p>首先，使用一个工厂的静态方法返回一个对象</p>
+<pre><code>public class Factory {
+
+    public static User getBean() {
+
+        return new User();
+    }
+
+}
+</code></pre><p>配置文件中使用工厂的静态方法返回对象</p>
+<pre><code>&lt;!--工厂静态方法创建对象，直接使用class指向静态类，指定静态方法就行了--&gt;
+&lt;bean id=&quot;user&quot; class=&quot;Factory&quot; factory-method=&quot;getBean&quot; &gt;
+
+&lt;/bean&gt;
+</code></pre><p><strong>==工厂非静态方法创建对象==</strong></p>
+<p>首先，也是通过工厂的非静态方法来得到一个对象</p>
+<pre><code>public class Factory {
+
+
+    public User getBean() {
+
+        return new User();
+    }
+
+
+}
+</code></pre><p>配置文件中使用工厂的非静态方法返回对象</p>
+<pre><code>&lt;!--首先创建工厂对象--&gt;
+&lt;bean id=&quot;factory&quot; class=&quot;Factory&quot;/&gt;
+
+&lt;!--指定工厂对象和工厂方法--&gt;
+&lt;bean id=&quot;user&quot; class=&quot;User&quot; factory-bean=&quot;factory&quot; factory-method=&quot;getBean&quot;/&gt;
+</code></pre><h4 id="注解方式"><a href="#注解方式" class="headerlink" title="注解方式"></a>注解方式</h4><p>通过注解来配置信息就是为了简化IOC容器的配置，注解可以把对象添加到IOC容器中、处理对象依赖关系</p>
+<p>使用注解步骤：</p>
+<ul>
+<li>1）先引入context名称空间<ul>
+<li>xmlns:context=”<a href="http://www.springframework.org/schema/context&quot;" target="_blank" rel="noopener">http://www.springframework.org/schema/context&quot;</a></li>
+</ul>
+</li>
+<li>2）开启注解扫描器<ul>
+<li>&lt;context:component-scan base-package=””&gt;&lt;/context:component-scan&gt;</li>
+</ul>
+</li>
+</ul>
+<p>创建对象以及处理对象依赖关系，相关的注解：</p>
+<ul>
+<li>@ComponentScan扫描器</li>
+<li>@Configuration表明该类是配置类</li>
+<li>@Component   指定把一个对象加入IOC容器—&gt;@Name也可以实现相同的效果【一般少用】</li>
+<li>@Repository   作用同@Component； 在持久层使用</li>
+<li>@Service      作用同@Component； 在业务逻辑层使用</li>
+<li>@Controller    作用同@Component； 在控制层使用</li>
+<li>@Resource  依赖关系<ul>
+<li>如果@Resource不指定值，那么就根据类型来找，相同的类型在IOC容器中不能有两个</li>
+<li>如果@Resource指定了值，那么就根据名字来找</li>
+</ul>
+</li>
+</ul>
+<p>测试代码:</p>
+<ul>
+<li><p>UserDao</p>
+<pre><code>package aa;
+
+import org.springframework.stereotype.Repository;
+
+/**
+ * Created by ozc on 2017/5/10.
+ */
+
+//把对象添加到容器中,首字母会小写
+@Repository
+public class UserDao {
+
+    public void save() {
+        System.out.println(&quot;DB:保存用户&quot;);
+    }
+</code></pre></li>
+</ul>
+<pre><code>}
+</code></pre><ul>
+<li><p>userService</p>
+<pre><code>package aa;
+
+import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+</code></pre></li>
+</ul>
+<pre><code>//把UserService对象添加到IOC容器中,首字母会小写
+@Service
+public class UserService {
+
+    //如果@Resource不指定值，那么就根据类型来找---&gt;UserDao....当然了，IOC容器不能有两个UserDao类型的对象
+    //@Resource
+
+    //如果指定了值，那么Spring就在IOC容器找有没有id为userDao的对象。
+    @Resource(name = &quot;userDao&quot;)
+    private UserDao userDao;
+
+    public void save() {
+        userDao.save();
+    }
+}
+</code></pre><ul>
+<li>userController</li>
+<li><pre><code>package aa;
+
+import org.springframework.stereotype.Controller;
+
+import javax.annotation.Resource;
+
+/**
+ * Created by ozc on 2017/5/10.
+ */
+
+//把对象添加到IOC容器中,首字母会小写
+@Controller
+public class UserController {
+
+    @Resource(name = &quot;userService&quot;)
+    private UserService userService;
+
+    public String execute() {
+        userService.save();
+        return null;
+    }
+}
+</code></pre></li>
+<li><p>测试</p>
+<pre><code>package aa;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+/**
+ * Created by ozc on 2017/5/10.
+ */
+public class App {
+
+    public static void main(String[] args) {
+
+        // 创建容器对象
+        ApplicationContext ac = new ClassPathXmlApplicationContext(&quot;aa/applicationContext.xml&quot;);
+
+        UserAv userController = (UserController) ac.getBean(&quot;userController&quot;);
+
+        userController.execute();
+    }
+}
+</code></pre></li>
+</ul>
+<h4 id="bean对象创建细节"><a href="#bean对象创建细节" class="headerlink" title="bean对象创建细节"></a>bean对象创建细节</h4><p>在Spring第一篇中，我们为什么要引入Spring提出了这么一些问题：</p>
+<ul>
+<li>对象创建能否写死？</li>
+<li>对象创建细节<ul>
+<li>对象数量<ul>
+<li>controller多个</li>
+<li>service一个</li>
+<li>dao一个</li>
+</ul>
+</li>
+<li>创建时间<ul>
+<li>controller访问时创建</li>
+<li>service启动时创建</li>
+<li>dao启动时创建</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>既然我们现在已经初步了解IOC容器了，那么这些问题我们都是可以解决的。并且是十分简单【对象写死问题已经解决了，IOC容器就是控制反转创建对象】</p>
+<p><strong>==scope属性==</strong></p>
+<p>指定scope属性，IOC容器就知道创建对象的时候是单例还是多例的了。</p>
+<p>属性的值就只有两个：单例/多例</p>
+<ul>
+<li>当我们使用singleton【单例】的时候，从IOC容器获取的对象都是同一个</li>
+<li>当我们使用prototype【多例】的时候，从IOC容器获取的对象都是不同的</li>
+</ul>
+<p>scope属性除了控制对象是单例还是多例的，还控制着对象创建的时间！</p>
+<ul>
+<li>当使用singleton的时候，对象在IOC容器之前就已经创建了</li>
+<li>当使用prototype的时候，对象在使用的时候才创建</li>
+</ul>
+<p><strong>==lazy==-init属性</strong> </p>
+<p>lazy-init属性只对singleton【单例】的对象有效…..lazy-init默认为false….</p>
+<p>有的时候，可能我们想要对象在使用的时候才创建，那么将lazy-init设置为ture就行了</p>
+<p><strong>==init==-method和destroy-method</strong></p>
+<p>如果我们想要对象在创建后，执行某个方法，我们指定为init-method属性就行了。。</p>
+<p>如果我们想要IOC容器销毁后，执行某个方法，我们指定destroy-method属性就行了。</p>
+<pre><code>&lt;bean id=&quot;user&quot; class=&quot;User&quot; scope=&quot;singleton&quot; lazy-init=&quot;true&quot; init-method=&quot;&quot; destroy-method=&quot;&quot;/&gt;
+</code></pre><p>==<strong>Bean创建细节总结</strong>==</p>
+<pre><code>/**
+ * 1) 对象创建： 单例/多例
+ *  scope=&quot;singleton&quot;, 默认值， 即 默认是单例 【service/dao/工具类】
+ *  scope=&quot;prototype&quot;, 多例；              【Action对象】
+ * 
+ * 2) 什么时候创建?
+ *    scope=&quot;prototype&quot;  在用到对象的时候，才创建对象。
+ *    scope=&quot;singleton&quot;  在启动(容器初始化之前)， 就已经创建了bean，且整个应用只有一个。
+ * 3)是否延迟创建
+ *    lazy-init=&quot;false&quot;  默认为false,  不延迟创建，即在启动时候就创建对象
+ *    lazy-init=&quot;true&quot;   延迟初始化， 在用到对象的时候才创建对象
+ *    （只对单例有效）
+ * 4) 创建对象之后，初始化/销毁
+ *    init-method=&quot;init_user&quot;       【对应对象的init_user方法，在对象创建之后执行 】
+ *    destroy-method=&quot;destroy_user&quot;  【在调用容器对象的destroy方法时候执行，(容器用实现类)】
+ */
+</code></pre>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2016/04/02/spring【入门】/" data-id="cjjztqw8x000hvkpxhfnpb9i8" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/技术文章/">技术文章</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+  
+    <nav id="page-nav">
+      <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="extend next" rel="next" href="/page/2/">Next &raquo;</a>
+    </nav>
   
 </section>
         

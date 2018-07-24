@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>mybatis【入门】 | 陈金星写字的地方</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="什么是MyBatisSpring是一个开源框架，它由Rod Johnson创建。它是为了解决企业应用开发的复杂性而创建的。  MyBatis 本是apache的一个开源项目iBatis, 2010年这个项目由apache software foundation 迁移到了google code，并且改名为MyBatis。是一个基于Java的持久层框架  为什么我们要用Mybatis？无论是Mybat">
+<meta name="keywords" content="技术文章">
+<meta property="og:type" content="article">
+<meta property="og:title" content="mybatis【入门】">
+<meta property="og:url" content="http://yoursite.com/2016/04/10/Mybatis【入门】/index.html">
+<meta property="og:site_name" content="陈金星写字的地方">
+<meta property="og:description" content="什么是MyBatisSpring是一个开源框架，它由Rod Johnson创建。它是为了解决企业应用开发的复杂性而创建的。  MyBatis 本是apache的一个开源项目iBatis, 2010年这个项目由apache software foundation 迁移到了google code，并且改名为MyBatis。是一个基于Java的持久层框架  为什么我们要用Mybatis？无论是Mybat">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://i.imgur.com/pUCRpyB.png">
+<meta property="og:updated_time" content="2018-07-24T14:42:31.807Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="mybatis【入门】">
+<meta name="twitter:description" content="什么是MyBatisSpring是一个开源框架，它由Rod Johnson创建。它是为了解决企业应用开发的复杂性而创建的。  MyBatis 本是apache的一个开源项目iBatis, 2010年这个项目由apache software foundation 迁移到了google code，并且改名为MyBatis。是一个基于Java的持久层框架  为什么我们要用Mybatis？无论是Mybat">
+<meta name="twitter:image" content="https://i.imgur.com/pUCRpyB.png">
+  
+  
+  <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">陈金星写字的地方</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">less is more</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-Mybatis【入门】" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2016/04/10/Mybatis【入门】/" class="article-date">
+  <time datetime="2016-04-10T13:10:08.000Z" itemprop="datePublished">2016-04-10</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      mybatis【入门】
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="什么是MyBatis"><a href="#什么是MyBatis" class="headerlink" title="什么是MyBatis"></a>什么是MyBatis</h2><p>Spring是一个开源框架，它由Rod Johnson创建。它是为了解决企业应用开发的复杂性而创建的。</p>
+<blockquote>
+<p>MyBatis 本是apache的一个开源项目iBatis, 2010年这个项目由apache software foundation 迁移到了google code，并且改名为MyBatis。是一个基于Java的持久层框架</p>
+</blockquote>
+<h2 id="为什么我们要用Mybatis？"><a href="#为什么我们要用Mybatis？" class="headerlink" title="为什么我们要用Mybatis？"></a>为什么我们要用Mybatis？</h2><p>无论是Mybatis、Hibernate都是ORM的一种实现框架，都是对JDBC的一种封装！</p>
+<p><img src="https://i.imgur.com/pUCRpyB.png" alt=""></p>
+<p>我们已经在持久层中学了几种技术了…</p>
+<ul>
+<li>Hibernate</li>
+<li>jdbc</li>
+<li>SpringDAO</li>
+</ul>
+<p>那我们为啥还要学Mybatis呢？？？现在Mybatis在业内大行其道，那为啥他能那么火呢？？</p>
+<p>Hibernate是一个比较老旧的框架，用过他的同学都知道，只要你会用，用起来十分舒服…啥sql代码都不用写…但是呢，它也是有的缺点：：处理复杂业务时，灵活度差, 复杂的HQL难写难理解，例如多表查询的HQL语句</p>
+<p>而JDBC很容易理解，就那么几个固定的步骤，就是开发起来太麻烦了，因为什么都要我们自己干</p>
+<p>而SpringDAO其实就是JDBC的一层封装，就类似于dbutils一样，没有特别出彩的地方</p>
+<p>我们可以认为，Mybatis就是jdbc和Hibernate之间的一个平衡点…毕竟现在业界都是用这个框架，我们也不能不学呀！</p>
+<h2 id="Mybatis快速入门"><a href="#Mybatis快速入门" class="headerlink" title="Mybatis快速入门"></a>Mybatis快速入门</h2><p>我们已经学过了Hibernate了，对于Mybatis入门其实就非常类似的，因此就很简单就能掌握基本的开发了。</p>
+<h4 id="导入开发包"><a href="#导入开发包" class="headerlink" title="导入开发包"></a>导入开发包</h4><p>导入Mybatis开发包</p>
+<ul>
+<li>mybatis-3.1.1.jar</li>
+<li>commons-logging-1.1.1.jar</li>
+<li>log4j-1.2.16.jar</li>
+<li>cglib-2.2.2.jar</li>
+<li>asm-3.3.1.jar</li>
+</ul>
+<p>导入mysql/oracle开发包</p>
+<ul>
+<li>mysql-connector-java-5.1.7-bin.jar</li>
+<li>Oracle 11g 11.2.0.1.0 JDBC_ojdbc6.jar</li>
+</ul>
+<h4 id="准备测试工作"><a href="#准备测试工作" class="headerlink" title="准备测试工作"></a>准备测试工作</h4><p>创建一张表:</p>
+<pre><code>create table students(
+  id  int(5) primary key,
+  name varchar(10),
+  sal double(8,2)
+);
+</code></pre><p>创建实体：</p>
+<pre><code>/**
+ * Created by xing on 2017/7/21.
+ */
+
+public class Student {
+    private Integer id;
+    private String name;
+    private Double sal;
+
+    public Student() {
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Double getSal() {
+        return sal;
+    }
+
+    public void setSal(Double sal) {
+        this.sal = sal;
+    }
+}
+</code></pre><h4 id="创建mybatis配置文件"><a href="#创建mybatis配置文件" class="headerlink" title="创建mybatis配置文件"></a>创建mybatis配置文件</h4><p>创建mybatis的配置文件，配置数据库的信息,数据库我们可以配置多个，但是默认的只能用一个.</p>
+<pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;!DOCTYPE configuration PUBLIC &quot;-//mybatis.org//DTD Config 3.0//EN&quot;
+&quot;http://mybatis.org/dtd/mybatis-3-config.dtd&quot;&gt;
+
+&lt;configuration&gt;
+
+
+    &lt;!-- 加载类路径下的属性文件 --&gt;
+    &lt;properties resource=&quot;db.properties&quot;/&gt;
+
+    &lt;!-- 设置一个默认的连接环境信息 --&gt;
+    &lt;environments default=&quot;mysql_developer&quot;&gt;
+        &lt;!-- 连接环境信息，取一个任意唯一的名字 --&gt;
+        &lt;environment id=&quot;mysql_developer&quot;&gt;
+            &lt;!-- mybatis使用jdbc事务管理方式 --&gt;
+            &lt;transactionManager type=&quot;jdbc&quot;/&gt;
+            &lt;!-- mybatis使用连接池方式来获取连接 --&gt;
+            &lt;dataSource type=&quot;pooled&quot;&gt;
+                &lt;!-- 配置与数据库交互的4个必要属性 --&gt;
+                &lt;property name=&quot;driver&quot; value=&quot;${mysql.driver}&quot;/&gt;
+                &lt;property name=&quot;url&quot; value=&quot;${mysql.url}&quot;/&gt;
+                &lt;property name=&quot;username&quot; value=&quot;${mysql.username}&quot;/&gt;
+                &lt;property name=&quot;password&quot; value=&quot;${mysql.password}&quot;/&gt;
+            &lt;/dataSource&gt;
+        &lt;/environment&gt;
+
+
+        &lt;!-- 连接环境信息，取一个任意唯一的名字 --&gt;
+        &lt;environment id=&quot;oracle_developer&quot;&gt;
+            &lt;!-- mybatis使用jdbc事务管理方式 --&gt;
+            &lt;transactionManager type=&quot;jdbc&quot;/&gt;
+            &lt;!-- mybatis使用连接池方式来获取连接 --&gt;
+            &lt;dataSource type=&quot;pooled&quot;&gt;
+                &lt;!-- 配置与数据库交互的4个必要属性 --&gt;
+                &lt;property name=&quot;driver&quot; value=&quot;${oracle.driver}&quot;/&gt;
+                &lt;property name=&quot;url&quot; value=&quot;${oracle.url}&quot;/&gt;
+                &lt;property name=&quot;username&quot; value=&quot;${oracle.username}&quot;/&gt;
+                &lt;property name=&quot;password&quot; value=&quot;${oracle.password}&quot;/&gt;
+            &lt;/dataSource&gt;
+        &lt;/environment&gt;
+    &lt;/environments&gt;
+
+
+&lt;/configuration&gt;
+</code></pre><h4 id="编写工具类测试是否获取到连接"><a href="#编写工具类测试是否获取到连接" class="headerlink" title="编写工具类测试是否获取到连接"></a>编写工具类测试是否获取到连接</h4><p>使用Mybatis的API来创建一个工具类，通过mybatis配置文件与数据库的信息，得到Connection对象</p>
+<pre><code>package cn.javaee.mybatis.util;
+
+import java.io.IOException;
+import java.io.Reader;
+import java.sql.Connection;
+import org.apache.ibatis.io.Resources;
+import org.apache.ibatis.session.SqlSession;
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.apache.ibatis.session.SqlSessionFactoryBuilder;
+
+/**
+ * 工具类
+ * @author xing
+ */
+public class MybatisUtil {
+    private static ThreadLocal&lt;SqlSession&gt; threadLocal = new ThreadLocal&lt;SqlSession&gt;();
+    private static SqlSessionFactory sqlSessionFactory;
+    /**
+     * 加载位于src/mybatis.xml配置文件
+     */
+    static{
+        try {
+            Reader reader = Resources.getResourceAsReader(&quot;mybatis.xml&quot;);
+            sqlSessionFactory = new SqlSessionFactoryBuilder().build(reader);
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+    }
+    /**
+     * 禁止外界通过new方法创建 
+     */
+    private MybatisUtil(){}
+    /**
+     * 获取SqlSession
+     */
+    public static SqlSession getSqlSession(){
+        //从当前线程中获取SqlSession对象
+        SqlSession sqlSession = threadLocal.get();
+        //如果SqlSession对象为空
+        if(sqlSession == null){
+            //在SqlSessionFactory非空的情况下，获取SqlSession对象
+            sqlSession = sqlSessionFactory.openSession();
+            //将SqlSession对象与当前线程绑定在一起
+            threadLocal.set(sqlSession);
+        }
+        //返回SqlSession对象
+        return sqlSession;
+    }
+    /**
+     * 关闭SqlSession与当前线程分开
+     */
+    public static void closeSqlSession(){
+        //从当前线程中获取SqlSession对象
+        SqlSession sqlSession = threadLocal.get();
+        //如果SqlSession对象非空
+        if(sqlSession != null){
+            //关闭SqlSession对象
+            sqlSession.close();
+            //分开当前线程与SqlSession对象的关系，目的是让GC尽早回收
+            threadLocal.remove();
+        }
+    }   
+    /**
+     * 测试
+     */
+    public static void main(String[] args) {
+        Connection conn = MybatisUtil.getSqlSession().getConnection();
+        System.out.println(conn!=null?&quot;连接成功&quot;:&quot;连接失败&quot;);
+    }
+}
+</code></pre><h4 id="创建实体与映射关系文件"><a href="#创建实体与映射关系文件" class="headerlink" title="创建实体与映射关系文件"></a>创建实体与映射关系文件</h4><p>配置实体与表的映射关系</p>
+<pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; ?&gt;
+&lt;!DOCTYPE mapper PUBLIC &quot;-//mybatis.org//DTD Mapper 3.0//EN&quot;
+&quot;http://mybatis.org/dtd/mybatis-3-mapper.dtd&quot;&gt;
+
+&lt;!-- namespace属性是名称空间，必须唯一 --&gt;
+&lt;mapper namespace=&quot;cn.com.Student&quot;&gt;    
+
+    &lt;!-- resultMap标签:映射实体与表 
+         type属性：表示实体全路径名
+         id属性：为实体与表的映射取一个任意的唯一的名字
+    --&gt;
+    &lt;resultMap type=&quot;student&quot; id=&quot;studentMap&quot;&gt;
+        &lt;!-- id标签:映射主键属性
+             result标签：映射非主键属性
+             property属性:实体的属性名
+             column属性：表的字段名  
+        --&gt;                         
+        &lt;id property=&quot;id&quot; column=&quot;id&quot;/&gt;
+        &lt;result property=&quot;name&quot; column=&quot;name&quot;/&gt;
+        &lt;result property=&quot;sal&quot; column=&quot;sal&quot;/&gt;
+    &lt;/resultMap&gt;
+
+&lt;/mapper&gt;
+</code></pre><p>现在我们已经有了Mybatis的配置文件和表与实体之前的映射文件了，因此我们要将配置文件和映射文件关联起来</p>
+<pre><code>&lt;mappers&gt;
+    &lt;mapper resource=&quot;StudentMapper.xml&quot;/&gt;
+&lt;/mappers&gt;
+</code></pre><h4 id="编写DAO"><a href="#编写DAO" class="headerlink" title="编写DAO"></a>编写DAO</h4><pre><code>public class StudentDao {
+
+
+    public void add(Student student) throws Exception {
+        //得到连接对象
+        SqlSession sqlSession = MybatisUtil.getSqlSession();
+        sqlSession.insert();
+    }
+
+    public static void main(String[] args) throws Exception {
+
+        StudentDao studentDao = new StudentDao();
+
+        Student student = new Student(1, &quot;zhongfucheng&quot;, 10000D);
+        studentDao.add(student);
+
+    }
+}
+</code></pre><p>到现在为止，我们实体与表的映射文件仅仅映射了实体属性与表的字段的关系,而我们Mybatis是需要自己手动编写SQL代码,在实体与表的映射文件中写。</p>
+<p><strong>==Mybatis实体与表的映射文件中提供了insert标签==【SQL代码片段】供我们使用</strong></p>
+<pre><code>//在JDBC中我们通常使用?号作为占位符，而在Mybatis中，我们是使用#{}作为占位符
+//parameterType我们指定了传入参数的类型
+//#{}实际上就是调用了Student属性的get方法
+
+&lt;insert id=&quot;add&quot; parameterType=&quot;Student&quot;&gt;
+
+    INSERT INTO ZHONGFUCHENG.STUDENTS (ID, NAME, SAL) VALUES (#{id},#{name},#{sal});
+&lt;/insert&gt;
+</code></pre><p>在程序中调用映射文件的SQL代码片段</p>
+<pre><code>public void add(Student student) throws Exception {
+    //得到连接对象
+    SqlSession sqlSession = MybatisUtil.getSqlSession();
+    try{
+        //映射文件的命名空间.SQL片段的ID，就可以调用对应的映射文件中的SQL
+        sqlSession.insert(&quot;StudentID.add&quot;, student);
+        sqlSession.commit();
+    }catch(Exception e){
+        e.printStackTrace();
+        sqlSession.rollback();
+        throw e;
+    }finally{
+        MybatisUtil.closeSqlSession();
+    }
+}
+</code></pre><p>值得注意的是：Mybatis中的事务是默认开启的，因此我们在完成操作以后，需要我们手动去提交事务！</p>
+<h4 id="Mybatis工作流程"><a href="#Mybatis工作流程" class="headerlink" title="Mybatis工作流程"></a>Mybatis工作流程</h4><ul>
+<li>通过Reader对象读取Mybatis映射文件</li>
+<li>通过SqlSessionFactoryBuilder对象创建SqlSessionFactory对象</li>
+<li>获取当前线程的SQLSession</li>
+<li>事务默认开启</li>
+<li>通过SQLSession读取映射文件中的操作编号，从而读取SQL语句</li>
+<li>提交事务</li>
+<li>关闭资源</li>
+</ul>
+<h4 id="Mybatis分页"><a href="#Mybatis分页" class="headerlink" title="Mybatis分页"></a>Mybatis分页</h4><p>分页是一个非常实用的技术点，我们也来学习一下使用Mybatis是怎么分页的!</p>
+<p>我们的分页是需要多个参数的，并不是像我们之前的例子中只有一个参数。当需要接收多个参数的时候，我们使用Map集合来装载！</p>
+<pre><code>public List&lt;Student&gt;  pagination(int start ,int end) throws Exception {
+    //得到连接对象
+    SqlSession sqlSession = MybatisUtil.getSqlSession();
+    try{
+        //映射文件的命名空间.SQL片段的ID，就可以调用对应的映射文件中的SQL
+
+
+        /**
+         * 由于我们的参数超过了两个，而方法中只有一个Object参数收集
+         * 因此我们使用Map集合来装载我们的参数
+         */
+        Map&lt;String, Object&gt; map = new HashMap();
+        map.put(&quot;start&quot;, start);
+        map.put(&quot;end&quot;, end);
+        return sqlSession.selectList(&quot;StudentID.pagination&quot;, map);
+    }catch(Exception e){
+        e.printStackTrace();
+        sqlSession.rollback();
+        throw e;
+    }finally{
+        MybatisUtil.closeSqlSession();
+    }
+}
+public static void main(String[] args) throws Exception {
+    StudentDao studentDao = new StudentDao();
+    List&lt;Student&gt; students = studentDao.pagination(0, 3);
+    for (Student student : students) {
+
+        System.out.println(student.getId());
+
+    }
+
+}
+</code></pre><p>那么在实体与表映射文件中，我们接收的参数就是map集合</p>
+<pre><code>&lt;!--分页查询--&gt;
+&lt;select id=&quot;pagination&quot; parameterType=&quot;map&quot; resultMap=&quot;studentMap&quot;&gt;
+
+    /*根据key自动找到对应Map集合的value*/
+    select * from students limit #{start},#{end};
+
+&lt;/select&gt;
+</code></pre><h2 id="Mapper代理方式"><a href="#Mapper代理方式" class="headerlink" title="Mapper代理方式"></a>Mapper代理方式</h2><p>Mapper代理方式的意思就是：程序员只需要写dao接口，dao接口实现对象由mybatis自动生成代理对象。</p>
+<p>我们可以发现DaoImpl是十分重复的：</p>
+<ul>
+<li>dao的实现类中存在重复代码，整个mybatis操作的过程代码模板重复（先创建sqlsession、调用sqlsession的方法、关闭sqlsession）</li>
+<li>dao的实现 类中存在硬编码，调用sqlsession方法时将statement的id硬编码。</li>
+</ul>
+<p>以前的重复代码和硬编码如下：</p>
+<pre><code>public class StudentDao {
+
+    public void add(Student student) throws Exception {
+        //得到连接对象
+        SqlSession sqlSession = MybatisUtil.getSqlSession();
+        try{
+            //映射文件的命名空间.SQL片段的ID，就可以调用对应的映射文件中的SQL
+            sqlSession.insert(&quot;StudentID.add&quot;, student);
+            sqlSession.commit();
+        }catch(Exception e){
+            e.printStackTrace();
+            sqlSession.rollback();
+            throw e;
+        }finally{
+            MybatisUtil.closeSqlSession();
+        }
+    }
+    public static void main(String[] args) throws Exception {
+        StudentDao studentDao = new StudentDao();
+        Student student = new Student(3, &quot;zhong3&quot;, 10000D);
+        studentDao.add(student);
+    }
+}
+</code></pre><h4 id="Mapper开发规范"><a href="#Mapper开发规范" class="headerlink" title="Mapper开发规范"></a>Mapper开发规范</h4><p>想要Mybatis帮我们自动生成Mapper代理的话，我们需要遵循以下的规范：</p>
+<ul>
+<li>mapper.xml中namespace指定为mapper接口的全限定名<ul>
+<li>此步骤目的：通过mapper.xml和mapper.java进行关联</li>
+</ul>
+</li>
+<li>mapper.xml中statement的id就是mapper.java中方法名</li>
+<li>mapper.xml中statement的parameterType和mapper.java中方法输入参数类型一致</li>
+<li>mapper.xml中statement的resultType和mapper.java中方法返回值类型一致</li>
+</ul>
+<p>==<strong>再次说明</strong>：statement就是我们在mapper.xml文件中命名空间+sql指定的id==</p>
+<h4 id="Mapper代理返回值问题"><a href="#Mapper代理返回值问题" class="headerlink" title="Mapper代理返回值问题"></a>Mapper代理返回值问题</h4><p>mapper接口方法返回值：</p>
+<ul>
+<li>如果是返回的单个对象，返回值类型是pojo类型，生成的代理对象内部通过selectOne获取记录</li>
+<li>如果返回值类型是集合对象，生成的代理对象内部通过selectList获取记录</li>
+</ul>
+<h4 id="Mybatis解决JDBC编程的问题"><a href="#Mybatis解决JDBC编程的问题" class="headerlink" title="Mybatis解决JDBC编程的问题"></a>Mybatis解决JDBC编程的问题</h4><ul>
+<li>数据库链接创建、释放频繁造成系统资源浪费从而影响系统性能，如果使用数据库链接池可解决此问题。<ul>
+<li>解决：在SqlMapConfig.xml中配置数据链接池，使用连接池管理数据库链接。</li>
+</ul>
+</li>
+<li>Sql语句写在代码中造成代码不易维护，实际应用sql变化的可能较大，sql变动需要改变java代码。<ul>
+<li>解决：将Sql语句配置在XXXXmapper.xml文件中与java代码分离。</li>
+</ul>
+</li>
+<li>向sql语句传参数麻烦，因为sql语句的where条件不一定，可能多也可能少，占位符需要和参数一一对应。<ul>
+<li>解决：Mybatis自动将java对象映射至sql语句，通过statement中的parameterType定义输入参数的类型。</li>
+</ul>
+</li>
+<li>对结果集解析麻烦，sql变化导致解析代码变化，且解析前需要遍历，如果能将数据库记录封装成pojo对象解析比较方便。<ul>
+<li>解决：Mybatis自动将sql执行结果映射至java对象，通过statement中的resultType定义输出结果的类型。</li>
+</ul>
+</li>
+</ul>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><ul>
+<li>Mybatis的准备工作与Hibernate差不多，都需要一个总配置文件、一个映射文件。</li>
+<li>Mybatis的SQLSession工具类使用ThreadLocal来对线程中的Session来进行管理。</li>
+<li>Mybatis的事务默认是开启的，需要我们手动去提交事务。</li>
+<li>Mybatis的SQL语句是需要手写的，在程序中通过映射文件的命名空间.sql语句的id来进行调用!</li>
+<li>在Mybatis中，增删改查都是需要我们自己写SQL语句的，然后在程序中调用即可了。SQL由于是我们自己写的，于是就相对Hibernate灵活一些。</li>
+<li>如果需要传入多个参数的话，那么我们一般在映射文件中用Map来接收。<br>由于我们在开发中会经常用到条件查询，Mybatis的话，我们是自己手写SQL代码的。</li>
+<li>Mapper的代理方式简化开发<ul>
+<li>命名空间要与JavaBean的全类名相同</li>
+<li>sql片段语句的id要与Dao接口的方法名相同</li>
+<li>方法的参数和返回值要与SQL片段的接收参数类型和返回类型相同</li>
+</ul>
+</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2016/04/10/Mybatis【入门】/" data-id="cjjztqw90000ivkpx4tqiahta" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/技术文章/">技术文章</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2016/04/11/Mybatis【与Spring整合】/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          Mybatis【与Spring整合】
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2016/04/02/spring【入门】/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">spring【入门】</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2018 Jinxing Chen<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+
+<script src="/js/script.js"></script>
+
+  </div>
+</body>
+</html>
