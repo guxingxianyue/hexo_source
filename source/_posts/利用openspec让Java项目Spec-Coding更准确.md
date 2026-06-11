@@ -8,9 +8,9 @@ tags: [AI, Codex, Java, Spec Coding]
 
 这几年用 AI 写代码以后，我越来越觉得：Java 项目里真正拉开差距的，不是“让 AI 多写几行代码”，而是“让 AI 在写代码前先把需求理解对”。尤其是订单、库存、结算、报表、权限这类业务系统，表面上只是加一个接口，背后可能牵扯状态机、事务边界、幂等、消息补偿、历史数据兼容和测试数据准备。
 
-我把 `/openspec` 理解成一种团队自定义 skill，或者说一套可以沉淀成 skill 的工作流。它不是每个 Codex 环境都一定内置的命令。如果你输入 `/openspec` 提示没有这个命令，说明当前环境没有安装这个 skill；但这不影响使用同样的思路：先让 Codex 按 openspec 的方式生成规格说明，再根据规格说明进入编码。
+更准确地说，OpenSpec 安装完成后，主要使用的是 `/opsx:*` 这一组命令，而不是单独的 `/openspec`。常用链路是：`/opsx:propose` 先提出变更并生成规格，`/opsx:apply` 按规格实现，`/opsx:sync` 把变更规格同步回主规格，最后用 `/opsx:archive` 归档完成的 change。
 
-这篇记录一下我会怎么在 Java 项目里使用 `/openspec`，重点不是命令名字，而是怎么让它匹配项目、怎么写输入、怎么检查输出，以及怎么把 spec 变成后续的 coding 计划。
+这篇记录一下我会怎么在 Java 项目里使用 OpenSpec/OPSX，重点是怎么让 `/opsx:propose` 先匹配项目、怎么写变更输入、怎么检查生成的 artifacts，以及怎么用 `/opsx:apply` 进入后续编码。
 
 ![openspec让Spec Coding更准确](/images/ai-flowcharts/codex-openspec-spec-flow.svg)
 
@@ -34,41 +34,51 @@ Spec Coding 的核心不是“多写文档”，而是把模糊需求变成可�
 
 如果这些内容没有先写清楚，Codex 再强也只能根据上下文去猜。猜对了是效率，猜错了就是返工。
 
-## 使用前先确认 openspec 是否存在
+## OpenSpec 常用指令
 
-在 Codex 里可以先确认当前环境有没有这个 skill。不同客户端显示方式可能不一样，我通常会用三种方式：
-
-```text
-/skills
-```
-
-如果客户端支持 skill 列表，可以看里面有没有 `openspec`。如果没有列表命令，也可以直接问：
+OpenSpec 的新流程里，最常用的是下面这些命令：
 
 ```text
-请列出当前可用的 skills，看看是否有 openspec。
+/opsx:propose  # 创建变更并生成规划 artifacts
+/opsx:apply    # 按 artifacts 实现代码
+/opsx:sync     # 把 delta specs 合并回主 specs
+/opsx:archive  # 归档已经完成的变更
 ```
 
-还可以在项目或个人配置里找有没有类似文件：
+还有一些辅助命令：
 
 ```text
-.codex/skills/openspec/SKILL.md
-skills/openspec/SKILL.md
-AGENTS.md
+/opsx:explore   # 需求还不清楚时，先讨论和探索
+/opsx:new       # 只创建 change 脚手架
+/opsx:continue  # 扩展流程中继续生成下一个 artifact
+/opsx:ff        # fast-forward，一次性补齐规划 artifacts
+/opsx:verify    # 检查实现是否符合 spec
 ```
 
-如果确实没有 `/openspec`，不要卡住。可以先把它当成提示词模板使用：
+对日常开发来说，我最常用的是这条主线：
 
 ```text
-请按 openspec 工作流处理下面的需求。
-先读取项目结构和同类代码，只生成规格说明，不要写代码。
-规格说明必须包含：背景、术语、现状、目标、非目标、接口、数据模型、流程、异常、权限、幂等、事务、测试、验收标准、开放问题。
+/opsx:propose add-partial-shipment
+/opsx:apply add-partial-shipment
+/opsx:sync add-partial-shipment
+/opsx:archive add-partial-shipment
 ```
 
-等这套模板用顺了，再把它整理成自己的 skill。这样就算环境没有 slash command，也能得到接近的效果。
+`/opsx:propose` 会在 `openspec/changes/<change-name>/` 下生成变更相关文档。不同配置下 artifacts 可能略有差异，但通常会包含 `proposal.md`、`design.md`、`tasks.md` 和 `specs/` 目录。后面的 `/opsx:apply` 就是按这些文档实现，不是让 AI 凭空写代码。
 
-## 先让 openspec 匹配项目
+如果你输入 `/opsx:propose` 也提示没有命令，通常说明 OpenSpec 没有正确初始化到当前 AI 工具里。可以先检查项目里是否有：
 
-很多人用 AI 生成 spec 时只写一句“帮我设计一下”，这样很容易得到一份看起来完整、但和项目完全对不上的文档。正确做法是先让 Codex 读取项目规则，再生成 spec。
+```text
+openspec/
+openspec/project.md
+openspec/changes/
+```
+
+也可以重新确认是否执行过 `openspec init`，以及当前工具是否加载了 OpenSpec 生成的 slash commands。
+
+## 先让 propose 匹配项目
+
+很多人用 `/opsx:propose` 时只写一句“帮我设计一下”，这样很容易得到一份看起来完整、但和项目完全对不上的文档。正确做法是先让 Codex 读取项目规则，再生成 change artifacts。
 
 ![openspec匹配Java项目流程](/images/ai-flowcharts/codex-openspec-project-match-flow.svg)
 
@@ -88,47 +98,47 @@ AGENTS.md
 
 运行命令：`mvn test`、`mvn -pl xxx test`、项目自带的脚本。
 
-把这些信息读完，openspec 输出的内容才会贴近当前项目，而不是空泛地讲“新增 controller、service、dao”。
+把这些信息读完，`/opsx:propose` 输出的内容才会贴近当前项目，而不是空泛地讲“新增 controller、service、dao”。
 
 一个比较实用的项目匹配提示词是：
 
 ```text
-/openspec
+/opsx:propose add-partial-shipment
 
 项目匹配要求：
 1. 先读取 AGENTS.md、README.md、pom.xml，理解项目规则和模块关系。
 2. 再读取和需求最接近的已有功能，优先参考同类 Controller、Service、Mapper、DTO、测试。
 3. 如果项目使用 MyBatis，就按现有 Mapper/XML 风格设计；如果使用 JPA，就按现有 Entity/Repository 风格设计。
 4. 不要引入项目里没有使用的框架、注解、依赖和目录结构。
-5. 不要写代码，只输出 spec。
+5. 只生成 OpenSpec artifacts，不要写业务代码。
 
 需求：
 这里填写本次业务需求。
 
-输出格式：
-背景、术语、现状、目标、非目标、影响范围、接口设计、数据模型、核心流程、异常流程、权限、幂等、事务、消息、日志、测试、验收标准、开放问题。
+artifacts 需要覆盖：
+proposal、design、tasks、specs。内容必须包含背景、术语、现状、目标、非目标、影响范围、接口设计、数据模型、核心流程、异常流程、权限、幂等、事务、消息、日志、测试、验收标准、开放问题。
 ```
 
-这段提示词的关键是“先读项目，再出 spec”。如果不加这个约束，AI 很可能会按照通用 Java 项目想象出一套不存在的架构。
+这段提示词的关键是“先读项目，再生成 artifacts”。如果不加这个约束，AI 很可能会按照通用 Java 项目想象出一套不存在的架构。
 
 ## 例子一：订单支持部分发货
 
 假设需求是“订单支持部分发货”。不要直接让 Codex 改代码，可以先这样用：
 
 ```text
-/openspec
+/opsx:propose add-partial-shipment
 
 项目匹配要求：
 - 先读取订单模块已有的发货、取消、完成订单代码。
 - 找出订单状态枚举、订单明细表、库存扣减逻辑、发货单相关表。
 - 参考现有接口命名、异常返回格式和测试写法。
-- 只生成 spec，不修改文件。
+- 只生成 proposal/design/tasks/specs，不修改业务代码。
 
 需求：
 订单支持部分发货。当前订单只能整单发货，订单明细里有多个 SKU。仓库可能只发其中一部分 SKU，剩余 SKU 后续再发。
 ```
 
-我希望它输出的 spec 至少包括这些内容：
+我希望它生成的 OpenSpec artifacts 至少包括这些内容：
 
 ```text
 1. 业务定义
@@ -168,26 +178,37 @@ AGENTS.md
 - 异常时不产生半条发货记录
 ```
 
-这份 spec 不是最终代码，但它能让后续实现少走很多弯路。
+这份 change 不是最终代码，但它能让后续实现少走很多弯路。确认 artifacts 没问题以后，再进入实现：
+
+```text
+/opsx:apply add-partial-shipment
+```
+
+实现完成并验证后，再同步和归档：
+
+```text
+/opsx:sync add-partial-shipment
+/opsx:archive add-partial-shipment
+```
 
 ## 例子二：库存预占和释放
 
-库存类需求更需要 openspec，因为它经常涉及并发和补偿。提示词可以这样写：
+库存类需求更适合先走 `/opsx:propose`，因为它经常涉及并发和补偿。提示词可以这样写：
 
 ```text
-/openspec
+/opsx:propose inventory-reservation
 
 项目匹配要求：
 - 先读取库存模块现有的扣减、释放、流水表和库存锁实现。
 - 找出项目使用的是数据库乐观锁、Redis 锁，还是消息队列异步扣减。
 - 参考已有库存异常码、日志格式和事务注解位置。
-- 不写代码，只输出 spec。
+- 只生成 proposal/design/tasks/specs，不写业务代码。
 
 需求：
 下单时预占库存，支付超时后释放库存，支付成功后确认扣减。
 ```
 
-这里我会特别检查 openspec 是否写清楚三件事：
+这里我会特别检查 artifacts 是否写清楚三件事：
 
 第一，库存数量字段怎么定义。比如 `available_qty`、`locked_qty`、`sold_qty` 各自代表什么。
 
@@ -197,16 +218,16 @@ AGENTS.md
 
 ## 例子三：ERP 报表统计
 
-报表需求看起来只是查 SQL，其实最容易变成慢查询。用 openspec 时可以这样限制：
+报表需求看起来只是查 SQL，其实最容易变成慢查询。用 `/opsx:propose` 时可以这样限制：
 
 ```text
-/openspec
+/opsx:propose supply-chain-fulfillment-report
 
 项目匹配要求：
 - 先读取现有报表模块、统计任务、Mapper XML、索引和分页实现。
 - 找出项目是实时统计、离线汇总，还是混合方案。
 - 参考已有导出权限、租户隔离、数据权限和缓存策略。
-- 只输出 spec，不写代码。
+- 只生成 proposal/design/tasks/specs，不写业务代码。
 
 需求：
 新增供应链订单履约报表，按供应商、仓库、商品类目统计下单数、发货数、缺货数、履约率。
@@ -216,10 +237,10 @@ AGENTS.md
 
 ## 从 spec 进入编码计划
 
-拿到 spec 后，不要马上说“开始实现”。我更推荐再走一步，让 Codex 把 spec 翻译成项目内的修改计划：
+`/opsx:propose` 生成 artifacts 后，不要马上 `/opsx:apply`。我更推荐先让 Codex 复核 `tasks.md` 是否已经能映射到项目内的修改计划：
 
 ```text
-根据上面的 spec，先给实现计划，不要改文件。
+请根据 openspec/changes/add-partial-shipment 下的 proposal、design、tasks、specs，先复核实现计划，不要改文件。
 请按当前 Java 项目结构列出：
 1. 需要修改或新增的 Controller、Service、Mapper、Entity、DTO、VO。
 2. 需要新增或调整的数据库脚本、索引和枚举。
@@ -237,9 +258,9 @@ AGENTS.md
 
 这个过程看起来多了一步，实际上是在编码前做了一次轻量 review。越是复杂需求，越值得这样做。
 
-## 我会怎么检查 openspec 的输出
+## 我会怎么检查 propose 的输出
 
-一份 spec 看起来长，不代表它有用。我一般按下面这个清单检查：
+一组 OpenSpec artifacts 看起来长，不代表它有用。我一般按下面这个清单检查：
 
 是否引用了真实项目文件：比如具体模块、类名、表名、接口路径，而不是泛泛地说“新增服务层”。
 
@@ -259,7 +280,7 @@ AGENTS.md
 
 ## 踩坑提醒
 
-第一个坑，是把 `/openspec` 当成魔法命令。它只是帮助整理上下文和规格，不能替代业务判断。关键口径还是要人来确认。
+第一个坑，是把 `/opsx:propose` 当成魔法命令。它只是帮助整理上下文和规格，不能替代业务判断。关键口径还是要人来确认。
 
 第二个坑，是不让它读项目。没有项目匹配的 spec 往往很漂亮，但落到 Java 工程里会出现错误包名、错误框架、错误事务模型。
 
@@ -271,9 +292,9 @@ AGENTS.md
 
 ## 总结
 
-`/openspec` 的价值，是让 Codex 在写 Java 代码前先把需求说清楚，并且说成当前项目能执行的规格。它适合处理订单、库存、结算、权限、报表这类业务边界复杂的需求。
+OpenSpec/OPSX 的价值，是让 Codex 在写 Java 代码前先把需求说清楚，并且说成当前项目能执行的规格。它适合处理订单、库存、结算、权限、报表这类业务边界复杂的需求。
 
-我的使用顺序是：先确认 skill 是否存在，再让它读取项目规则和同类代码，然后生成 spec，再把 spec 转成实现计划，最后才进入编码和测试。
+我的使用顺序是：先用 `/opsx:propose` 生成 change artifacts，再检查它是否匹配项目规则和同类代码，然后用 `/opsx:apply` 实现，完成后 `/opsx:sync` 同步规格，最后 `/opsx:archive` 归档。
 
 当 spec 能清楚描述接口、数据、流程、异常、幂等、事务和验收时，后面的 coding 才会更准确。否则 Codex 只是更快地写出一批可能不符合业务的代码。
 
@@ -281,3 +302,5 @@ AGENTS.md
 
 - [OpenAI Codex best practices](https://developers.openai.com/codex/learn/best-practices)
 - [OpenAI Codex Skills](https://developers.openai.com/codex/config/skills)
+- [OpenSpec OPSX commands](https://github.com/Fission-AI/OpenSpec/blob/main/docs/commands.md)
+- [OpenSpec OPSX workflow](https://github.com/Fission-AI/OpenSpec/blob/main/docs/opsx.md)

@@ -1,8 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="720" viewBox="0 0 1120 720" role="img" aria-labelledby="title desc">
   <title id="title">openspec 匹配 Java 项目流程</title>
-  <desc id="desc">展示 openspec 从读取项目规则、识别技术栈、绑定业务模块到生成可验收 spec 的过程。</desc>
+  <desc id="desc">展示 OPSX 从读取项目规则、识别技术栈、绑定业务模块到生成可验收 artifacts 的过程。</desc>
   <rect width="1120" height="720" fill="#f8fafc"/>
-  <text x="560" y="48" text-anchor="middle" font-family="Arial, 'Microsoft YaHei', sans-serif" font-size="28" font-weight="700" fill="#111827">/openspec：先匹配项目，再生成规格</text>
+  <text x="560" y="48" text-anchor="middle" font-family="Arial, 'Microsoft YaHei', sans-serif" font-size="28" font-weight="700" fill="#111827">/opsx:propose：先匹配项目，再生成规格</text>
   <text x="560" y="82" text-anchor="middle" font-family="Arial, 'Microsoft YaHei', sans-serif" font-size="15" fill="#475569">避免通用方案，强制对齐当前 Java 工程的模块、接口、数据和测试方式</text>
 
   <defs>
@@ -43,8 +43,8 @@
   <text class="small" x="195" y="424" text-anchor="middle">列出会被修改的真实对象</text>
 
   <rect class="box" x="425" y="330" width="270" height="132"/>
-  <text class="main" x="560" y="366" text-anchor="middle">5. 生成 openspec</text>
-  <text class="sub" x="560" y="396" text-anchor="middle">目标 / 非目标 / 流程 / 异常</text>
+  <text class="main" x="560" y="366" text-anchor="middle">5. 生成 artifacts</text>
+  <text class="sub" x="560" y="396" text-anchor="middle">proposal / design / tasks / specs</text>
   <text class="small" x="560" y="424" text-anchor="middle">把需求变成可验收规格</text>
 
   <rect class="box" x="790" y="330" width="270" height="132"/>
