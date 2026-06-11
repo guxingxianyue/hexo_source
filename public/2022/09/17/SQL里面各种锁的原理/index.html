@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>SQL里面各种锁的原理 | 陈金星写字的地方</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="SQL 里面的锁，表面上看是数据库为了防止并发冲突做的限制，实际本质是数据库在并发读写之间做秩序管理。只要系统里存在多个事务同时读写同一批数据，就一定会遇到锁。锁设计得好，系统可以同时保证数据正确和较高吞吐；锁用得不好，轻则接口变慢，重则死锁、阻塞、库存扣错、订单状态错乱。 很多开发者第一次接触锁，是因为线上出现了 Lock wait timeout exceeded 或 Deadlock fou">
+<meta name="keywords" content="MySQL,数据库,SQL,锁,事务">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SQL里面各种锁的原理">
+<meta property="og:url" content="https://guxingxianyue.github.io/2022/09/17/SQL里面各种锁的原理/index.html">
+<meta property="og:site_name" content="陈金星写字的地方">
+<meta property="og:description" content="SQL 里面的锁，表面上看是数据库为了防止并发冲突做的限制，实际本质是数据库在并发读写之间做秩序管理。只要系统里存在多个事务同时读写同一批数据，就一定会遇到锁。锁设计得好，系统可以同时保证数据正确和较高吞吐；锁用得不好，轻则接口变慢，重则死锁、阻塞、库存扣错、订单状态错乱。 很多开发者第一次接触锁，是因为线上出现了 Lock wait timeout exceeded 或 Deadlock fou">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://guxingxianyue.github.io/images/tech-flowcharts/sql-locks-principle-flow.svg">
+<meta property="og:updated_time" content="2026-06-11T00:55:06.076Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="SQL里面各种锁的原理">
+<meta name="twitter:description" content="SQL 里面的锁，表面上看是数据库为了防止并发冲突做的限制，实际本质是数据库在并发读写之间做秩序管理。只要系统里存在多个事务同时读写同一批数据，就一定会遇到锁。锁设计得好，系统可以同时保证数据正确和较高吞吐；锁用得不好，轻则接口变慢，重则死锁、阻塞、库存扣错、订单状态错乱。 很多开发者第一次接触锁，是因为线上出现了 Lock wait timeout exceeded 或 Deadlock fou">
+<meta name="twitter:image" content="https://guxingxianyue.github.io/images/tech-flowcharts/sql-locks-principle-flow.svg">
+  
+    <link rel="alternative" href="/atom.xml" title="陈金星写字的地方" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">陈金星写字的地方</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">less is more</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">首页</a>
+        
+          <a class="main-nav-link" href="/archives">存档</a>
+        
+          <a class="main-nav-link" href="/about">关于</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://guxingxianyue.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-SQL里面各种锁的原理" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2022/09/17/SQL里面各种锁的原理/" class="article-date">
+  <time datetime="2022-09-17T03:25:00.000Z" itemprop="datePublished">2022-09-17</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      SQL里面各种锁的原理
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>SQL 里面的锁，表面上看是数据库为了防止并发冲突做的限制，实际本质是数据库在并发读写之间做秩序管理。只要系统里存在多个事务同时读写同一批数据，就一定会遇到锁。锁设计得好，系统可以同时保证数据正确和较高吞吐；锁用得不好，轻则接口变慢，重则死锁、阻塞、库存扣错、订单状态错乱。</p>
+<p>很多开发者第一次接触锁，是因为线上出现了 <code>Lock wait timeout exceeded</code> 或 <code>Deadlock found</code>。但真正理解锁，不能只背“共享锁、排他锁、行锁、表锁”这些名称，而要看清楚三个问题：锁保护的对象是什么、锁之间是否兼容、锁在事务什么时候加上和释放。</p>
+<p><img src="/images/tech-flowcharts/sql-locks-principle-flow.svg" alt="SQL 锁类型和事务执行流程"></p>
+<h2 id="为什么数据库需要锁"><a href="#为什么数据库需要锁" class="headerlink" title="为什么数据库需要锁"></a>为什么数据库需要锁</h2><p>数据库锁要解决的核心问题是并发一致性。</p>
+<p>假设供应链系统里有一条库存记录：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sku_id = 1001</span><br><span class="line">warehouse_id = 8</span><br><span class="line">available_qty = 10</span><br></pre></td></tr></table></figure>
+<p>现在两个订单同时提交，每个订单都要锁定 8 件库存。如果两个事务都先读到 <code>available_qty = 10</code>，然后都认为库存足够，再分别把库存更新为 2，就会出现超卖。数据库必须让这两个更新按某种顺序执行，或者让其中一个事务发现条件已经不满足。</p>
+<p>锁就是这个顺序的基础。它告诉数据库：某个事务正在读或写某个资源，其他事务能不能同时读、能不能同时写、要不要等待。</p>
+<h2 id="共享锁和排他锁"><a href="#共享锁和排他锁" class="headerlink" title="共享锁和排他锁"></a>共享锁和排他锁</h2><p>共享锁也叫 S 锁，英文是 Shared Lock。它表示当前事务要读取数据，并且希望读取期间数据不要被别人修改。</p>
+<p>排他锁也叫 X 锁，英文是 Exclusive Lock。它表示当前事务要修改数据，其他事务不能同时修改，也通常不能再加共享锁读取同一行。</p>
+<p>它们的兼容关系可以简单理解为：</p>
+<table>
+<thead>
+<tr>
+<th>已有锁</th>
+<th>新申请共享锁</th>
+<th>新申请排他锁</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>共享锁</td>
+<td>兼容</td>
+<td>不兼容</td>
+</tr>
+<tr>
+<td>排他锁</td>
+<td>不兼容</td>
+<td>不兼容</td>
+</tr>
+</tbody>
+</table>
+<p>共享锁之间兼容，是因为多个事务同时读同一行数据不会破坏数据。排他锁和任何锁都不兼容，是因为写操作必须独占资源。</p>
+<p>在 MySQL InnoDB 中，可以通过下面的方式显式加锁：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span> inventory</span><br><span class="line"><span class="keyword">WHERE</span> sku_id = <span class="number">1001</span></span><br><span class="line"><span class="keyword">LOCK</span> <span class="keyword">IN</span> <span class="keyword">SHARE</span> <span class="keyword">MODE</span>;</span><br></pre></td></tr></table></figure>
+<p>或者：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span> inventory</span><br><span class="line"><span class="keyword">WHERE</span> sku_id = <span class="number">1001</span></span><br><span class="line"><span class="keyword">FOR</span> <span class="keyword">UPDATE</span>;</span><br></pre></td></tr></table></figure>
+<p><code>LOCK IN SHARE MODE</code> 倾向于加共享锁，<code>FOR UPDATE</code> 会对命中的记录加排他锁。业务里更常见的是更新语句自动加排他锁：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span> inventory</span><br><span class="line"><span class="keyword">SET</span> available_qty = available_qty - <span class="number">8</span></span><br><span class="line"><span class="keyword">WHERE</span> sku_id = <span class="number">1001</span></span><br><span class="line">  <span class="keyword">AND</span> available_qty &gt;= <span class="number">8</span>;</span><br></pre></td></tr></table></figure>
+<p>这条 SQL 在更新命中的记录时，会自动对相关记录加排他锁。</p>
+<h2 id="表锁和行锁"><a href="#表锁和行锁" class="headerlink" title="表锁和行锁"></a>表锁和行锁</h2><p>表锁保护的是整张表。一个事务锁住表以后，其他事务对这张表的读写可能都会受到影响。表锁粒度大，管理简单，但并发能力弱。</p>
+<p>行锁保护的是某一行或某个索引范围。行锁粒度小，并发能力强，但实现复杂，也更容易出现死锁。</p>
+<p>举个例子，ERP 系统里有一张 <code>order</code> 表。如果系统对整张订单表加表锁，那么一个用户修改订单时，其他用户可能连其他订单也无法修改。这对高并发系统非常不友好。</p>
+<p>如果使用行锁，一个用户修改订单 <code>A001</code>，另一个用户修改订单 <code>A002</code>，两者互不影响。只有两个事务同时修改同一张订单时，才需要等待。</p>
+<p>InnoDB 支持行级锁，但有一个非常重要的前提：行锁通常是加在索引上的。如果查询条件没有命中索引，数据库可能扫描大量记录，锁范围也会扩大，甚至表现得像锁了很多行。</p>
+<p>例如：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span> order_info</span><br><span class="line"><span class="keyword">SET</span> <span class="keyword">status</span> = <span class="string">'CLOSED'</span></span><br><span class="line"><span class="keyword">WHERE</span> order_no = <span class="string">'SO20220917001'</span>;</span><br></pre></td></tr></table></figure>
+<p>如果 <code>order_no</code> 有唯一索引，InnoDB 可以精准锁住这一行。如果 <code>order_no</code> 没有索引，数据库需要扫描全表判断哪些行满足条件，锁冲突风险就会明显增加。</p>
+<h2 id="意向锁"><a href="#意向锁" class="headerlink" title="意向锁"></a>意向锁</h2><p>意向锁是很多人容易忽略的一类锁。它不是直接锁某一行业务数据，而是用来协调表锁和行锁。</p>
+<p>假设事务 A 已经对订单表中的某一行加了排他行锁。此时事务 B 想对整张订单表加表级排他锁。数据库必须知道表里是否已经有行锁，否则就要扫描整张表逐行检查，成本很高。</p>
+<p>意向锁就是一个提示：某个事务打算在这张表里的某些行上加锁。</p>
+<p>常见意向锁有：</p>
+<ul>
+<li>IS，意向共享锁，表示事务准备在某些行上加共享锁。</li>
+<li>IX，意向排他锁，表示事务准备在某些行上加排他锁。</li>
+</ul>
+<p>当事务要给某行加共享锁时，会先在表上加 IS 锁。当事务要给某行加排他锁时，会先在表上加 IX 锁。</p>
+<p>意向锁的价值是让表级锁判断冲突更快。它像是在表门口挂了一个牌子：里面已经有人在某些行上操作，整表加锁前先看看是否兼容。</p>
+<h2 id="记录锁"><a href="#记录锁" class="headerlink" title="记录锁"></a>记录锁</h2><p>记录锁是 InnoDB 最容易理解的行锁，它锁住的是索引上的一条记录。</p>
+<p>例如库存表有唯一索引：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">UNIQUE KEY uk_sku_warehouse (sku_id, warehouse_id)</span><br></pre></td></tr></table></figure>
+<p>执行：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> *</span><br><span class="line"><span class="keyword">FROM</span> inventory</span><br><span class="line"><span class="keyword">WHERE</span> sku_id = <span class="number">1001</span></span><br><span class="line">  <span class="keyword">AND</span> warehouse_id = <span class="number">8</span></span><br><span class="line"><span class="keyword">FOR</span> <span class="keyword">UPDATE</span>;</span><br></pre></td></tr></table></figure>
+<p>如果命中一条记录，InnoDB 会对这条索引记录加排他记录锁。其他事务再想更新同一条库存记录，就必须等待当前事务提交或回滚。</p>
+<p>记录锁适合解决“同一行业务数据不能被并发修改”的问题，例如订单状态流转、库存数量变更、账户余额扣减。</p>
+<h2 id="间隙锁"><a href="#间隙锁" class="headerlink" title="间隙锁"></a>间隙锁</h2><p>间隙锁锁住的不是已经存在的记录，而是索引记录之间的空隙。它的目的主要是防止幻读。</p>
+<p>假设库存预警表里已有预警阈值：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">threshold: 10, 20, 50</span><br></pre></td></tr></table></figure>
+<p>一个事务执行范围查询：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> *</span><br><span class="line"><span class="keyword">FROM</span> stock_warning_rule</span><br><span class="line"><span class="keyword">WHERE</span> threshold <span class="keyword">BETWEEN</span> <span class="number">10</span> <span class="keyword">AND</span> <span class="number">50</span></span><br><span class="line"><span class="keyword">FOR</span> <span class="keyword">UPDATE</span>;</span><br></pre></td></tr></table></figure>
+<p>如果数据库只锁住 10、20、50 这几条已经存在的记录，另一个事务仍然可以插入 <code>threshold = 30</code> 的新记录。第一个事务再次查询时，就会发现多了一条之前不存在的数据，这就是幻读。</p>
+<p>间隙锁会锁住索引范围中的空隙，让其他事务不能在这个范围里插入新记录。它牺牲了一部分并发能力，换取范围查询的一致性。</p>
+<p>需要注意，间隙锁依赖索引范围。如果 SQL 没有合适索引，锁范围可能比预期大很多。</p>
+<h2 id="Next-Key-Lock"><a href="#Next-Key-Lock" class="headerlink" title="Next-Key Lock"></a>Next-Key Lock</h2><p>Next-Key Lock 可以理解为记录锁加间隙锁。它既锁住已经存在的索引记录，也锁住记录前后的范围。</p>
+<p>在 InnoDB 的可重复读隔离级别下，范围查询加锁时经常会使用 Next-Key Lock 来防止幻读。</p>
+<p>例如：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> *</span><br><span class="line"><span class="keyword">FROM</span> purchase_order</span><br><span class="line"><span class="keyword">WHERE</span> supplier_id = <span class="number">88</span></span><br><span class="line">  <span class="keyword">AND</span> amount <span class="keyword">BETWEEN</span> <span class="number">10000</span> <span class="keyword">AND</span> <span class="number">50000</span></span><br><span class="line"><span class="keyword">FOR</span> <span class="keyword">UPDATE</span>;</span><br></pre></td></tr></table></figure>
+<p>如果 <code>supplier_id, amount</code> 上有联合索引，InnoDB 会锁定这个索引范围内的记录和间隙。其他事务不能随便插入符合这个范围的新采购单。</p>
+<p>Next-Key Lock 的好处是一致性强，坏处是容易让范围更新、范围查询变得更容易互相阻塞。因此业务 SQL 要尽量让范围条件走合适索引，避免锁住过大的范围。</p>
+<h2 id="乐观锁"><a href="#乐观锁" class="headerlink" title="乐观锁"></a>乐观锁</h2><p>乐观锁不是数据库引擎内部固定的一种锁，而是一种并发控制思想。它假设冲突不常发生，所以不提前阻塞别人，而是在提交更新时检查数据有没有被别人改过。</p>
+<p>最常见实现是版本号字段：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span> inventory</span><br><span class="line"><span class="keyword">SET</span> available_qty = available_qty - <span class="number">8</span>,</span><br><span class="line">    <span class="keyword">version</span> = <span class="keyword">version</span> + <span class="number">1</span></span><br><span class="line"><span class="keyword">WHERE</span> sku_id = <span class="number">1001</span></span><br><span class="line">  <span class="keyword">AND</span> warehouse_id = <span class="number">8</span></span><br><span class="line">  <span class="keyword">AND</span> available_qty &gt;= <span class="number">8</span></span><br><span class="line">  <span class="keyword">AND</span> <span class="keyword">version</span> = <span class="number">12</span>;</span><br></pre></td></tr></table></figure>
+<p>如果更新影响行数为 1，说明版本没变，扣减成功。如果影响行数为 0，说明数据已经被别人改过，当前事务需要重试或提示失败。</p>
+<p>乐观锁适合读多写少、冲突概率低的场景。例如商品资料编辑、客户档案修改、配置项更新。它的优点是不会长时间阻塞，缺点是冲突发生时需要业务处理重试和失败提示。</p>
+<h2 id="悲观锁"><a href="#悲观锁" class="headerlink" title="悲观锁"></a>悲观锁</h2><p>悲观锁也是一种思想。它假设冲突很可能发生，所以在操作前先把数据锁住。</p>
+<p>典型写法是：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> *</span><br><span class="line"><span class="keyword">FROM</span> inventory</span><br><span class="line"><span class="keyword">WHERE</span> sku_id = <span class="number">1001</span></span><br><span class="line">  <span class="keyword">AND</span> warehouse_id = <span class="number">8</span></span><br><span class="line"><span class="keyword">FOR</span> <span class="keyword">UPDATE</span>;</span><br></pre></td></tr></table></figure>
+<p>当前事务拿到锁以后，再计算库存、写入订单、更新库存。其他事务想修改同一条库存记录，就必须等待。</p>
+<p>悲观锁适合写冲突高、数据不能错的场景，例如库存扣减、余额扣减、核心单据状态流转。缺点也明显：事务时间越长，等待越多，吞吐越低。</p>
+<p>所以悲观锁一定要控制事务范围。不要在持有锁期间调用外部接口、发送 MQ、请求第三方系统，也不要在事务里做复杂计算。</p>
+<h2 id="元数据锁"><a href="#元数据锁" class="headerlink" title="元数据锁"></a>元数据锁</h2><p>元数据锁也叫 MDL，Metadata Lock。它保护的是表结构，而不是具体业务行。</p>
+<p>当一个事务正在查询或修改某张表时，数据库会持有这张表的元数据锁，防止另一个会话同时修改表结构。否则就可能出现一个事务读表读到一半，另一个事务把字段删了。</p>
+<p>常见问题是：一个长事务一直不提交，导致 <code>ALTER TABLE</code> 等 DDL 操作被阻塞；DDL 又反过来阻塞后续普通查询，最后形成一串等待。</p>
+<p>例如：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">BEGIN</span>;</span><br><span class="line"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span> order_info <span class="keyword">WHERE</span> <span class="keyword">id</span> = <span class="number">1</span>;</span><br><span class="line"><span class="comment">-- 长时间不提交</span></span><br></pre></td></tr></table></figure>
+<p>此时另一个会话执行：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">ALTER</span> <span class="keyword">TABLE</span> order_info <span class="keyword">ADD</span> <span class="keyword">COLUMN</span> source_type <span class="built_in">varchar</span>(<span class="number">32</span>);</span><br></pre></td></tr></table></figure>
+<p>DDL 可能会等待前面的事务释放 MDL。后续新的查询又可能排在 DDL 后面，导致业务接口突然大面积变慢。</p>
+<p>线上做 DDL 时，必须关注长事务和元数据锁等待。大表变更最好使用在线 DDL 工具或低峰期执行。</p>
+<h2 id="自增锁"><a href="#自增锁" class="headerlink" title="自增锁"></a>自增锁</h2><p>自增锁用于处理自增主键分配。多个事务同时插入数据时，数据库要保证自增 ID 不重复。</p>
+<p>InnoDB 对自增锁做过很多优化，不同配置下表现不同。简单理解，普通插入通常可以较快分配自增值；批量插入、<code>INSERT ... SELECT</code> 这类语句可能持有自增相关锁更久。</p>
+<p>业务上不建议依赖自增 ID 的连续性。事务回滚、插入失败、并发插入都可能造成 ID 跳号。自增 ID 的目标是唯一和大体递增，不是绝对连续。</p>
+<h2 id="死锁是怎么发生的"><a href="#死锁是怎么发生的" class="headerlink" title="死锁是怎么发生的"></a>死锁是怎么发生的</h2><p>死锁是两个或多个事务互相等待对方释放锁。</p>
+<p>例如供应链系统里同时更新订单和库存：</p>
+<p>事务 A：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">1. 锁订单 O1001</span><br><span class="line">2. 再锁库存 S1001</span><br></pre></td></tr></table></figure>
+<p>事务 B：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">1. 锁库存 S1001</span><br><span class="line">2. 再锁订单 O1001</span><br></pre></td></tr></table></figure>
+<p>事务 A 拿到了订单锁，等待库存锁。事务 B 拿到了库存锁，等待订单锁。双方都不释放，就形成死锁。</p>
+<p>数据库通常会检测死锁，并主动回滚其中一个事务。业务系统看到的就是死锁异常。</p>
+<p>减少死锁的关键方法是：</p>
+<ul>
+<li>多表更新保持固定顺序。</li>
+<li>批量更新时按主键排序。</li>
+<li>事务尽量短。</li>
+<li>查询条件命中索引，减少锁范围。</li>
+<li>避免在事务中做远程调用。</li>
+<li>捕获死锁异常，对幂等操作做有限重试。</li>
+</ul>
+<h2 id="怎么排查锁等待"><a href="#怎么排查锁等待" class="headerlink" title="怎么排查锁等待"></a>怎么排查锁等待</h2><p>线上出现锁等待时，不要只盯着慢 SQL。要看谁在等锁，谁持有锁，事务已经执行了多久。</p>
+<p>MySQL 里常用的排查方向包括：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> <span class="keyword">PROCESSLIST</span>;</span><br></pre></td></tr></table></figure>
+<p>查看当前连接状态。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> <span class="keyword">ENGINE</span> <span class="keyword">INNODB</span> <span class="keyword">STATUS</span>;</span><br></pre></td></tr></table></figure>
+<p>查看最近死锁、锁等待、事务信息。</p>
+<p>在 MySQL 8 中，也可以通过 <code>performance_schema</code> 和 <code>sys</code> 库查看锁等待关系。</p>
+<p>排查时重点看：</p>
+<ul>
+<li>哪个事务持有锁。</li>
+<li>持锁事务执行了多久。</li>
+<li>等待的 SQL 是什么。</li>
+<li>是否存在未提交长事务。</li>
+<li>SQL 是否走了索引。</li>
+<li>是否有 DDL 和普通业务 SQL 互相阻塞。</li>
+</ul>
+<h2 id="实际开发里的用锁建议"><a href="#实际开发里的用锁建议" class="headerlink" title="实际开发里的用锁建议"></a>实际开发里的用锁建议</h2><p>第一，能用一条原子 SQL 解决的，不要拆成先查再改。</p>
+<p>库存扣减推荐写成：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span> inventory</span><br><span class="line"><span class="keyword">SET</span> available_qty = available_qty - <span class="number">8</span>,</span><br><span class="line">    locked_qty = locked_qty + <span class="number">8</span></span><br><span class="line"><span class="keyword">WHERE</span> sku_id = <span class="number">1001</span></span><br><span class="line">  <span class="keyword">AND</span> warehouse_id = <span class="number">8</span></span><br><span class="line">  <span class="keyword">AND</span> available_qty &gt;= <span class="number">8</span>;</span><br></pre></td></tr></table></figure>
+<p>然后根据影响行数判断是否成功。</p>
+<p>第二，加锁查询必须有合适索引。</p>
+<p><code>FOR UPDATE</code> 不是魔法。如果条件没有索引，锁范围会扩大，性能和并发都会出问题。</p>
+<p>第三，事务里只放必须保持一致的操作。</p>
+<p>订单创建、库存锁定、订单主表写入可以放在事务里；短信通知、日志上报、消息推送应该放到事务提交后。</p>
+<p>第四，统一更新顺序。</p>
+<p>如果业务规定先锁订单，再锁库存，再锁财务单据，那么所有代码都要遵守这个顺序。不要一个接口先锁订单，另一个接口先锁库存。</p>
+<p>第五，锁冲突高的热点数据要做业务拆分。</p>
+<p>例如某个爆款 SKU 的库存行成为热点，可以按仓库、批次、库存桶拆分，降低单行竞争。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>SQL 里的锁不是孤立概念，而是一套并发控制体系。共享锁和排他锁决定读写是否兼容，表锁和行锁决定锁粒度，意向锁协调表级和行级锁，记录锁保护已有记录，间隙锁和 Next-Key Lock 保护索引范围，乐观锁和悲观锁是两种业务并发控制思想，元数据锁保护表结构，自增锁保证自增值分配。</p>
+<p>真正写业务代码时，最重要的不是记住所有锁名，而是控制三个东西：索引、事务范围、更新顺序。索引决定锁得准不准，事务范围决定锁持有多久，更新顺序决定是否容易死锁。把这三点做好，绝大多数 SQL 锁问题都会少很多。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://guxingxianyue.github.io/2022/09/17/SQL里面各种锁的原理/" data-id="cmq8scy6r000jjsqhmuckrd9v" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/">MySQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SQL/">SQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/事务/">事务</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/数据库/">数据库</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/锁/">锁</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2023/03/18/kafka组件里面生产者和消费者的原理/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          kafka组件里面生产者和消费者的原理
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/05/10/redis入门/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">redis入门</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI/">AI</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Agent/">Agent</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CAP/">CAP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Claude-Code/">Claude Code</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Codex/">Codex</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ERP/">ERP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/">Java</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kafka/">Kafka</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/">MySQL</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Redis/">Redis</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/">SQL</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL优化/">SQL优化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Skill/">Skill</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spring-Cloud/">Spring Cloud</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/事务/">事务</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/供应链系统/">供应链系统</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/分布式/">分布式</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/分布式系统/">分布式系统</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/分布式锁/">分布式锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/命令行/">命令行</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/工程实践/">工程实践</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/并发控制/">并发控制</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/微服务/">微服务</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/技术文章/">技术文章</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/报表统计/">报表统计</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据分析/">数据分析</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据库/">数据库</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据结构与算法/">数据结构与算法</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/架构设计/">架构设计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/消息队列/">消息队列</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/系统优化/">系统优化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/系统设计/">系统设计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/缓存/">缓存</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/编程效率/">编程效率</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/软件工程/">软件工程</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/锁/">锁</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/AI/" style="font-size: 20px;">AI</a> <a href="/tags/Agent/" style="font-size: 10px;">Agent</a> <a href="/tags/CAP/" style="font-size: 10px;">CAP</a> <a href="/tags/Claude-Code/" style="font-size: 15px;">Claude Code</a> <a href="/tags/Codex/" style="font-size: 13.33px;">Codex</a> <a href="/tags/ERP/" style="font-size: 10px;">ERP</a> <a href="/tags/Java/" style="font-size: 11.67px;">Java</a> <a href="/tags/Kafka/" style="font-size: 10px;">Kafka</a> <a href="/tags/MySQL/" style="font-size: 11.67px;">MySQL</a> <a href="/tags/Redis/" style="font-size: 11.67px;">Redis</a> <a href="/tags/SQL/" style="font-size: 10px;">SQL</a> <a href="/tags/SQL优化/" style="font-size: 10px;">SQL优化</a> <a href="/tags/Skill/" style="font-size: 10px;">Skill</a> <a href="/tags/Spring-Cloud/" style="font-size: 10px;">Spring Cloud</a> <a href="/tags/事务/" style="font-size: 10px;">事务</a> <a href="/tags/供应链系统/" style="font-size: 10px;">供应链系统</a> <a href="/tags/分布式/" style="font-size: 15px;">分布式</a> <a href="/tags/分布式系统/" style="font-size: 11.67px;">分布式系统</a> <a href="/tags/分布式锁/" style="font-size: 10px;">分布式锁</a> <a href="/tags/命令行/" style="font-size: 11.67px;">命令行</a> <a href="/tags/工程实践/" style="font-size: 13.33px;">工程实践</a> <a href="/tags/并发控制/" style="font-size: 10px;">并发控制</a> <a href="/tags/微服务/" style="font-size: 10px;">微服务</a> <a href="/tags/技术文章/" style="font-size: 18.33px;">技术文章</a> <a href="/tags/报表统计/" style="font-size: 10px;">报表统计</a> <a href="/tags/数据分析/" style="font-size: 10px;">数据分析</a> <a href="/tags/数据库/" style="font-size: 11.67px;">数据库</a> <a href="/tags/数据结构与算法/" style="font-size: 13.33px;">数据结构与算法</a> <a href="/tags/架构设计/" style="font-size: 11.67px;">架构设计</a> <a href="/tags/消息队列/" style="font-size: 10px;">消息队列</a> <a href="/tags/系统优化/" style="font-size: 10px;">系统优化</a> <a href="/tags/系统设计/" style="font-size: 11.67px;">系统设计</a> <a href="/tags/缓存/" style="font-size: 10px;">缓存</a> <a href="/tags/编程效率/" style="font-size: 16.67px;">编程效率</a> <a href="/tags/软件工程/" style="font-size: 13.33px;">软件工程</a> <a href="/tags/锁/" style="font-size: 10px;">锁</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/06/">六月 2026</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/05/">五月 2026</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">十一月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">八月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/05/">五月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">二月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">十一月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/07/">七月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">三月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">六月 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">四月 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">三月 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">一月 2016</a><span class="archive-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recents</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2026/06/10/Codex提高软件编程效率的10个技巧/">Codex提高软件编程效率的10个技巧</a>
+          </li>
+        
+          <li>
+            <a href="/2026/06/10/普通开发者使用AI的三条边界/">普通开发者使用AI的三条边界</a>
+          </li>
+        
+          <li>
+            <a href="/2026/06/10/AI-Agent时代的开发工作流/">AI Agent时代的开发工作流</a>
+          </li>
+        
+          <li>
+            <a href="/2026/06/10/2026年重新理解AI编程助手/">2026年，重新理解AI编程助手</a>
+          </li>
+        
+          <li>
+            <a href="/2026/06/01/Claude-Code最常用的几个指令/">claude code 最常用的几个指令</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2026 Jinxing Chen<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">首页</a>
+  
+    <a href="/archives" class="mobile-nav-link">存档</a>
+  
+    <a href="/about" class="mobile-nav-link">关于</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+  </div>
+</body>
+</html>

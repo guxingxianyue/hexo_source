@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>redis锁有哪些 | 陈金星写字的地方</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="开场个人观察Redis 锁是很多 Java 项目都会遇到的话题。比如供应链系统里，多个服务同时扣减库存；ERP 里同一张单据不能被重复审核；定时任务在多台机器上部署，但同一批数据只能被一个节点处理。这些场景都需要某种“互斥”。 但 Redis 锁也是容易写错的地方。很多人第一版会写成 setnx lock 1，看起来能用，线上一遇到超时、宕机、重试、主从切换，就会暴露问题。分布式锁不是“抢到 ke">
+<meta name="keywords" content="系统设计,Redis,分布式锁,并发控制">
+<meta property="og:type" content="article">
+<meta property="og:title" content="redis锁有哪些">
+<meta property="og:url" content="https://guxingxianyue.github.io/2023/11/23/redis锁有哪些/index.html">
+<meta property="og:site_name" content="陈金星写字的地方">
+<meta property="og:description" content="开场个人观察Redis 锁是很多 Java 项目都会遇到的话题。比如供应链系统里，多个服务同时扣减库存；ERP 里同一张单据不能被重复审核；定时任务在多台机器上部署，但同一批数据只能被一个节点处理。这些场景都需要某种“互斥”。 但 Redis 锁也是容易写错的地方。很多人第一版会写成 setnx lock 1，看起来能用，线上一遇到超时、宕机、重试、主从切换，就会暴露问题。分布式锁不是“抢到 ke">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://guxingxianyue.github.io/images/tech-flowcharts/redis-lock-flow.svg">
+<meta property="og:updated_time" content="2026-06-11T00:55:07.298Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="redis锁有哪些">
+<meta name="twitter:description" content="开场个人观察Redis 锁是很多 Java 项目都会遇到的话题。比如供应链系统里，多个服务同时扣减库存；ERP 里同一张单据不能被重复审核；定时任务在多台机器上部署，但同一批数据只能被一个节点处理。这些场景都需要某种“互斥”。 但 Redis 锁也是容易写错的地方。很多人第一版会写成 setnx lock 1，看起来能用，线上一遇到超时、宕机、重试、主从切换，就会暴露问题。分布式锁不是“抢到 ke">
+<meta name="twitter:image" content="https://guxingxianyue.github.io/images/tech-flowcharts/redis-lock-flow.svg">
+  
+    <link rel="alternative" href="/atom.xml" title="陈金星写字的地方" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">陈金星写字的地方</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">less is more</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">首页</a>
+        
+          <a class="main-nav-link" href="/archives">存档</a>
+        
+          <a class="main-nav-link" href="/about">关于</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://guxingxianyue.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-redis锁有哪些" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2023/11/23/redis锁有哪些/" class="article-date">
+  <time datetime="2023-11-23T03:10:00.000Z" itemprop="datePublished">2023-11-23</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      redis锁有哪些
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="开场个人观察"><a href="#开场个人观察" class="headerlink" title="开场个人观察"></a>开场个人观察</h2><p>Redis 锁是很多 Java 项目都会遇到的话题。比如供应链系统里，多个服务同时扣减库存；ERP 里同一张单据不能被重复审核；定时任务在多台机器上部署，但同一批数据只能被一个节点处理。这些场景都需要某种“互斥”。</p>
+<p>但 Redis 锁也是容易写错的地方。很多人第一版会写成 <code>setnx lock 1</code>，看起来能用，线上一遇到超时、宕机、重试、主从切换，就会暴露问题。分布式锁不是“抢到 key 就完事”，它要考虑 owner、过期时间、释放原子性、业务幂等和异常恢复。</p>
+<p>这篇笔记按常见 Redis 锁类型梳理：简单 <code>SETNX</code> 锁、带过期时间的锁、带唯一标识和 Lua 释放的锁、可重入锁、Redisson 看门狗锁、RedLock 思路。重点还是落到项目里怎么避免锁丢失和死锁。</p>
+<p><img src="/images/tech-flowcharts/redis-lock-flow.svg" alt="Redis分布式锁安全流程"></p>
+<h2 id="核心观点"><a href="#核心观点" class="headerlink" title="核心观点"></a>核心观点</h2><p>一个相对安全的 Redis 锁，至少要满足四个条件。</p>
+<p>第一，加锁要原子。不能先 <code>SETNX</code> 再单独 <code>EXPIRE</code>，因为中间如果进程宕机，锁可能永不过期。</p>
+<p>第二，锁要有唯一 owner。释放锁时必须确认锁是自己加的，不能误删别人的锁。</p>
+<p>第三，释放要原子。检查 owner 和删除 key 要放在 Lua 脚本里执行，避免检查后锁过期、别人重新加锁、自己又误删。</p>
+<p>第四，业务要幂等。分布式环境里很难只靠锁保证绝对一次执行，业务本身也要能处理重复请求。</p>
+<h2 id="实践方法"><a href="#实践方法" class="headerlink" title="实践方法"></a>实践方法</h2><p>最朴素的锁是 <code>SETNX</code>：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SETNX order:lock:1001 1</span><br></pre></td></tr></table></figure>
+<p>它的优点是简单，缺点也明显：如果没有过期时间，持锁进程挂了就可能死锁。</p>
+<p>稍微好一点的写法是原子设置锁和值和过期时间：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SET order:lock:1001 requestId NX PX 30000</span><br></pre></td></tr></table></figure>
+<p>这里 <code>NX</code> 表示 key 不存在才设置，<code>PX 30000</code> 表示 30 秒过期，<code>requestId</code> 表示锁的持有者。这个写法解决了加锁和设置过期时间的原子性问题。</p>
+<p>释放锁时不要直接：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">DEL order:lock:1001</span><br></pre></td></tr></table></figure>
+<p>因为你的业务可能执行超过 30 秒，锁已经过期，另一个线程重新拿到锁。如果你这时直接删除，就会删掉别人的锁。</p>
+<p>更安全的释放方式是 Lua：</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> redis.call(<span class="string">"GET"</span>, KEYS[<span class="number">1</span>]) == ARGV[<span class="number">1</span>] <span class="keyword">then</span></span><br><span class="line">  <span class="keyword">return</span> redis.call(<span class="string">"DEL"</span>, KEYS[<span class="number">1</span>])</span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+<p>这段脚本把“判断 owner”和“删除 key”放到 Redis 单线程执行里，避免中间被打断。</p>
+<p>如果业务执行时间不确定，可以使用带看门狗机制的锁。Redisson 的思路是：加锁成功后，如果业务线程还活着，就定期延长锁过期时间；业务结束后主动释放。这样可以避免业务正常运行但锁提前过期。</p>
+<p>不过看门狗也不是万能的。如果任务本身可能跑几分钟甚至几十分钟，我更倾向于拆小任务，或者使用任务状态表控制流程，而不是让一个 Redis 锁长时间占着。</p>
+<p>可重入锁适合一个线程在同一调用链里重复进入同一把锁的场景。它一般会记录线程标识和重入次数。优点是符合 Java <code>ReentrantLock</code> 的使用习惯，缺点是实现复杂，依赖客户端框架管理。</p>
+<p>RedLock 是一种尝试在多个 Redis 节点上获取多数锁的算法。它的目标是减少单点 Redis 故障对锁安全性的影响。但它实现和时钟假设更复杂，业务上是否需要要谨慎评估。多数普通后台系统，用单 Redis 主节点加合理业务幂等，或者直接用数据库唯一约束/状态机，反而更容易解释和维护。</p>
+<h2 id="业务例子"><a href="#业务例子" class="headerlink" title="业务例子"></a>业务例子</h2><p>以供应链库存预占为例。用户下单后，系统要对 SKU 做库存预占，不能让两个请求同时把同一批库存扣成负数。</p>
+<p>可以按 SKU 加锁：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">stock:lock:sku1001</span><br></pre></td></tr></table></figure>
+<p>流程是：</p>
+<ol>
+<li>请求生成唯一 <code>requestId</code>。</li>
+<li>使用 <code>SET key requestId NX PX 30000</code> 加锁。</li>
+<li>查询库存可用量。</li>
+<li>写入库存流水和订单预占记录。</li>
+<li>更新库存。</li>
+<li>提交数据库事务。</li>
+<li>用 Lua 判断 owner 后释放锁。</li>
+</ol>
+<p>这里还要做一层幂等：订单号和 SKU 的预占记录要有唯一约束。如果请求重试，即使再次进入，也不会重复预占。</p>
+<p>再比如 ERP 单据审核，同一张采购单不能同时被两个人审核。可以用 <code>po:audit:lock:{poNo}</code> 做锁，但最终仍然要在数据库里校验单据状态：只有 <code>待审核</code> 才能流转到 <code>已审核</code>。Redis 锁减少并发冲突，数据库状态机保证最终正确。</p>
+<h2 id="踩坑提醒"><a href="#踩坑提醒" class="headerlink" title="踩坑提醒"></a>踩坑提醒</h2><p>第一个坑，是没有过期时间。没有 TTL 的锁，遇到进程宕机就可能永远释放不了。</p>
+<p>第二个坑，是锁过期时间太短。业务还没执行完，锁先没了，其他线程进来就会并发执行。过期时间要结合业务耗时和最大抖动设置。</p>
+<p>第三个坑，是直接删除锁。释放前不判断 owner，很容易误删别人的锁。</p>
+<p>第四个坑，是只依赖锁不做幂等。网络重试、消费者重复消费、接口超时重放都可能导致同一业务重复进入。锁只是降低并发概率，幂等才是最后防线。</p>
+<p>第五个坑，是大锁。比如用一个 <code>global:lock</code> 锁住所有库存操作，会严重影响吞吐量。锁粒度要尽量贴近业务资源，比如按 SKU、订单号、仓库维度拆分。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Redis 锁常见形态从简单 <code>SETNX</code> 到带 TTL、带 owner、Lua 释放、可重入锁和 Redisson 看门狗锁。项目里最推荐的底线写法是：<code>SET key requestId NX PX ttl</code> 加锁，Lua 判断 owner 后释放，业务做好幂等和状态校验。</p>
+<p>锁不是越复杂越安全。真正可靠的方案，通常是“短锁 + 合理 TTL + 原子释放 + 业务幂等 + 监控告警”。只要这几件事到位，大多数后台系统就已经比裸 <code>SETNX</code> 稳很多。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://guxingxianyue.github.io/2023/11/23/redis锁有哪些/" data-id="cmq8scy6v000tjsqh5t3hysvb" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Redis/">Redis</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/分布式锁/">分布式锁</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/并发控制/">并发控制</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/系统设计/">系统设计</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2024/02/18/springcloud里面常用的组件/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          springcloud 里面常用的组件
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2023/07/09/redis的集群模式有哪些/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">redis的集群模式有哪些</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI/">AI</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Agent/">Agent</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CAP/">CAP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Claude-Code/">Claude Code</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Codex/">Codex</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ERP/">ERP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/">Java</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kafka/">Kafka</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/">MySQL</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Redis/">Redis</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/">SQL</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL优化/">SQL优化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Skill/">Skill</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spring-Cloud/">Spring Cloud</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/事务/">事务</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/供应链系统/">供应链系统</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/分布式/">分布式</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/分布式系统/">分布式系统</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/分布式锁/">分布式锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/命令行/">命令行</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/工程实践/">工程实践</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/并发控制/">并发控制</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/微服务/">微服务</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/技术文章/">技术文章</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/报表统计/">报表统计</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据分析/">数据分析</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据库/">数据库</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据结构与算法/">数据结构与算法</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/架构设计/">架构设计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/消息队列/">消息队列</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/系统优化/">系统优化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/系统设计/">系统设计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/缓存/">缓存</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/编程效率/">编程效率</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/软件工程/">软件工程</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/锁/">锁</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/AI/" style="font-size: 20px;">AI</a> <a href="/tags/Agent/" style="font-size: 10px;">Agent</a> <a href="/tags/CAP/" style="font-size: 10px;">CAP</a> <a href="/tags/Claude-Code/" style="font-size: 15px;">Claude Code</a> <a href="/tags/Codex/" style="font-size: 13.33px;">Codex</a> <a href="/tags/ERP/" style="font-size: 10px;">ERP</a> <a href="/tags/Java/" style="font-size: 11.67px;">Java</a> <a href="/tags/Kafka/" style="font-size: 10px;">Kafka</a> <a href="/tags/MySQL/" style="font-size: 11.67px;">MySQL</a> <a href="/tags/Redis/" style="font-size: 11.67px;">Redis</a> <a href="/tags/SQL/" style="font-size: 10px;">SQL</a> <a href="/tags/SQL优化/" style="font-size: 10px;">SQL优化</a> <a href="/tags/Skill/" style="font-size: 10px;">Skill</a> <a href="/tags/Spring-Cloud/" style="font-size: 10px;">Spring Cloud</a> <a href="/tags/事务/" style="font-size: 10px;">事务</a> <a href="/tags/供应链系统/" style="font-size: 10px;">供应链系统</a> <a href="/tags/分布式/" style="font-size: 15px;">分布式</a> <a href="/tags/分布式系统/" style="font-size: 11.67px;">分布式系统</a> <a href="/tags/分布式锁/" style="font-size: 10px;">分布式锁</a> <a href="/tags/命令行/" style="font-size: 11.67px;">命令行</a> <a href="/tags/工程实践/" style="font-size: 13.33px;">工程实践</a> <a href="/tags/并发控制/" style="font-size: 10px;">并发控制</a> <a href="/tags/微服务/" style="font-size: 10px;">微服务</a> <a href="/tags/技术文章/" style="font-size: 18.33px;">技术文章</a> <a href="/tags/报表统计/" style="font-size: 10px;">报表统计</a> <a href="/tags/数据分析/" style="font-size: 10px;">数据分析</a> <a href="/tags/数据库/" style="font-size: 11.67px;">数据库</a> <a href="/tags/数据结构与算法/" style="font-size: 13.33px;">数据结构与算法</a> <a href="/tags/架构设计/" style="font-size: 11.67px;">架构设计</a> <a href="/tags/消息队列/" style="font-size: 10px;">消息队列</a> <a href="/tags/系统优化/" style="font-size: 10px;">系统优化</a> <a href="/tags/系统设计/" style="font-size: 11.67px;">系统设计</a> <a href="/tags/缓存/" style="font-size: 10px;">缓存</a> <a href="/tags/编程效率/" style="font-size: 16.67px;">编程效率</a> <a href="/tags/软件工程/" style="font-size: 13.33px;">软件工程</a> <a href="/tags/锁/" style="font-size: 10px;">锁</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/06/">六月 2026</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/05/">五月 2026</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">十一月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">八月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/05/">五月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">二月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">十一月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/07/">七月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">三月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">六月 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">四月 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">三月 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">一月 2016</a><span class="archive-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recents</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2026/06/10/Codex提高软件编程效率的10个技巧/">Codex提高软件编程效率的10个技巧</a>
+          </li>
+        
+          <li>
+            <a href="/2026/06/10/普通开发者使用AI的三条边界/">普通开发者使用AI的三条边界</a>
+          </li>
+        
+          <li>
+            <a href="/2026/06/10/AI-Agent时代的开发工作流/">AI Agent时代的开发工作流</a>
+          </li>
+        
+          <li>
+            <a href="/2026/06/10/2026年重新理解AI编程助手/">2026年，重新理解AI编程助手</a>
+          </li>
+        
+          <li>
+            <a href="/2026/06/01/Claude-Code最常用的几个指令/">claude code 最常用的几个指令</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2026 Jinxing Chen<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">首页</a>
+  
+    <a href="/archives" class="mobile-nav-link">存档</a>
+  
+    <a href="/about" class="mobile-nav-link">关于</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+  </div>
+</body>
+</html>

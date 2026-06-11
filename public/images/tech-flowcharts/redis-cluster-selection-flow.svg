@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="600" viewBox="0 0 1080 600" role="img" aria-labelledby="title desc">
+  <title id="title">Redis 集群模式选型流程</title>
+  <desc id="desc">展示主从、哨兵、Cluster、代理分片和云托管 Redis 的优缺点与选型思路。</desc>
+  <rect width="1080" height="600" fill="#f8fafc"/>
+  <text x="540" y="42" text-anchor="middle" font-family="Arial, 'Microsoft YaHei', sans-serif" font-size="26" font-weight="700" fill="#111827">Redis 集群模式与选型路径</text>
+  <g font-family="Arial, 'Microsoft YaHei', sans-serif" font-size="15" fill="#111827">
+    <rect x="80" y="92" width="190" height="100" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
+    <text x="175" y="126" text-anchor="middle" font-weight="700">主从复制</text>
+    <text x="175" y="153" text-anchor="middle">读写分离/备份</text>
+    <text x="175" y="177" text-anchor="middle">故障切换靠人工或外部</text>
+    <rect x="320" y="92" width="190" height="100" rx="10" fill="#ffffff" stroke="#7c3aed" stroke-width="2"/>
+    <text x="415" y="126" text-anchor="middle" font-weight="700">Sentinel</text>
+    <text x="415" y="153" text-anchor="middle">自动故障转移</text>
+    <text x="415" y="177" text-anchor="middle">容量仍受单主限制</text>
+    <rect x="560" y="92" width="190" height="100" rx="10" fill="#ffffff" stroke="#059669" stroke-width="2"/>
+    <text x="655" y="126" text-anchor="middle" font-weight="700">Redis Cluster</text>
+    <text x="655" y="153" text-anchor="middle">16384 槽分片</text>
+    <text x="655" y="177" text-anchor="middle">容量和吞吐可横向扩展</text>
+    <rect x="800" y="92" width="190" height="100" rx="10" fill="#ffffff" stroke="#f59e0b" stroke-width="2"/>
+    <text x="895" y="126" text-anchor="middle" font-weight="700">代理/云托管</text>
+    <text x="895" y="153" text-anchor="middle">屏蔽运维复杂度</text>
+    <text x="895" y="177" text-anchor="middle">注意成本和兼容性</text>
+    <rect x="120" y="290" width="210" height="92" rx="10" fill="#ffffff" stroke="#0891b2" stroke-width="2"/>
+    <text x="225" y="323" text-anchor="middle" font-weight="700">数据量小</text>
+    <text x="225" y="350" text-anchor="middle">主从或 Sentinel</text>
+    <rect x="435" y="290" width="210" height="92" rx="10" fill="#ffffff" stroke="#0891b2" stroke-width="2"/>
+    <text x="540" y="323" text-anchor="middle" font-weight="700">容量/吞吐增长</text>
+    <text x="540" y="350" text-anchor="middle">优先 Redis Cluster</text>
+    <rect x="750" y="290" width="210" height="92" rx="10" fill="#ffffff" stroke="#0891b2" stroke-width="2"/>
+    <text x="855" y="323" text-anchor="middle" font-weight="700">团队运维弱</text>
+    <text x="855" y="350" text-anchor="middle">优先云托管</text>
+    <rect x="300" y="465" width="480" height="64" rx="10" fill="#ecfeff" stroke="#06b6d4" stroke-width="2"/>
+    <text x="540" y="493" text-anchor="middle" font-weight="700">最终检查</text>
+    <text x="540" y="518" text-anchor="middle">命令兼容性、跨 slot、持久化、故障演练、成本和监控</text>
+  </g>
+  <g stroke="#64748b" stroke-width="2" fill="none" marker-end="url(#arrow)">
+    <path d="M270 142H320"/>
+    <path d="M510 142H560"/>
+    <path d="M750 142H800"/>
+    <path d="M175 192C170 235 190 260 225 290"/>
+    <path d="M655 192C620 235 580 260 540 290"/>
+    <path d="M895 192C895 235 885 260 855 290"/>
+    <path d="M225 382C280 435 350 454 435 465"/>
+    <path d="M540 382V465"/>
+    <path d="M855 382C800 435 730 454 645 465"/>
+  </g>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#64748b"/>
+    </marker>
+  </defs>
+</svg>

@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>springcloud 里面常用的组件 | 陈金星写字的地方</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="Spring Cloud 不是一个单独的框架，而是一组围绕微服务落地的工程组件。它解决的不是某一个业务功能，而是微服务拆分之后必然出现的一组基础问题：服务在哪里、请求怎么进来、服务之间怎么调用、配置怎么管理、故障怎么隔离、链路怎么追踪。 如果把一个供应链系统拆成订单服务、库存服务、采购服务、仓储服务、结算服务，每个服务都可以独立部署和扩容。拆分之后的好处是边界清晰、扩展灵活，但随之而来的问题是系统">
+<meta name="keywords" content="Java,分布式系统,Spring Cloud,微服务">
+<meta property="og:type" content="article">
+<meta property="og:title" content="springcloud 里面常用的组件">
+<meta property="og:url" content="https://guxingxianyue.github.io/2024/02/18/springcloud里面常用的组件/index.html">
+<meta property="og:site_name" content="陈金星写字的地方">
+<meta property="og:description" content="Spring Cloud 不是一个单独的框架，而是一组围绕微服务落地的工程组件。它解决的不是某一个业务功能，而是微服务拆分之后必然出现的一组基础问题：服务在哪里、请求怎么进来、服务之间怎么调用、配置怎么管理、故障怎么隔离、链路怎么追踪。 如果把一个供应链系统拆成订单服务、库存服务、采购服务、仓储服务、结算服务，每个服务都可以独立部署和扩容。拆分之后的好处是边界清晰、扩展灵活，但随之而来的问题是系统">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://guxingxianyue.github.io/images/tech-flowcharts/springcloud-components-flow.svg">
+<meta property="og:updated_time" content="2026-06-10T19:07:51.904Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="springcloud 里面常用的组件">
+<meta name="twitter:description" content="Spring Cloud 不是一个单独的框架，而是一组围绕微服务落地的工程组件。它解决的不是某一个业务功能，而是微服务拆分之后必然出现的一组基础问题：服务在哪里、请求怎么进来、服务之间怎么调用、配置怎么管理、故障怎么隔离、链路怎么追踪。 如果把一个供应链系统拆成订单服务、库存服务、采购服务、仓储服务、结算服务，每个服务都可以独立部署和扩容。拆分之后的好处是边界清晰、扩展灵活，但随之而来的问题是系统">
+<meta name="twitter:image" content="https://guxingxianyue.github.io/images/tech-flowcharts/springcloud-components-flow.svg">
+  
+    <link rel="alternative" href="/atom.xml" title="陈金星写字的地方" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">陈金星写字的地方</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">less is more</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">首页</a>
+        
+          <a class="main-nav-link" href="/archives">存档</a>
+        
+          <a class="main-nav-link" href="/about">关于</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://guxingxianyue.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-springcloud里面常用的组件" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2024/02/18/springcloud里面常用的组件/" class="article-date">
+  <time datetime="2024-02-18T01:30:00.000Z" itemprop="datePublished">2024-02-18</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      springcloud 里面常用的组件
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Spring Cloud 不是一个单独的框架，而是一组围绕微服务落地的工程组件。它解决的不是某一个业务功能，而是微服务拆分之后必然出现的一组基础问题：服务在哪里、请求怎么进来、服务之间怎么调用、配置怎么管理、故障怎么隔离、链路怎么追踪。</p>
+<p>如果把一个供应链系统拆成订单服务、库存服务、采购服务、仓储服务、结算服务，每个服务都可以独立部署和扩容。拆分之后的好处是边界清晰、扩展灵活，但随之而来的问题是系统从一个进程变成了多个进程的协作。Spring Cloud 常用组件就是为了处理这些协作问题。</p>
+<p><img src="/images/tech-flowcharts/springcloud-components-flow.svg" alt="Spring Cloud 常用组件协作流程"></p>
+<h2 id="服务注册与发现：Eureka、Nacos、Consul"><a href="#服务注册与发现：Eureka、Nacos、Consul" class="headerlink" title="服务注册与发现：Eureka、Nacos、Consul"></a>服务注册与发现：Eureka、Nacos、Consul</h2><p>服务注册中心负责回答一个最基础的问题：服务在哪里。</p>
+<p>在单体系统里，方法调用发生在同一个进程内，不需要知道网络地址。拆成微服务之后，订单服务调用库存服务，需要知道库存服务当前有哪些实例、实例的 IP 和端口是什么、哪些实例健康、哪些实例已经下线。</p>
+<p>注册中心的工作方式通常是：</p>
+<ol>
+<li>服务启动时，把自己的服务名、地址、端口、健康状态注册到注册中心。</li>
+<li>服务运行期间，持续向注册中心发送心跳。</li>
+<li>调用方从注册中心拉取可用实例列表。</li>
+<li>注册中心根据心跳和健康检查剔除不可用实例。</li>
+</ol>
+<p>Eureka 是 Spring Cloud 早期常用的注册中心，强调 AP 思路，在短时间网络抖动时更倾向于保证服务发现可用。Nacos 同时支持服务发现和配置管理，在国内项目里使用较多。Consul 提供服务发现、健康检查和 KV 存储，也常用于基础设施统一管理。</p>
+<p>在供应链系统里，库存服务可能部署 6 个实例。订单服务不应该写死某一个库存服务地址，而是通过服务名 <code>inventory-service</code> 找到健康实例，再把请求分发过去。</p>
+<h2 id="配置中心：Spring-Cloud-Config、Nacos-Config"><a href="#配置中心：Spring-Cloud-Config、Nacos-Config" class="headerlink" title="配置中心：Spring Cloud Config、Nacos Config"></a>配置中心：Spring Cloud Config、Nacos Config</h2><p>配置中心负责回答另一个问题：配置怎么统一管理。</p>
+<p>微服务数量多了以后，如果每个服务都把数据库地址、开关配置、限流阈值、第三方接口地址写在本地配置文件里，修改一次配置就要重新打包和发布多个服务，风险很高。</p>
+<p>配置中心的工作原理是把配置从应用包里抽出来，集中存储和下发。服务启动时从配置中心读取配置，运行期间也可以通过刷新机制拿到最新配置。</p>
+<p>典型配置包括：</p>
+<ul>
+<li>数据库连接信息。</li>
+<li>Redis、MQ、搜索服务地址。</li>
+<li>业务开关，例如是否启用新的库存锁定策略。</li>
+<li>限流、超时、熔断阈值。</li>
+<li>不同环境的差异配置。</li>
+</ul>
+<p>例如采购系统要临时关闭自动补货功能，只需要在配置中心修改 <code>autoReplenish.enabled=false</code>，再让采购服务刷新配置，不需要重新发布服务。</p>
+<h2 id="网关：Spring-Cloud-Gateway、Zuul"><a href="#网关：Spring-Cloud-Gateway、Zuul" class="headerlink" title="网关：Spring Cloud Gateway、Zuul"></a>网关：Spring Cloud Gateway、Zuul</h2><p>网关是微服务系统的统一入口。</p>
+<p>如果没有网关，前端要直接知道订单服务、库存服务、报表服务、用户服务的地址，这会让前端和后端部署结构强耦合。网关把外部请求统一接进来，再根据路由规则转发到内部服务。</p>
+<p>网关常见职责包括：</p>
+<ul>
+<li>路由转发：把 <code>/api/orders/**</code> 转发到订单服务。</li>
+<li>鉴权认证：统一校验 token、登录态、权限。</li>
+<li>限流降级：对高频接口做访问控制。</li>
+<li>日志审计：记录请求来源、耗时、状态码。</li>
+<li>协议适配：对外暴露统一 HTTP 接口，对内转发到多个服务。</li>
+</ul>
+<p>Spring Cloud Gateway 基于响应式模型，性能和扩展性比早期 Zuul 1 更适合新项目。一个常见做法是把所有供应链后台请求都先打到网关，网关校验用户身份后，再转到订单、库存、采购等服务。</p>
+<h2 id="服务调用：OpenFeign、RestTemplate、WebClient"><a href="#服务调用：OpenFeign、RestTemplate、WebClient" class="headerlink" title="服务调用：OpenFeign、RestTemplate、WebClient"></a>服务调用：OpenFeign、RestTemplate、WebClient</h2><p>服务调用组件负责让一个服务更方便地调用另一个服务。</p>
+<p>OpenFeign 的价值是把远程 HTTP 调用写得像本地接口调用。开发者只需要定义接口、声明服务名和路径，Feign 会根据服务发现结果、负载均衡策略和 HTTP 编码规则发起请求。</p>
+<p>例如订单服务创建订单时，需要调用库存服务锁定库存：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@FeignClient</span>(name = <span class="string">"inventory-service"</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">InventoryClient</span> </span>&#123;</span><br><span class="line">    <span class="meta">@PostMapping</span>(<span class="string">"/inventory/lock"</span>)</span><br><span class="line">    <span class="function">LockResult <span class="title">lock</span><span class="params">(@RequestBody LockInventoryCommand command)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>它背后的核心流程是：根据服务名找到实例列表，选择一个实例，组装 HTTP 请求，发送请求，解析响应，异常时交给重试、熔断或降级逻辑处理。</p>
+<p>RestTemplate 是较早的同步 HTTP 客户端，WebClient 支持响应式调用。对于大多数普通业务服务，OpenFeign 的声明式调用更容易维护。</p>
+<h2 id="负载均衡：Ribbon、Spring-Cloud-LoadBalancer"><a href="#负载均衡：Ribbon、Spring-Cloud-LoadBalancer" class="headerlink" title="负载均衡：Ribbon、Spring Cloud LoadBalancer"></a>负载均衡：Ribbon、Spring Cloud LoadBalancer</h2><p>负载均衡负责决定请求发给哪一个服务实例。</p>
+<p>当库存服务有多个实例时，订单服务不能永远调用同一个实例，否则这个实例会成为热点。客户端负载均衡会从注册中心拿到实例列表，然后根据策略选择一个实例。</p>
+<p>常见策略包括：</p>
+<ul>
+<li>轮询：请求依次分配给不同实例。</li>
+<li>随机：随机选择一个实例。</li>
+<li>权重：性能更强或权重更高的实例承担更多请求。</li>
+<li>最少连接或响应时间优先：尽量选择当前压力较小的实例。</li>
+</ul>
+<p>Ribbon 是早期常见组件，新版本 Spring Cloud 更推荐 Spring Cloud LoadBalancer。它们的核心目标一致：让调用方不用关心某个服务具体部署了多少实例。</p>
+<h2 id="熔断与限流：Hystrix、Resilience4j、Sentinel"><a href="#熔断与限流：Hystrix、Resilience4j、Sentinel" class="headerlink" title="熔断与限流：Hystrix、Resilience4j、Sentinel"></a>熔断与限流：Hystrix、Resilience4j、Sentinel</h2><p>熔断和限流负责防止局部故障拖垮整个系统。</p>
+<p>在分布式系统里，一个服务慢并不可怕，可怕的是调用它的服务都被拖慢。比如库存服务数据库异常，订单服务大量线程卡在库存锁定接口上，随后订单服务也无法响应，最终网关、前端和其他服务都受到影响。</p>
+<p>熔断器的工作原理类似电路保护：</p>
+<ol>
+<li>统计一段时间内的失败率、慢调用比例、异常数量。</li>
+<li>当指标超过阈值时，打开熔断器。</li>
+<li>熔断打开后，请求不再真实调用下游，而是直接失败或走降级结果。</li>
+<li>过一段时间进入半开状态，放少量请求试探下游是否恢复。</li>
+<li>如果试探成功，关闭熔断；如果失败，继续熔断。</li>
+</ol>
+<p>Hystrix 曾经是 Spring Cloud 里最常见的熔断组件，但已经进入维护状态。新项目更常见的是 Resilience4j 或 Sentinel。Sentinel 在限流、热点参数控制、系统自适应保护方面更完整。</p>
+<h2 id="消息总线和消息驱动：Spring-Cloud-Bus、Stream"><a href="#消息总线和消息驱动：Spring-Cloud-Bus、Stream" class="headerlink" title="消息总线和消息驱动：Spring Cloud Bus、Stream"></a>消息总线和消息驱动：Spring Cloud Bus、Stream</h2><p>微服务之间不一定都要同步调用。对于不要求立即返回结果的业务，异步消息更适合。</p>
+<p>Spring Cloud Stream 把消息中间件抽象成绑定模型，让业务代码不直接依赖 Kafka、RabbitMQ 等具体实现。Spring Cloud Bus 常用于配置刷新、服务间事件通知。</p>
+<p>供应链系统里的典型场景是订单创建成功后发送 <code>OrderCreatedEvent</code>。库存服务订阅事件后扣减可售库存，仓储服务订阅事件后准备出库任务，积分服务订阅事件后累计客户积分。这样订单服务不需要同步等待所有下游服务完成。</p>
+<p>异步消息的关键不是简单地把请求丢到 MQ，而是要处理幂等、重复消费、消息顺序、失败重试和最终一致性。</p>
+<h2 id="链路追踪：Sleuth、Zipkin、Micrometer-Tracing"><a href="#链路追踪：Sleuth、Zipkin、Micrometer-Tracing" class="headerlink" title="链路追踪：Sleuth、Zipkin、Micrometer Tracing"></a>链路追踪：Sleuth、Zipkin、Micrometer Tracing</h2><p>链路追踪负责回答线上排查时最痛苦的问题：一次请求到底经过了哪些服务，慢在哪里。</p>
+<p>当用户点击创建采购单，可能经过网关、采购服务、供应商服务、库存服务、审批服务、消息队列。没有链路追踪时，只能分别查多个服务日志，很难把它们串起来。</p>
+<p>链路追踪的工作方式是给每次请求生成 traceId，并在服务之间透传。每个服务再生成自己的 spanId，记录当前服务处理了什么、耗时多少、是否异常。Zipkin 或其他追踪平台负责收集和展示完整调用链。</p>
+<p>Spring Cloud Sleuth 曾经负责自动注入 traceId 和 spanId。新版本生态里，Micrometer Tracing 是更主流的观测方案。</p>
+<h2 id="监控与治理：Actuator、Admin、Prometheus"><a href="#监控与治理：Actuator、Admin、Prometheus" class="headerlink" title="监控与治理：Actuator、Admin、Prometheus"></a>监控与治理：Actuator、Admin、Prometheus</h2><p>服务能跑起来只是第一步，更重要的是知道它跑得怎么样。</p>
+<p>Spring Boot Actuator 提供健康检查、指标、线程、环境变量等端点。Spring Boot Admin 可以集中查看服务状态。Prometheus 和 Grafana 常用于采集指标和展示监控面板。</p>
+<p>供应链系统至少应该关注：</p>
+<ul>
+<li>接口成功率和 P95、P99 响应时间。</li>
+<li>数据库连接池使用率。</li>
+<li>MQ 积压数量。</li>
+<li>服务实例健康状态。</li>
+<li>线程池队列长度。</li>
+<li>熔断、限流、降级次数。</li>
+</ul>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Spring Cloud 常用组件本质上是在处理微服务运行期治理问题。注册中心解决服务在哪里，配置中心解决配置如何统一，网关解决入口治理，Feign 解决服务调用，负载均衡解决实例选择，熔断限流解决故障隔离，消息组件解决异步解耦，链路追踪和监控解决可观测性。</p>
+<p>真正落地时不要为了组件而组件。系统规模小的时候，可以先从注册中心、网关、配置中心、Feign、基础监控开始。等调用链复杂、流量变大、故障影响扩大时，再逐步引入熔断限流、链路追踪、消息驱动和更细的治理能力。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://guxingxianyue.github.io/2024/02/18/springcloud里面常用的组件/" data-id="cmq8scy6w000yjsqhcwentzul" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/">Java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Spring-Cloud/">Spring Cloud</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/分布式系统/">分布式系统</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/微服务/">微服务</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2024/05/12/Java分布式系统里面的CAP理论/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          Java分布式系统里面的CAP理论
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2023/11/23/redis锁有哪些/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">redis锁有哪些</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI/">AI</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Agent/">Agent</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CAP/">CAP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Claude-Code/">Claude Code</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Codex/">Codex</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ERP/">ERP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/">Java</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kafka/">Kafka</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/">MySQL</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Redis/">Redis</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/">SQL</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL优化/">SQL优化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Skill/">Skill</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spring-Cloud/">Spring Cloud</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/事务/">事务</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/供应链系统/">供应链系统</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/分布式/">分布式</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/分布式系统/">分布式系统</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/分布式锁/">分布式锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/命令行/">命令行</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/工程实践/">工程实践</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/并发控制/">并发控制</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/微服务/">微服务</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/技术文章/">技术文章</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/报表统计/">报表统计</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据分析/">数据分析</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据库/">数据库</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据结构与算法/">数据结构与算法</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/架构设计/">架构设计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/消息队列/">消息队列</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/系统优化/">系统优化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/系统设计/">系统设计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/缓存/">缓存</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/编程效率/">编程效率</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/软件工程/">软件工程</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/锁/">锁</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/AI/" style="font-size: 20px;">AI</a> <a href="/tags/Agent/" style="font-size: 10px;">Agent</a> <a href="/tags/CAP/" style="font-size: 10px;">CAP</a> <a href="/tags/Claude-Code/" style="font-size: 15px;">Claude Code</a> <a href="/tags/Codex/" style="font-size: 13.33px;">Codex</a> <a href="/tags/ERP/" style="font-size: 10px;">ERP</a> <a href="/tags/Java/" style="font-size: 11.67px;">Java</a> <a href="/tags/Kafka/" style="font-size: 10px;">Kafka</a> <a href="/tags/MySQL/" style="font-size: 11.67px;">MySQL</a> <a href="/tags/Redis/" style="font-size: 11.67px;">Redis</a> <a href="/tags/SQL/" style="font-size: 10px;">SQL</a> <a href="/tags/SQL优化/" style="font-size: 10px;">SQL优化</a> <a href="/tags/Skill/" style="font-size: 10px;">Skill</a> <a href="/tags/Spring-Cloud/" style="font-size: 10px;">Spring Cloud</a> <a href="/tags/事务/" style="font-size: 10px;">事务</a> <a href="/tags/供应链系统/" style="font-size: 10px;">供应链系统</a> <a href="/tags/分布式/" style="font-size: 15px;">分布式</a> <a href="/tags/分布式系统/" style="font-size: 11.67px;">分布式系统</a> <a href="/tags/分布式锁/" style="font-size: 10px;">分布式锁</a> <a href="/tags/命令行/" style="font-size: 11.67px;">命令行</a> <a href="/tags/工程实践/" style="font-size: 13.33px;">工程实践</a> <a href="/tags/并发控制/" style="font-size: 10px;">并发控制</a> <a href="/tags/微服务/" style="font-size: 10px;">微服务</a> <a href="/tags/技术文章/" style="font-size: 18.33px;">技术文章</a> <a href="/tags/报表统计/" style="font-size: 10px;">报表统计</a> <a href="/tags/数据分析/" style="font-size: 10px;">数据分析</a> <a href="/tags/数据库/" style="font-size: 11.67px;">数据库</a> <a href="/tags/数据结构与算法/" style="font-size: 13.33px;">数据结构与算法</a> <a href="/tags/架构设计/" style="font-size: 11.67px;">架构设计</a> <a href="/tags/消息队列/" style="font-size: 10px;">消息队列</a> <a href="/tags/系统优化/" style="font-size: 10px;">系统优化</a> <a href="/tags/系统设计/" style="font-size: 11.67px;">系统设计</a> <a href="/tags/缓存/" style="font-size: 10px;">缓存</a> <a href="/tags/编程效率/" style="font-size: 16.67px;">编程效率</a> <a href="/tags/软件工程/" style="font-size: 13.33px;">软件工程</a> <a href="/tags/锁/" style="font-size: 10px;">锁</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/06/">六月 2026</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/05/">五月 2026</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">十一月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">八月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/05/">五月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">二月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">十一月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/07/">七月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">三月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">六月 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">四月 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">三月 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">一月 2016</a><span class="archive-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recents</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2026/06/10/Codex提高软件编程效率的10个技巧/">Codex提高软件编程效率的10个技巧</a>
+          </li>
+        
+          <li>
+            <a href="/2026/06/10/普通开发者使用AI的三条边界/">普通开发者使用AI的三条边界</a>
+          </li>
+        
+          <li>
+            <a href="/2026/06/10/AI-Agent时代的开发工作流/">AI Agent时代的开发工作流</a>
+          </li>
+        
+          <li>
+            <a href="/2026/06/10/2026年重新理解AI编程助手/">2026年，重新理解AI编程助手</a>
+          </li>
+        
+          <li>
+            <a href="/2026/06/01/Claude-Code最常用的几个指令/">claude code 最常用的几个指令</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2026 Jinxing Chen<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">首页</a>
+  
+    <a href="/archives" class="mobile-nav-link">存档</a>
+  
+    <a href="/about" class="mobile-nav-link">关于</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+  </div>
+</body>
+</html>

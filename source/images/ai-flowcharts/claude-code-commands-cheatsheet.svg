@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="620" viewBox="0 0 980 620" role="img" aria-labelledby="title desc">
+  <title id="title">Claude Code 指令速查图片</title>
+  <desc id="desc">常见 Claude Code 指令、适用场景和使用提醒。</desc>
+  <rect width="980" height="620" fill="#ffffff"/>
+  <text x="490" y="44" text-anchor="middle" font-family="Arial, 'Microsoft YaHei', sans-serif" font-size="26" font-weight="700" fill="#111827">Claude Code 指令速查</text>
+  <g font-family="Arial, 'Microsoft YaHei', sans-serif" font-size="15" fill="#111827">
+    <rect x="70" y="78" width="840" height="470" rx="10" fill="#f8fafc" stroke="#cbd5e1"/>
+    <g font-weight="700">
+      <text x="105" y="120">指令</text>
+      <text x="270" y="120">什么时候用</text>
+      <text x="590" y="120">提醒</text>
+    </g>
+    <line x1="95" y1="137" x2="885" y2="137" stroke="#cbd5e1"/>
+    <text x="105" y="172">/init</text><text x="270" y="172">新项目第一次接入</text><text x="590" y="172">生成后要手工改成项目真实规则</text>
+    <text x="105" y="222">/plan</text><text x="270" y="222">复杂任务、改动多文件前</text><text x="590" y="222">先审计划，再允许写代码</text>
+    <text x="105" y="272">/context</text><text x="270" y="272">长会话感觉变慢或跑偏</text><text x="590" y="272">看上下文被什么占满</text>
+    <text x="105" y="322">/compact</text><text x="270" y="322">任务还没完但上下文太长</text><text x="590" y="322">附带保留重点说明更稳</text>
+    <text x="105" y="372">/diff</text><text x="270" y="372">准备验收前</text><text x="590" y="372">逐文件看边界，别只看总结</text>
+    <text x="105" y="422">/code-review</text><text x="270" y="422">提交前做一次代码审查</text><text x="590" y="422">重点看正确性、回归、测试缺口</text>
+    <text x="105" y="472">/rewind</text><text x="270" y="472">方向错了需要回退</text><text x="590" y="472">比手动乱改更容易保持会话干净</text>
+    <text x="105" y="522">/skills</text><text x="270" y="522">查看可用技能和命令</text><text x="590" y="522">不同环境可用项可能不同</text>
+  </g>
+  <text x="490" y="586" text-anchor="middle" font-family="Arial, 'Microsoft YaHei', sans-serif" font-size="16" fill="#475569">原则：先让命令服务工作流，不要为了记命令而记命令。</text>
+</svg>

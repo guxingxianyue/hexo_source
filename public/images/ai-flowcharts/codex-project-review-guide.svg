@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="560" viewBox="0 0 980 560" role="img" aria-labelledby="title desc">
+  <title id="title">Codex 项目审查指引图</title>
+  <desc id="desc">展示使用 Codex 后人工审查 diff 的重点。</desc>
+  <rect width="980" height="560" fill="#ffffff"/>
+  <text x="490" y="44" text-anchor="middle" font-family="Arial, 'Microsoft YaHei', sans-serif" font-size="26" font-weight="700" fill="#111827">Codex 改完后，我会重点看什么</text>
+  <rect x="80" y="80" width="820" height="390" rx="12" fill="#0f172a"/>
+  <g font-family="Consolas, 'Microsoft YaHei', monospace" font-size="18">
+    <text x="120" y="130" fill="#e5e7eb">git diff</text>
+    <text x="120" y="175" fill="#fca5a5">- 旧逻辑：只处理成功路径</text>
+    <text x="120" y="215" fill="#86efac">+ 新逻辑：补充失败分支和空值判断</text>
+    <text x="120" y="255" fill="#86efac">+ 新测试：覆盖异常输入和边界输入</text>
+    <text x="120" y="295" fill="#fde68a">? 检查点：是否改到无关文件</text>
+    <text x="120" y="335" fill="#fde68a">? 检查点：是否暴露密钥、token、内部地址</text>
+    <text x="120" y="375" fill="#fde68a">? 检查点：测试是否真的运行，还是只写在总结里</text>
+    <text x="120" y="415" fill="#fde68a">? 检查点：失败命令有没有解释清楚</text>
+  </g>
+  <g font-family="Arial, 'Microsoft YaHei', sans-serif" font-size="15" fill="#111827">
+    <rect x="120" y="498" width="170" height="30" rx="15" fill="#dbeafe"/>
+    <text x="205" y="519" text-anchor="middle">边界是否清楚</text>
+    <rect x="315" y="498" width="170" height="30" rx="15" fill="#dcfce7"/>
+    <text x="400" y="519" text-anchor="middle">验证是否可信</text>
+    <rect x="510" y="498" width="170" height="30" rx="15" fill="#fef3c7"/>
+    <text x="595" y="519" text-anchor="middle">风险是否暴露</text>
+    <rect x="705" y="498" width="170" height="30" rx="15" fill="#fee2e2"/>
+    <text x="790" y="519" text-anchor="middle">是否可回滚</text>
+  </g>
+</svg>

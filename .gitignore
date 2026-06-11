@@ -1,0 +1,4 @@
+node_modules/
+.npm-cache/
+.deploy_git/
+debug.log

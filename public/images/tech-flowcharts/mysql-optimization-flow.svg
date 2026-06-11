@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="560" viewBox="0 0 980 560" role="img" aria-labelledby="title desc">
+  <title id="title">MySQL SQL 优化步骤流程</title>
+  <desc id="desc">展示从确认瓶颈、定位慢 SQL 到验证效果的 MySQL 优化流程。</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#2f5d7c"/>
+    </marker>
+    <style>
+      .box{fill:#f7fbff;stroke:#2f5d7c;stroke-width:2;rx:10;ry:10}
+      .key{fill:#eef7f0;stroke:#347a44;stroke-width:2;rx:10;ry:10}
+      .warn{fill:#fff8e8;stroke:#9a6a16;stroke-width:2;rx:10;ry:10}
+      .text{font-family:Arial,'Microsoft YaHei',sans-serif;font-size:17px;fill:#1f2d3d}
+      .small{font-family:Arial,'Microsoft YaHei',sans-serif;font-size:13px;fill:#4d5b68}
+      .line{stroke:#2f5d7c;stroke-width:2.1;fill:none;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect width="980" height="560" fill="#ffffff"/>
+  <text x="490" y="42" text-anchor="middle" class="text" font-size="26">MySQL 性能优化闭环</text>
+
+  <rect x="55" y="92" width="180" height="78" class="box"/>
+  <text x="145" y="124" text-anchor="middle" class="text">确认瓶颈</text>
+  <text x="145" y="149" text-anchor="middle" class="small">接口耗时拆分</text>
+
+  <rect x="295" y="92" width="180" height="78" class="box"/>
+  <text x="385" y="124" text-anchor="middle" class="text">定位慢 SQL</text>
+  <text x="385" y="149" text-anchor="middle" class="small">慢日志 频率 P99</text>
+
+  <rect x="535" y="92" width="180" height="78" class="key"/>
+  <text x="625" y="124" text-anchor="middle" class="text">EXPLAIN</text>
+  <text x="625" y="149" text-anchor="middle" class="small">type key rows Extra</text>
+
+  <rect x="775" y="92" width="150" height="78" class="key"/>
+  <text x="850" y="124" text-anchor="middle" class="text">设计索引</text>
+  <text x="850" y="149" text-anchor="middle" class="small">联合索引 覆盖索引</text>
+
+  <rect x="775" y="250" width="150" height="78" class="box"/>
+  <text x="850" y="282" text-anchor="middle" class="text">改写 SQL</text>
+  <text x="850" y="307" text-anchor="middle" class="small">少字段 少排序</text>
+
+  <rect x="535" y="250" width="180" height="78" class="box"/>
+  <text x="625" y="282" text-anchor="middle" class="text">优化分页</text>
+  <text x="625" y="307" text-anchor="middle" class="small">游标分页 延迟关联</text>
+
+  <rect x="295" y="250" width="180" height="78" class="warn"/>
+  <text x="385" y="282" text-anchor="middle" class="text">控制事务和锁</text>
+  <text x="385" y="307" text-anchor="middle" class="small">缩短事务 固定顺序</text>
+
+  <rect x="55" y="250" width="180" height="78" class="warn"/>
+  <text x="145" y="282" text-anchor="middle" class="text">调整业务模型</text>
+  <text x="145" y="307" text-anchor="middle" class="small">汇总表 缓存 异步</text>
+
+  <rect x="295" y="415" width="390" height="84" class="key"/>
+  <text x="490" y="449" text-anchor="middle" class="text">验证和沉淀</text>
+  <text x="490" y="475" text-anchor="middle" class="small">耗时 扫描行数 并发结果 回滚方案 文档记录</text>
+
+  <path class="line" d="M235 131 H295"/>
+  <path class="line" d="M475 131 H535"/>
+  <path class="line" d="M715 131 H775"/>
+  <path class="line" d="M850 170 V250"/>
+  <path class="line" d="M775 289 H715"/>
+  <path class="line" d="M535 289 H475"/>
+  <path class="line" d="M295 289 H235"/>
+  <path class="line" d="M145 328 C145 392 265 457 295 457"/>
+  <path class="line" d="M685 457 C795 457 850 390 850 328"/>
+  <text x="745" y="443" class="small">效果不好则回到执行计划</text>
+</svg>

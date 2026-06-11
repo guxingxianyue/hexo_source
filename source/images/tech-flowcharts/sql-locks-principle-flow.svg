@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="560" viewBox="0 0 980 560" role="img" aria-labelledby="title desc">
+  <title id="title">SQL 锁类型和事务执行流程</title>
+  <desc id="desc">展示 SQL 事务从开始、定位索引、申请锁、执行业务更新到提交释放锁的流程，以及常见锁类型。</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#315a78"/>
+    </marker>
+    <style>
+      .box{fill:#f7fbff;stroke:#315a78;stroke-width:2;rx:10;ry:10}
+      .key{fill:#eef7f0;stroke:#347a44;stroke-width:2;rx:10;ry:10}
+      .warn{fill:#fff8e8;stroke:#9a6a16;stroke-width:2;rx:10;ry:10}
+      .risk{fill:#fff1f1;stroke:#a34242;stroke-width:2;rx:10;ry:10}
+      .text{font-family:Arial,'Microsoft YaHei',sans-serif;font-size:17px;fill:#1f2d3d}
+      .small{font-family:Arial,'Microsoft YaHei',sans-serif;font-size:13px;fill:#4d5b68}
+      .line{stroke:#315a78;stroke-width:2.1;fill:none;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect width="980" height="560" fill="#ffffff"/>
+  <text x="490" y="42" text-anchor="middle" class="text" font-size="26">SQL 锁的工作路径</text>
+
+  <rect x="55" y="90" width="165" height="76" class="box"/>
+  <text x="137" y="121" text-anchor="middle" class="text">事务开始</text>
+  <text x="137" y="146" text-anchor="middle" class="small">BEGIN / 自动事务</text>
+
+  <rect x="280" y="90" width="165" height="76" class="key"/>
+  <text x="362" y="121" text-anchor="middle" class="text">定位索引</text>
+  <text x="362" y="146" text-anchor="middle" class="small">决定锁住哪些记录</text>
+
+  <rect x="505" y="90" width="165" height="76" class="warn"/>
+  <text x="587" y="121" text-anchor="middle" class="text">申请锁</text>
+  <text x="587" y="146" text-anchor="middle" class="small">S/X 行锁 表锁</text>
+
+  <rect x="730" y="90" width="190" height="76" class="box"/>
+  <text x="825" y="121" text-anchor="middle" class="text">执行业务 SQL</text>
+  <text x="825" y="146" text-anchor="middle" class="small">读 写 范围扫描</text>
+
+  <rect x="730" y="245" width="190" height="76" class="key"/>
+  <text x="825" y="276" text-anchor="middle" class="text">提交或回滚</text>
+  <text x="825" y="301" text-anchor="middle" class="small">释放事务持有的锁</text>
+
+  <rect x="505" y="245" width="165" height="76" class="risk"/>
+  <text x="587" y="276" text-anchor="middle" class="text">锁等待/死锁</text>
+  <text x="587" y="301" text-anchor="middle" class="small">等待超时或回滚重试</text>
+
+  <rect x="70" y="245" width="370" height="76" class="box"/>
+  <text x="255" y="276" text-anchor="middle" class="text">常见锁类型</text>
+  <text x="255" y="301" text-anchor="middle" class="small">共享锁 排他锁 意向锁 记录锁 间隙锁 Next-Key MDL</text>
+
+  <rect x="70" y="405" width="250" height="80" class="key"/>
+  <text x="195" y="437" text-anchor="middle" class="text">锁得准</text>
+  <text x="195" y="462" text-anchor="middle" class="small">查询条件命中合适索引</text>
+
+  <rect x="365" y="405" width="250" height="80" class="warn"/>
+  <text x="490" y="437" text-anchor="middle" class="text">锁得短</text>
+  <text x="490" y="462" text-anchor="middle" class="small">事务内只放必要操作</text>
+
+  <rect x="660" y="405" width="250" height="80" class="key"/>
+  <text x="785" y="437" text-anchor="middle" class="text">顺序一致</text>
+  <text x="785" y="462" text-anchor="middle" class="small">多表更新固定加锁顺序</text>
+
+  <path class="line" d="M220 128 H280"/>
+  <path class="line" d="M445 128 H505"/>
+  <path class="line" d="M670 128 H730"/>
+  <path class="line" d="M825 166 V245"/>
+  <path class="line" d="M730 283 H670"/>
+  <path class="line" d="M587 245 V166"/>
+  <path class="line" d="M505 283 H440"/>
+  <path class="line" d="M255 321 V405"/>
+  <path class="line" d="M490 321 V405"/>
+  <path class="line" d="M785 321 V405"/>
+
+  <text x="235" y="112" class="small">SQL 条件</text>
+  <text x="462" y="112" class="small">锁范围</text>
+  <text x="685" y="112" class="small">兼容则执行</text>
+  <text x="602" y="220" class="small">不兼容则等待</text>
+</svg>

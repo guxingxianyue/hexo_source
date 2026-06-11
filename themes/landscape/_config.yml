@@ -18,9 +18,6 @@ widgets:
 - archive
 - recent_posts
 
-#图片效果，默认
-fancybox: true 
-
 # Miscellaneous
 google_analytics:
 favicon: /favicon.png

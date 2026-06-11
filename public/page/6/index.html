@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>陈金星写字的地方</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="less is more">
+<meta property="og:type" content="website">
+<meta property="og:title" content="陈金星写字的地方">
+<meta property="og:url" content="https://guxingxianyue.github.io/page/6/index.html">
+<meta property="og:site_name" content="陈金星写字的地方">
+<meta property="og:description" content="less is more">
+<meta property="og:locale" content="zh-CN">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="陈金星写字的地方">
+<meta name="twitter:description" content="less is more">
+  
+    <link rel="alternative" href="/atom.xml" title="陈金星写字的地方" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">陈金星写字的地方</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">less is more</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">首页</a>
+        
+          <a class="main-nav-link" href="/archives">存档</a>
+        
+          <a class="main-nav-link" href="/about">关于</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://guxingxianyue.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main">
+  
+    <article id="post-JAVA多线程的应用场景和目的" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2016/03/20/JAVA多线程的应用场景和目的/" class="article-date">
+  <time datetime="2016-03-20T13:03:08.000Z" itemprop="datePublished">2016-03-20</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2016/03/20/JAVA多线程的应用场景和目的/">JAVA多线程的应用场景和目的</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h4 id="多线程使用的主要目的在于："><a href="#多线程使用的主要目的在于：" class="headerlink" title="多线程使用的主要目的在于："></a>多线程使用的主要目的在于：</h4><ul>
+<li><p>吞吐量：你做WEB，容器帮你做了多线程，但是他只能帮你做请求层面的。简单的说，可能就是一个请求一个线程。或多个请求一个线程。如果是单线程，那同时只能处理一个用户的请求。</p>
+</li>
+<li><p>伸缩性：也就是说，你可以通过增加CPU核数来提升性能。如果是单线程，那程序执行到死也就利用了单核，肯定没办法通过增加CPU核数来提升性能。</p>
+</li>
+</ul>
+<p>鉴于是做WEB的，第1点可能你几乎不涉及。这里就讲第二点。</p>
+<p>举个简单的例子：<br>假设有个请求，这个请求服务端的处理需要执行3个很缓慢的IO操作（比如数据库查询或文件查询），那么正常的顺序可能是（括号里面代表执行时间）：</p>
+<ul>
+<li>a读取文件1  （10ms）</li>
+<li>b处理1的数据（1ms）</li>
+<li>c读取文件2  （10ms）</li>
+<li>d处理2的数据（1ms）</li>
+<li>e读取文件3  （10ms）</li>
+<li>f处理3的数据（1ms）</li>
+<li>g整合1、2、3的数据结果 （1ms）</li>
+</ul>
+<p>单线程总共就需要34ms。<br>那如果你在这个请求内，把ab、cd、ef分别分给3个线程去做，就只需要12ms了。</p>
+<p>所以多线程不是没怎么用，而是，你平常要善于发现一些可优化的点。然后评估方案是否应该使用。<br>假设还是上面那个相同的问题：但是每个步骤的执行时间不一样了。</p>
+<ul>
+<li>a读取文件1  （1ms）</li>
+<li>b处理1的数据（1ms）</li>
+<li>c读取文件2  （1ms）</li>
+<li>d处理2的数据（1ms）</li>
+<li>e读取文件3  （28ms）</li>
+<li>f处理3的数据（1ms）</li>
+<li>g整合1、2、3的数据结果 （1ms）</li>
+</ul>
+<p>单线程总共就需要34ms。<br>如果还是按上面的划分方案（上面方案和木桶原理一样，耗时取决于最慢的那个线程的执行速度），在这个例子中是第三个线程，执行29ms。<br>那么最后这个请求耗时是30ms。比起不用单线程，就节省了4ms。但是有可能线程调度切换也要花费个1、2ms。因此，这个方案显得优势就不明显了，<br>还带来程序复杂度提升。不太值得。</p>
+<p>那么现在优化的点，就不是第一个例子那样的任务分割多线程完成。而是优化文件3的读取速度。<br>可能是采用缓存和减少一些重复读取。<br>首先，假设有一种情况，所有用户都请求这个请求，那其实相当于所有用户都需要读取文件3。那你想想，100个人进行了这个请求，相当于你花在读取<br>这个文件上的时间就是28×100=2800ms了。那么，如果你把文件缓存起来，那只要第一个用户的请求读取了，第二个用户不需要读取了，从内存取是很<br>快速的，可能1ms都不到。</p>
+<p>伪代码：</p>
+<pre><code>public class MyServlet extends Servlet{
+    private static Map&lt;String, String&gt; fileName2Data = new HashMap&lt;String, String&gt;();
+    private void processFile3(String fName){
+        String data = fileName2Data.get(fName);
+        if(data==null){
+            data = readFromFile(fName);    //耗时28ms
+            fileName2Data.put(fName, data);
+        }
+        //process with data
+    }
+}
+</code></pre><p>看起来好像还不错，建立一个文件名和文件数据的映射。如果读取一个map中已经存在的数据，那么就不不用读取文件了。<br>可是问题在于，Servlet是并发，上面会导致一个很严重的问题，死循环。因为，HashMap在并发修改的时候，可能是导致循环链表的构成！！！<br>（具体你可以自行阅读HashMap源码）如果你没接触过多线程，可能到时候发现服务器没请求也巨卡，也不知道什么情况！<br>好的，那就用ConcurrentHashMap，正如他的名字一样，他是一个线程安全的HashMap，这样能轻松解决问题。</p>
+<pre><code>public class MyServlet extends Servlet{
+    private static ConcurrentHashMap&lt;String, String&gt; fileName2Data = new ConcurrentHashMap&lt;String, String&gt;();
+    private void processFile3(String fName){
+        String data = fileName2Data.get(fName);
+        if(data==null){
+            data = readFromFile(fName);    //耗时28ms
+            fileName2Data.put(fName, data);
+        }
+        //process with data
+    }
+}
+</code></pre><p>这样真的解决问题了吗，这样虽然只要有用户访问过文件a，那另一个用户想访问文件a，也会从fileName2Data中拿数据，然后也不会引起死循环。</p>
+<p>可是，如果你觉得这样就已经完了，那你把多线程也想的太简单了，骚年！<br>你会发现，1000个用户首次访问同一个文件的时候，居然读取了1000次文件（这是最极端的，可能只有几百）。What the fuckin hell!!!</p>
+<p>难道代码错了吗！</p>
+<p>好好分析下。Servlet是多线程的，那么</p>
+<pre><code>public class MyServlet extends Servlet{
+    private static ConcurrentHashMap&lt;String, String&gt; fileName2Data = new ConcurrentHashMap&lt;String, String&gt;();
+    private void processFile3(String fName){
+        String data = fileName2Data.get(fName);
+        //“偶然”-- 1000个线程同时到这里，同时发现data为null
+        if(data==null){
+            data = readFromFile(fName);    //耗时28ms
+            fileName2Data.put(fName, data);
+        }
+        //process with data
+    }
+}
+</code></pre><p>上面注释的“偶然”，这是完全有可能的，因此，这样做还是有问题。</p>
+<p>因此，可以自己简单的封装一个任务来处理。</p>
+<pre><code>public class MyServlet extends Servlet{
+
+    private static ConcurrentHashMap&lt;String, FutureTask&lt;String&gt;&gt; fileName2Data = new ConcurrentHashMap&lt;String, FutureTask&lt;String&gt;&gt;();
+
+    private static ExecutorService exec = Executors.newCachedThreadPool();
+
+
+    private void processFile3(String fName){
+        FutureTask&lt;String&gt; data = fileName2Data.get(fName);
+        //“偶然”-- 1000个线程同时到这里，同时发现data为null
+        if(data == null){
+            data = newFutureTask(fName);
+            FutureTask&lt;String&gt; old = fileName2Data.putIfAbsent(fName, data);
+            if(old == null){
+                exec.execute(data);
+            }else{
+                data = old;
+            }
+        }
+        Object d = null ;
+        try {
+            d = data.get();
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        System.out.println(Thread.currentThread().getName() + &quot;method-&gt;processFile3&quot; + d);
+    }
+
+    private FutureTask&lt;String&gt; newFutureTask(final String file){
+        return  new FutureTask&lt;String&gt;(new Callable&lt;String&gt;(){
+            public String call(){
+                return readFromFile(file);
+            }
+
+            private String readFromFile(String file){
+                System.out.println(Thread.currentThread().getName() + &quot;method-&gt;readFromFile,do readFromFile&quot;);
+                return &quot; do readFromFile&quot;;
+            }
+        });
+    }
+}
+</code></pre><p>多线程最多的场景：web服务器本身；各种专用服务器（如游戏服务器）；</p>
+<p>多线程的常见应用场景：</p>
+<ul>
+<li>后台任务，例如：定时向大量（100w以上）的用户发送邮件；</li>
+<li>异步处理，例如：发微博、记录日志等；</li>
+<li>分布式计算</li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://guxingxianyue.github.io/2016/03/20/JAVA多线程的应用场景和目的/" data-id="cmq8scy6l0006jsqhsl7dyht4" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/技术文章/">技术文章</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-关于对java多线程的一些基础认识" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2016/03/05/关于对java多线程的一些基础认识/" class="article-date">
+  <time datetime="2016-03-05T12:47:08.000Z" itemprop="datePublished">2016-03-05</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2016/03/05/关于对java多线程的一些基础认识/">关于对java多线程的一些基础认识</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="一-线程的生命周期及五种基本状态"><a href="#一-线程的生命周期及五种基本状态" class="headerlink" title="一.线程的生命周期及五种基本状态"></a>一.线程的生命周期及五种基本状态</h2><p><img src="https://i.imgur.com/IE4s56r.jpg" alt="五种基本状态"></p>
+<p>上图中基本上囊括了Java中多线程各重要知识点。掌握了上图中的各知识点，Java中的多线程也就基本上掌握了。主要包括：</p>
+<h4 id="Java线程具有五中基本状态"><a href="#Java线程具有五中基本状态" class="headerlink" title="Java线程具有五中基本状态"></a>Java线程具有五中基本状态</h4><ul>
+<li><p>新建状态（New）：当线程对象对创建后，即进入了新建状态，如：Thread t = new MyThread();</p>
+</li>
+<li><p>就绪状态（Runnable）：当调用线程对象的start()方法（t.start();），线程即进入就绪状态。处于就绪状态的线程，只是说明此线程已经做好了准备，随时等待CPU调度执行，并不是说执行了t.start()此线程立即就会执行；</p>
+</li>
+<li><p>运行状态（Running）：当CPU开始调度处于就绪状态的线程时，此时线程才得以真正执行，即进入到运行状态。注：就     绪状态是进入到运行状态的唯一入口，也就是说，线程要想进入运行状态执行，首先必须处于就绪状态中；</p>
+</li>
+<li><p>阻塞状态（Blocked）：处于运行状态中的线程由于某种原因，暂时放弃对CPU的使用权，停止执行，此时进入阻塞状态，直到其进入到就绪状态，才 有机会再次被CPU调用以进入到运行状态。根据阻塞产生的原因不同，阻塞状态又可以分为三种：</p>
+<ul>
+<li><p>等待阻塞：运行状态中的线程执行wait()方法，使本线程进入到等待阻塞状态；</p>
+</li>
+<li><p>同步阻塞 – 线程在获取synchronized同步锁失败(因为锁被其它线程所占用)，它会进入同步阻塞状态；</p>
+</li>
+<li><p>其他阻塞 – 通过调用线程的sleep()或join()或发出了I/O请求时，线程会进入到阻塞状态。当sleep()状态超时、join()等待线程终止或者超时、或者I/O处理完毕时，线程重新转入就绪状态。</p>
+</li>
+</ul>
+</li>
+<li><p>死亡状态（Dead）：线程执行完了或者因异常退出了run()方法，该线程结束生命周期。</p>
+</li>
+</ul>
+<h2 id="二-Java多线程的创建及启动"><a href="#二-Java多线程的创建及启动" class="headerlink" title="二. Java多线程的创建及启动"></a>二. Java多线程的创建及启动</h2><h6 id="Java中线程的创建常见有如三种基本形式"><a href="#Java中线程的创建常见有如三种基本形式" class="headerlink" title="Java中线程的创建常见有如三种基本形式"></a>Java中线程的创建常见有如三种基本形式</h6><h4 id="1-继承Thread类，重写该类的run-方法。"><a href="#1-继承Thread类，重写该类的run-方法。" class="headerlink" title="1.继承Thread类，重写该类的run()方法。"></a>1.继承Thread类，重写该类的run()方法。</h4><pre><code>class MyThread extends Thread {
+
+    private int i = 0;
+
+    @Override
+    public void run() {
+        for (i = 0; i &lt; 100; i++) {
+            System.out.println(Thread.currentThread().getName() + &quot; &quot; + i);
+        }
+    }
+}
+
+public class ThreadTest {
+
+    public static void main(String[] args) {
+        for (int i = 0; i &lt; 100; i++) {
+            System.out.println(Thread.currentThread().getName() + &quot; &quot; + i);
+            if (i == 30) {
+                Thread myThread1 = new MyThread();     // 创建一个新的线程  myThread1  此线程进入新建状态
+                Thread myThread2 = new MyThread();     // 创建一个新的线程 myThread2 此线程进入新建状态
+                myThread1.start();                     // 调用start()方法使得线程进入就绪状态
+                myThread2.start();                     // 调用start()方法使得线程进入就绪状态
+            }
+        }
+    }
+}
+</code></pre><p>如上所示，继承Thread类，通过重写run()方法定义了一个新的线程类MyThread，其中run()方法的方法体代表了线程需要完成的任务，称之为线程执行体。当创建此线程类对象时一个新的线程得以创建，并进入到线程新建状态。通过调用线程对象引用的start()方法，使得该线程进入到就绪状态，此时此线程并不一定会马上得以执行，这取决于CPU调度时机。</p>
+<h4 id="2-实现Runnable接口，并重写该接口的run-方法，该run-方法同样是线程执行体，创建Runnable实现类的实例，并以此实例作为Thread类的target来创建Thread对象，该Thread对象才是真正的线程对象。"><a href="#2-实现Runnable接口，并重写该接口的run-方法，该run-方法同样是线程执行体，创建Runnable实现类的实例，并以此实例作为Thread类的target来创建Thread对象，该Thread对象才是真正的线程对象。" class="headerlink" title="2.实现Runnable接口，并重写该接口的run()方法，该run()方法同样是线程执行体，创建Runnable实现类的实例，并以此实例作为Thread类的target来创建Thread对象，该Thread对象才是真正的线程对象。"></a>2.实现Runnable接口，并重写该接口的run()方法，该run()方法同样是线程执行体，创建Runnable实现类的实例，并以此实例作为Thread类的target来创建Thread对象，该Thread对象才是真正的线程对象。</h4><pre><code>class MyRunnable implements Runnable {
+    private int i = 0;
+
+    @Override
+    public void run() {
+        for (i = 0; i &lt; 100; i++) {
+            System.out.println(Thread.currentThread().getName() + &quot; &quot; + i);
+        }
+    }
+}
+
+
+public class ThreadTest {
+
+    public static void main(String[] args) {
+        for (int i = 0; i &lt; 100; i++) {
+            System.out.println(Thread.currentThread().getName() + &quot; &quot; + i);
+            if (i == 30) {
+                Runnable myRunnable = new MyRunnable(); // 创建一个Runnable实现类的对象
+                Thread thread1 = new Thread(myRunnable); // 将myRunnable作为Thread target创建新的线程
+                Thread thread2 = new Thread(myRunnable);
+                thread1.start(); // 调用start()方法使得线程进入就绪状态
+                thread2.start();
+            }
+        }
+    }
+}
+</code></pre><p>相信以上两种创建新线程的方式大家都很熟悉了，那么Thread和Runnable之间到底是什么关系呢？我们首先来看一下下面这个例子。</p>
+<pre><code>public class ThreadTest {
+
+    public static void main(String[] args) {
+        for (int i = 0; i &lt; 100; i++) {
+            System.out.println(Thread.currentThread().getName() + &quot; &quot; + i);
+            if (i == 30) {
+                Runnable myRunnable = new MyRunnable();
+                Thread thread = new MyThread(myRunnable);
+                thread.start();
+            }
+        }
+    }
+}
+
+class MyRunnable implements Runnable {
+    private int i = 0;
+
+    @Override
+    public void run() {
+        System.out.println(&quot;in MyRunnable run&quot;);
+        for (i = 0; i &lt; 100; i++) {
+            System.out.println(Thread.currentThread().getName() + &quot; &quot; + i);
+        }
+    }
+}
+
+class MyThread extends Thread {
+
+    private int i = 0;
+
+    public MyThread(Runnable runnable){
+        super(runnable);
+    }
+
+    @Override
+    public void run() {
+        System.out.println(&quot;in MyThread run&quot;);
+        for (i = 0; i &lt; 100; i++) {
+            System.out.println(Thread.currentThread().getName() + &quot; &quot; + i);
+        }
+    }
+}
+</code></pre><p>同样的，与实现Runnable接口创建线程方式相似，不同的地方在于</p>
+<pre><code>Thread thread = new MyThread(myRunnable);
+</code></pre><p>那么这种方式可以顺利创建出一个新的线程么？答案是肯定的。至于此时的线程执行体到底是MyRunnable接口中的run()方法还是MyThread类中的run()方法呢？通过输出我们知道线程执行体是MyThread类中的run()方法。其实原因很简单，因为Thread类本身也是实现了Runnable接口，而run()方法最先是在Runnable接口中定义的方法。</p>
+<pre><code>public interface Runnable {
+
+    public abstract void run();
+
+}    
+</code></pre><p>我们看一下Thread类中对Runnable接口中run()方法的实现：</p>
+<pre><code>@Override
+public void run() {
+    if (target != null) {
+        target.run();
+    }
+}
+</code></pre><p>也就是说，当执行到Thread类中的run()方法时，会首先判断target是否存在，存在则执行target中的run()方法，也就是实现了Runnable接口并重写了run()方法的类中的run()方法。但是上述给到的列子中，由于多态的存在，根本就没有执行到Thread类中的run()方法，而是直接先执行了运行时类型即MyThread类中的run()方法。</p>
+<h4 id="3-使用Callable和Future接口创建线程。具体是创建Callable接口的实现类，并实现clall-方法。并使用FutureTask类来包装Callable实现类的对象，且以此FutureTask对象作为Thread对象的target来创建线程。"><a href="#3-使用Callable和Future接口创建线程。具体是创建Callable接口的实现类，并实现clall-方法。并使用FutureTask类来包装Callable实现类的对象，且以此FutureTask对象作为Thread对象的target来创建线程。" class="headerlink" title="3.使用Callable和Future接口创建线程。具体是创建Callable接口的实现类，并实现clall()方法。并使用FutureTask类来包装Callable实现类的对象，且以此FutureTask对象作为Thread对象的target来创建线程。"></a>3.使用Callable和Future接口创建线程。具体是创建Callable接口的实现类，并实现clall()方法。并使用FutureTask类来包装Callable实现类的对象，且以此FutureTask对象作为Thread对象的target来创建线程。</h4><p>看着好像有点复杂，直接来看一个例子就清晰了。</p>
+<pre><code>public class ThreadTest {
+
+    public static void main(String[] args) {
+
+        Callable&lt;Integer&gt; myCallable = new MyCallable();    // 创建MyCallable对象
+        FutureTask&lt;Integer&gt; ft = new FutureTask&lt;Integer&gt;(myCallable); //使用FutureTask来包装MyCallable对象
+
+        for (int i = 0; i &lt; 100; i++) {
+            System.out.println(Thread.currentThread().getName() + &quot; &quot; + i);
+            if (i == 30) {
+                Thread thread = new Thread(ft);   //FutureTask对象作为Thread对象的target创建新的线程
+                thread.start();                      //线程进入到就绪状态
+            }
+        }
+
+        System.out.println(&quot;主线程for循环执行完毕..&quot;);
+
+        try {
+            int sum = ft.get();            //取得新创建的新线程中的call()方法返回的结果
+            System.out.println(&quot;sum = &quot; + sum);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+
+    }
+}
+
+
+class MyCallable implements Callable&lt;Integer&gt; {
+
+    private int i = 0;
+
+    // 与run()方法不同的是，call()方法具有返回值
+    @Override
+    public Integer call() {
+        int sum = 0;
+        for (; i &lt; 100; i++) {
+            System.out.println(Thread.currentThread().getName() + &quot; &quot; + i);
+            sum += i;
+        }
+        return sum;
+    }
+
+}
+</code></pre><p>首先，我们发现，在实现Callable接口中，此时不再是run()方法了，而是call()方法，此call()方法作为线程执行体，同时还具有返回值！在创建新的线程时，是通过FutureTask来包装MyCallable对象，同时作为了Thread对象的target。那么看下FutureTask类的定义：</p>
+<pre><code>public class FutureTask&lt;V&gt; implements RunnableFuture&lt;V&gt; {
+    //....
+}
+
+public interface RunnableFuture&lt;V&gt; extends Runnable, Future&lt;V&gt; {
+    void run();
+}
+</code></pre><p>于是，我们发现FutureTask类实际上是同时实现了Runnable和Future接口，由此才使得其具有Future和Runnable双重特性。通过Runnable特性，可以作为Thread对象的target，而Future特性，使得其可以取得新创建线程中的call()方法的返回值。</p>
+<p>执行下此程序，我们发现sum = 4950永远都是最后输出的。而“主线程for循环执行完毕..”则很可能是在子线程循环中间输出。由CPU的线程调度机制，我们知道，“主线程for循环执行完毕..”的输出时机是没有任何问题的，那么为什么sum =4950会永远最后输出呢？</p>
+<p>原因在于通过ft.get()方法获取子线程call()方法的返回值时，当子线程此方法还未执行完毕，ft.get()方法会一直阻塞，直到call()方法执行完毕才能取到返回值。</p>
+<p>上述主要讲解了三种常见的线程创建方式，对于线程的启动而言，都是调用线程对象的start()方法，需要特别注意的是：<br>不能对同一线程对象两次调用start()方法。</p>
+<h2 id="三-Java多线程的就绪、运行和死亡状态"><a href="#三-Java多线程的就绪、运行和死亡状态" class="headerlink" title="三. Java多线程的就绪、运行和死亡状态"></a>三. Java多线程的就绪、运行和死亡状态</h2><ul>
+<li><p>就绪状态转换为运行状态：当此线程得到处理器资源；</p>
+</li>
+<li><p>运行状态转换为就绪状态：当此线程主动调用yield()方法或在运行过程中失去处理器资源。</p>
+</li>
+<li><p>运行状态转换为死亡状态：当此线程线程执行体执行完毕或发生了异常。</p>
+</li>
+</ul>
+<p>此处需要特别注意的是：当调用线程的yield()方法时，线程从运行状态转换为就绪状态，但接下来CPU调度就绪状态中的哪个线程具有一定的随机性，因此，可能会出现A线程调用了yield()方法后，接下来CPU仍然调度了A线程的情况。</p>
+<p>由于实际的业务需要，常常会遇到需要在特定时机终止某一线程的运行，使其进入到死亡状态。目前最通用的做法是设置一boolean型的变量，当条件满足时，使线程执行体快速执行完毕。如：</p>
+<pre><code>public class ThreadTest {
+
+    public static void main(String[] args) {
+
+        MyRunnable myRunnable = new MyRunnable();
+        Thread thread = new Thread(myRunnable);
+
+        for (int i = 0; i &lt; 100; i++) {
+            System.out.println(Thread.currentThread().getName() + &quot; &quot; + i);
+            if (i == 30) {
+                thread.start();
+            }
+            if(i == 40){
+                myRunnable.stopThread();
+            }
+        }
+    }
+}
+
+class MyRunnable implements Runnable {
+
+    private boolean stop;
+
+    @Override
+    public void run() {
+        for (int i = 0; i &lt; 100 &amp;&amp; !stop; i++) {
+            System.out.println(Thread.currentThread().getName() + &quot; &quot; + i);
+        }
+    }
+
+    public void stopThread() {
+        this.stop = true;
+    }
+
+}
+</code></pre>
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://guxingxianyue.github.io/2016/03/05/关于对java多线程的一些基础认识/" data-id="cmq8scy700017jsqhcipezb8i" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/技术文章/">技术文章</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-my-new-post" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2016/01/05/my-new-post/" class="article-date">
+  <time datetime="2016-01-05T15:47:08.000Z" itemprop="datePublished">2016-01-05</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2016/01/05/my-new-post/">Github+hexo 搭建个人独立博客</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="关于自建独立博客"><a href="#关于自建独立博客" class="headerlink" title="关于自建独立博客"></a>关于自建独立博客</h2><hr>
+<p>这里引用某位知友的原话：</p>
+<pre><code>自主权比较高，博客平台的话会有这样那样的限制，技术上，可能会限制插件的代码使用，内容上，各种审查以防触雷以及广告等等。
+</code></pre><p>作为一个技术宅，没有比“show me the code”“show me the writings”更有说服力。当然这话是我说的。</p>
+<h2 id="什么是hexo"><a href="#什么是hexo" class="headerlink" title="什么是hexo"></a>什么是hexo</h2><hr>
+<p>一个基于Node.js的静态博客程序，可以方便的生成静态网页托管在github上，可以绑定自己的域名，用markdown写文章（简直不要太爽）。</p>
+<pre><code>快速、简单且功能强大的 Node.js 博客框架。
+A fast, simple &amp; powerful blog framework, powered by Node.js.
+</code></pre><h2 id="为什么要用hexo"><a href="#为什么要用hexo" class="headerlink" title="为什么要用hexo"></a>为什么要用hexo</h2><hr>
+<ul>
+<li>不可思议的快速，眨眼即可完成</li>
+<li>支持markdown，支持markdown，支持markdown，重要的话说三遍</li>
+<li>一道指令即可将文章部署到 GitHub Pages</li>
+<li>高扩展性、自定义性</li>
+<li>兼容于 Windows &amp; Mac &amp; Linux</li>
+<li>易用。不仅部署简单，平时使用中仅需要hexo new、hexo generate、hexo server、hexo deploy四个命令。</li>
+<li>轻、文件少、小，易理解，方便自定义，</li>
+</ul>
+<h2 id="谁能使用hexo"><a href="#谁能使用hexo" class="headerlink" title="谁能使用hexo"></a>谁能使用hexo</h2><hr>
+<p>这是一个免费开源的博客程序，任何人都可以使用和修改，整个独立博客搭建过程仅需要用到Github,Git,Markdown,Node.js这样的工具。好多插件、widget都需要自己安装、设置。比较适合那些有一定计算机基础，喜欢折腾的人。下面我们开始吧!</p>
+<h2 id="搭建hexo博客（一）"><a href="#搭建hexo博客（一）" class="headerlink" title="搭建hexo博客（一）"></a>搭建hexo博客（一）</h2><hr>
+<p><strong>注意：本节教程只针对Windows用户，Linux和Mac用户请移步</strong></p>
+<h3 id="安装Git"><a href="#安装Git" class="headerlink" title="安装Git"></a>安装Git</h3><hr>
+<p>下载<a href="http://pan.baidu.com/s/1bcsvP8" title="git" target="_blank" rel="noopener">msysgit</a>,版本最好不要用高于1.8.5，有bug，至少截至2015-12-7年为止，这个bug是有的，此处用的是1.8.4。</p>
+<h3 id="安装Node-js"><a href="#安装Node-js" class="headerlink" title="安装Node.js"></a>安装Node.js</h3><hr>
+<p>在 Windows 环境下安装 Node.js很简单，仅须<a href="http://pan.baidu.com/s/1dDYO1w9" target="_blank" rel="noopener">点此下载</a>安装文件并一步一步往下执行即可完成安装。</p>
+<h3 id="安装hexo"><a href="#安装hexo" class="headerlink" title="安装hexo"></a>安装hexo</h3><hr>
+<p>利用 npm 命令即可安装。（在任意位置点击鼠标右键，选择Git bash）</p>
+<pre><code>npm install -g hexo
+</code></pre><h3 id="创建hexo文件夹"><a href="#创建hexo文件夹" class="headerlink" title="创建hexo文件夹"></a>创建hexo文件夹</h3><hr>
+<p>安装完成后，在你喜爱的文件夹下（如H:\hexo），执行以下指令(在H:\hexo内点击鼠标右键，选择Git bash)，Hexo 即会自动在目标文件夹建立网站所需要的所有文件。</p>
+<pre><code>hexo init
+</code></pre><h3 id="安装依赖包"><a href="#安装依赖包" class="headerlink" title="安装依赖包"></a>安装依赖包</h3><hr>
+<pre><code>npm install
+</code></pre><h3 id="本地查看"><a href="#本地查看" class="headerlink" title="本地查看"></a>本地查看</h3><hr>
+<p>现在我们已经搭建起本地的hexo博客了，执行以下命令(在H:\hexo)，然后到浏览器输入<code>localhost:4000</code>看看。</p>
+<pre><code>hexo generate
+hexo server
+</code></pre><p>至此，本地博客已经搭建起来了，嘘~~~现在只有你自己能看到，别人是看不到的。下面，我们要部署到Github，让所有人都能看到你的博客。</p>
+<h3 id="注册Github账号"><a href="#注册Github账号" class="headerlink" title="注册Github账号"></a>注册Github账号</h3><hr>
+<p>已有账号可以跳过，没有的，<a href="https://www.github.com" target="_blank" rel="noopener">请在此进行注册</a>，很简单，这里就不介绍了。</p>
+<h3 id="创建repository"><a href="#创建repository" class="headerlink" title="创建repository"></a>创建repository</h3><hr>
+<p>在自己Github主页右下角，创建一个新的repository。比如我的Github账号是guxingxianyue，那么我应该创建的repository名字应该是guxingxianyue.github.io。</p>
+<h3 id="部署到Github"><a href="#部署到Github" class="headerlink" title="部署到Github"></a>部署到Github</h3><hr>
+<p>编辑_config.yml(在H:\hexo下)。你在部署时，要把下面的guxingxianyue都换成你的账号名。</p>
+<pre><code>deploy:
+  type: git
+  repository: https://github.com/guxingxianyue/guxingxianyue.github.io.git
+  branch: master
+</code></pre><h3 id="执行下列指令即可完成部署。"><a href="#执行下列指令即可完成部署。" class="headerlink" title="执行下列指令即可完成部署。"></a>执行下列指令即可完成部署。</h3><hr>
+<pre><code>npm install hexo-deployer-git --save(有的哥们竟然不需要这个指令也能部署成功)
+hexo generate
+hexo deploy
+</code></pre><p><strong>注意：</strong>有些新用户需要设置ssh，否则上述命令会失败。ssh 的介绍和设置方法请看<a href="https://help.github.com/articles/generating-ssh-keys/" target="_blank" rel="noopener">官方教程</a>不用担心，很简单。</p>
+<p><strong>记住：</strong>每次修改本地文件后，需要hexo generate才能保存。每次使用命令时，都要在H:\hexo目录下右键选择Git Bash指令窗口。</p>
+<p>Okay,至此博客已经完全搭建起来了，在浏览器访问guxingxianyue.github.io就能看到你的成就了！Good luck。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://guxingxianyue.github.io/2016/01/05/my-new-post/" data-id="cmq8scy6s000njsqh656ivuvr" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/技术文章/">技术文章</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+  
+    <nav id="page-nav">
+      <a class="extend prev" rel="prev" href="/page/5/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><a class="page-number" href="/page/5/">5</a><span class="page-number current">6</span>
+    </nav>
+  
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI/">AI</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Agent/">Agent</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CAP/">CAP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Claude-Code/">Claude Code</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Codex/">Codex</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ERP/">ERP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/">Java</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kafka/">Kafka</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/">MySQL</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Redis/">Redis</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/">SQL</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL优化/">SQL优化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Skill/">Skill</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spring-Cloud/">Spring Cloud</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/事务/">事务</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/供应链系统/">供应链系统</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/分布式/">分布式</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/分布式系统/">分布式系统</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/分布式锁/">分布式锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/命令行/">命令行</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/工程实践/">工程实践</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/并发控制/">并发控制</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/微服务/">微服务</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/技术文章/">技术文章</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/报表统计/">报表统计</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据分析/">数据分析</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据库/">数据库</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据结构与算法/">数据结构与算法</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/架构设计/">架构设计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/消息队列/">消息队列</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/系统优化/">系统优化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/系统设计/">系统设计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/缓存/">缓存</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/编程效率/">编程效率</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/软件工程/">软件工程</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/锁/">锁</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/AI/" style="font-size: 20px;">AI</a> <a href="/tags/Agent/" style="font-size: 10px;">Agent</a> <a href="/tags/CAP/" style="font-size: 10px;">CAP</a> <a href="/tags/Claude-Code/" style="font-size: 15px;">Claude Code</a> <a href="/tags/Codex/" style="font-size: 13.33px;">Codex</a> <a href="/tags/ERP/" style="font-size: 10px;">ERP</a> <a href="/tags/Java/" style="font-size: 11.67px;">Java</a> <a href="/tags/Kafka/" style="font-size: 10px;">Kafka</a> <a href="/tags/MySQL/" style="font-size: 11.67px;">MySQL</a> <a href="/tags/Redis/" style="font-size: 11.67px;">Redis</a> <a href="/tags/SQL/" style="font-size: 10px;">SQL</a> <a href="/tags/SQL优化/" style="font-size: 10px;">SQL优化</a> <a href="/tags/Skill/" style="font-size: 10px;">Skill</a> <a href="/tags/Spring-Cloud/" style="font-size: 10px;">Spring Cloud</a> <a href="/tags/事务/" style="font-size: 10px;">事务</a> <a href="/tags/供应链系统/" style="font-size: 10px;">供应链系统</a> <a href="/tags/分布式/" style="font-size: 15px;">分布式</a> <a href="/tags/分布式系统/" style="font-size: 11.67px;">分布式系统</a> <a href="/tags/分布式锁/" style="font-size: 10px;">分布式锁</a> <a href="/tags/命令行/" style="font-size: 11.67px;">命令行</a> <a href="/tags/工程实践/" style="font-size: 13.33px;">工程实践</a> <a href="/tags/并发控制/" style="font-size: 10px;">并发控制</a> <a href="/tags/微服务/" style="font-size: 10px;">微服务</a> <a href="/tags/技术文章/" style="font-size: 18.33px;">技术文章</a> <a href="/tags/报表统计/" style="font-size: 10px;">报表统计</a> <a href="/tags/数据分析/" style="font-size: 10px;">数据分析</a> <a href="/tags/数据库/" style="font-size: 11.67px;">数据库</a> <a href="/tags/数据结构与算法/" style="font-size: 13.33px;">数据结构与算法</a> <a href="/tags/架构设计/" style="font-size: 11.67px;">架构设计</a> <a href="/tags/消息队列/" style="font-size: 10px;">消息队列</a> <a href="/tags/系统优化/" style="font-size: 10px;">系统优化</a> <a href="/tags/系统设计/" style="font-size: 11.67px;">系统设计</a> <a href="/tags/缓存/" style="font-size: 10px;">缓存</a> <a href="/tags/编程效率/" style="font-size: 16.67px;">编程效率</a> <a href="/tags/软件工程/" style="font-size: 13.33px;">软件工程</a> <a href="/tags/锁/" style="font-size: 10px;">锁</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/06/">六月 2026</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/05/">五月 2026</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">十一月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">八月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/05/">五月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">二月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">十一月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/07/">七月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">三月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">六月 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">四月 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">三月 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">一月 2016</a><span class="archive-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recents</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2026/06/10/Codex提高软件编程效率的10个技巧/">Codex提高软件编程效率的10个技巧</a>
+          </li>
+        
+          <li>
+            <a href="/2026/06/10/普通开发者使用AI的三条边界/">普通开发者使用AI的三条边界</a>
+          </li>
+        
+          <li>
+            <a href="/2026/06/10/AI-Agent时代的开发工作流/">AI Agent时代的开发工作流</a>
+          </li>
+        
+          <li>
+            <a href="/2026/06/10/2026年重新理解AI编程助手/">2026年，重新理解AI编程助手</a>
+          </li>
+        
+          <li>
+            <a href="/2026/06/01/Claude-Code最常用的几个指令/">claude code 最常用的几个指令</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2026 Jinxing Chen<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">首页</a>
+  
+    <a href="/archives" class="mobile-nav-link">存档</a>
+  
+    <a href="/about" class="mobile-nav-link">关于</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+  </div>
+</body>
+</html>

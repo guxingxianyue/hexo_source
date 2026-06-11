@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>AI Agent时代的开发工作流 | 陈金星写字的地方</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="开场个人观察以前说到 AI 编程，大多数人想到的是代码补全：写一半函数，它帮你补完；写一个注释，它生成几行实现。这当然有用，但它更像是键盘旁边的加速器。 现在越来越多工具开始强调 Agent。Agent 和普通聊天助手最大的区别，是它不只是回答问题，而是可以围绕一个目标持续执行：读仓库、找文件、改代码、运行命令、生成 diff、创建分支，甚至提交 pull request。 这让我想到以前搭建 H">
+<meta name="keywords" content="AI,Agent,软件工程">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AI Agent时代的开发工作流">
+<meta property="og:url" content="https://guxingxianyue.github.io/2026/06/10/AI-Agent时代的开发工作流/index.html">
+<meta property="og:site_name" content="陈金星写字的地方">
+<meta property="og:description" content="开场个人观察以前说到 AI 编程，大多数人想到的是代码补全：写一半函数，它帮你补完；写一个注释，它生成几行实现。这当然有用，但它更像是键盘旁边的加速器。 现在越来越多工具开始强调 Agent。Agent 和普通聊天助手最大的区别，是它不只是回答问题，而是可以围绕一个目标持续执行：读仓库、找文件、改代码、运行命令、生成 diff、创建分支，甚至提交 pull request。 这让我想到以前搭建 H">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://guxingxianyue.github.io/images/ai-flowcharts/ai-agent-workflow.svg">
+<meta property="og:updated_time" content="2026-06-10T13:38:34.493Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="AI Agent时代的开发工作流">
+<meta name="twitter:description" content="开场个人观察以前说到 AI 编程，大多数人想到的是代码补全：写一半函数，它帮你补完；写一个注释，它生成几行实现。这当然有用，但它更像是键盘旁边的加速器。 现在越来越多工具开始强调 Agent。Agent 和普通聊天助手最大的区别，是它不只是回答问题，而是可以围绕一个目标持续执行：读仓库、找文件、改代码、运行命令、生成 diff、创建分支，甚至提交 pull request。 这让我想到以前搭建 H">
+<meta name="twitter:image" content="https://guxingxianyue.github.io/images/ai-flowcharts/ai-agent-workflow.svg">
+  
+    <link rel="alternative" href="/atom.xml" title="陈金星写字的地方" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">陈金星写字的地方</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">less is more</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">首页</a>
+        
+          <a class="main-nav-link" href="/archives">存档</a>
+        
+          <a class="main-nav-link" href="/about">关于</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://guxingxianyue.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-AI-Agent时代的开发工作流" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2026/06/10/AI-Agent时代的开发工作流/" class="article-date">
+  <time datetime="2026-06-10T02:00:00.000Z" itemprop="datePublished">2026-06-10</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      AI Agent时代的开发工作流
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="开场个人观察"><a href="#开场个人观察" class="headerlink" title="开场个人观察"></a>开场个人观察</h2><p>以前说到 AI 编程，大多数人想到的是代码补全：写一半函数，它帮你补完；写一个注释，它生成几行实现。这当然有用，但它更像是键盘旁边的加速器。</p>
+<p>现在越来越多工具开始强调 Agent。Agent 和普通聊天助手最大的区别，是它不只是回答问题，而是可以围绕一个目标持续执行：读仓库、找文件、改代码、运行命令、生成 diff、创建分支，甚至提交 pull request。</p>
+<p>这让我想到以前搭建 Hexo 博客的时候，很多事情都是一步一步手工来：写 Markdown、生成静态文件、检查页面、部署到 GitHub Pages。今天这些步骤仍然存在，只是其中一部分可以交给 AI Agent 帮忙跑。开发者要做的，不再只是“亲手敲完每一步”，而是设计一个可靠的工作流。</p>
+<p><img src="/images/ai-flowcharts/ai-agent-workflow.svg" alt="AI Agent开发工作流"></p>
+<h2 id="核心观点"><a href="#核心观点" class="headerlink" title="核心观点"></a>核心观点</h2><p>AI Agent 时代的开发工作流，本质上是从“同步结对”走向“异步委派”。</p>
+<p>同步结对很好理解：你坐在编辑器前，AI 在旁边补代码，你一边看一边改。这适合探索、小修小补、快速理解代码。</p>
+<p>异步委派则更像给同事派任务：你把目标、背景、限制、验收标准说清楚，让 agent 自己在一个隔离环境里完成，然后你再 review 它的结果。OpenAI Codex 和 GitHub Copilot cloud agent 这类工具，都在往这个方向发展。</p>
+<p>这并不意味着开发者可以完全放手。恰恰相反，工作流变复杂之后，人更需要把关。一个好的 agent 任务，应该像一个好的 issue：背景明确、范围可控、验收清楚、失败时容易回滚。</p>
+<h2 id="实践方法"><a href="#实践方法" class="headerlink" title="实践方法"></a>实践方法</h2><p>我理解的 AI Agent 开发工作流，可以分成四步：任务委派、计划、实现、审查。</p>
+<p>第一步是任务委派。不要只写一句“优化一下项目”。更好的写法是：“请阅读文章列表生成逻辑，新增 2026 年文章后确认归档页按年份展示；不要修改主题样式；完成后运行 hexo generate 并说明结果。”这样的任务有目标、有边界、有验证方式。</p>
+<p>第二步是计划。Agent 动手之前，最好先让它说明会改哪些地方、为什么要改、如何验证。这个环节非常重要，因为很多错误不是发生在写代码时，而是发生在理解需求时。方向错了，代码越多越麻烦。</p>
+<p>第三步是实现。实现时要鼓励 agent 小步提交思路，而不是一次性做大改。比如先新增文件，再运行生成，再检查输出。每一步都有反馈，问题就容易定位。</p>
+<p>第四步是审查。审查不是简单看它说“已完成”，而是看实际 diff、命令输出和页面效果。尤其是自动生成内容、批量替换、依赖升级、部署脚本这类任务，一定要确认没有改到不该改的地方。</p>
+<p>如果团队里使用 GitHub 工作流，还可以把 agent 的输出放到 PR 里处理。这样人类 review、CI、讨论记录都还在原来的工程体系里，不会因为用了 AI 就绕过质量门禁。</p>
+<h2 id="踩坑提醒"><a href="#踩坑提醒" class="headerlink" title="踩坑提醒"></a>踩坑提醒</h2><p>第一个坑是把 Agent 当成万能自动化。Agent 能执行任务，但它依赖上下文和工具权限。环境不完整、依赖装不上、测试命令缺失、文档过时，都会让它走偏。</p>
+<p>第二个坑是权限给得太大。能读仓库、能改文件、能跑命令已经很强了，如果再加上网络、密钥、生产环境权限，就必须非常谨慎。Agent 适合在隔离环境里处理开发任务，不适合不经审查直接操作生产系统。</p>
+<p>第三个坑是没有验收标准。人类开发者接到模糊需求会反问，Agent 往往会直接猜。猜出来的结果可能看上去很完整，但并不一定是你要的东西。</p>
+<p>第四个坑是忽略团队习惯。一个项目原来怎么写测试、怎么发版、怎么做 code review，不应该因为引入 AI 就全部推翻。更好的方式是让 AI 进入现有流程，而不是让流程迁就 AI。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>AI Agent 带来的变化，不只是“写代码更快”，而是开发任务的组织方式变了。以前很多事情必须人一直盯着做，现在可以把一部分明确任务放到后台执行，人再回来审查结果。</p>
+<p>但越是这样，越需要工程纪律。任务要小，边界要清楚，验证要真实，权限要克制，结果要 review。Agent 做的是执行和辅助判断，人做的是方向、责任和最后确认。</p>
+<p>我觉得这会成为 2026 年之后开发者的一项基本能力：不是和 AI 比谁写代码快，而是学会把 AI 放进可靠的软件工程流程里。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a href="https://openai.com/index/introducing-codex/" target="_blank" rel="noopener">OpenAI Codex announcement</a></li>
+<li><a href="https://developers.openai.com/api/docs/guides/agents" target="_blank" rel="noopener">OpenAI Agents docs</a></li>
+<li><a href="https://docs.github.com/en/copilot/concepts/agents/cloud-agent/about-cloud-agent" target="_blank" rel="noopener">GitHub Copilot cloud agent docs</a></li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://guxingxianyue.github.io/2026/06/10/AI-Agent时代的开发工作流/" data-id="cmq8scy6k0005jsqhfw28871y" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/AI/">AI</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Agent/">Agent</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/软件工程/">软件工程</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2026/06/10/普通开发者使用AI的三条边界/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          普通开发者使用AI的三条边界
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2026/06/10/2026年重新理解AI编程助手/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">2026年，重新理解AI编程助手</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI/">AI</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Agent/">Agent</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CAP/">CAP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Claude-Code/">Claude Code</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Codex/">Codex</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ERP/">ERP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/">Java</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kafka/">Kafka</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/">MySQL</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Redis/">Redis</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/">SQL</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL优化/">SQL优化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Skill/">Skill</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spring-Cloud/">Spring Cloud</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/事务/">事务</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/供应链系统/">供应链系统</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/分布式/">分布式</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/分布式系统/">分布式系统</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/分布式锁/">分布式锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/命令行/">命令行</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/工程实践/">工程实践</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/并发控制/">并发控制</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/微服务/">微服务</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/技术文章/">技术文章</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/报表统计/">报表统计</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据分析/">数据分析</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据库/">数据库</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据结构与算法/">数据结构与算法</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/架构设计/">架构设计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/消息队列/">消息队列</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/系统优化/">系统优化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/系统设计/">系统设计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/缓存/">缓存</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/编程效率/">编程效率</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/软件工程/">软件工程</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/锁/">锁</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/AI/" style="font-size: 20px;">AI</a> <a href="/tags/Agent/" style="font-size: 10px;">Agent</a> <a href="/tags/CAP/" style="font-size: 10px;">CAP</a> <a href="/tags/Claude-Code/" style="font-size: 15px;">Claude Code</a> <a href="/tags/Codex/" style="font-size: 13.33px;">Codex</a> <a href="/tags/ERP/" style="font-size: 10px;">ERP</a> <a href="/tags/Java/" style="font-size: 11.67px;">Java</a> <a href="/tags/Kafka/" style="font-size: 10px;">Kafka</a> <a href="/tags/MySQL/" style="font-size: 11.67px;">MySQL</a> <a href="/tags/Redis/" style="font-size: 11.67px;">Redis</a> <a href="/tags/SQL/" style="font-size: 10px;">SQL</a> <a href="/tags/SQL优化/" style="font-size: 10px;">SQL优化</a> <a href="/tags/Skill/" style="font-size: 10px;">Skill</a> <a href="/tags/Spring-Cloud/" style="font-size: 10px;">Spring Cloud</a> <a href="/tags/事务/" style="font-size: 10px;">事务</a> <a href="/tags/供应链系统/" style="font-size: 10px;">供应链系统</a> <a href="/tags/分布式/" style="font-size: 15px;">分布式</a> <a href="/tags/分布式系统/" style="font-size: 11.67px;">分布式系统</a> <a href="/tags/分布式锁/" style="font-size: 10px;">分布式锁</a> <a href="/tags/命令行/" style="font-size: 11.67px;">命令行</a> <a href="/tags/工程实践/" style="font-size: 13.33px;">工程实践</a> <a href="/tags/并发控制/" style="font-size: 10px;">并发控制</a> <a href="/tags/微服务/" style="font-size: 10px;">微服务</a> <a href="/tags/技术文章/" style="font-size: 18.33px;">技术文章</a> <a href="/tags/报表统计/" style="font-size: 10px;">报表统计</a> <a href="/tags/数据分析/" style="font-size: 10px;">数据分析</a> <a href="/tags/数据库/" style="font-size: 11.67px;">数据库</a> <a href="/tags/数据结构与算法/" style="font-size: 13.33px;">数据结构与算法</a> <a href="/tags/架构设计/" style="font-size: 11.67px;">架构设计</a> <a href="/tags/消息队列/" style="font-size: 10px;">消息队列</a> <a href="/tags/系统优化/" style="font-size: 10px;">系统优化</a> <a href="/tags/系统设计/" style="font-size: 11.67px;">系统设计</a> <a href="/tags/缓存/" style="font-size: 10px;">缓存</a> <a href="/tags/编程效率/" style="font-size: 16.67px;">编程效率</a> <a href="/tags/软件工程/" style="font-size: 13.33px;">软件工程</a> <a href="/tags/锁/" style="font-size: 10px;">锁</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/06/">六月 2026</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/05/">五月 2026</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">十一月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">八月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/05/">五月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">二月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">十一月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/07/">七月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">三月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">六月 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">四月 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">三月 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">一月 2016</a><span class="archive-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recents</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2026/06/10/Codex提高软件编程效率的10个技巧/">Codex提高软件编程效率的10个技巧</a>
+          </li>
+        
+          <li>
+            <a href="/2026/06/10/普通开发者使用AI的三条边界/">普通开发者使用AI的三条边界</a>
+          </li>
+        
+          <li>
+            <a href="/2026/06/10/AI-Agent时代的开发工作流/">AI Agent时代的开发工作流</a>
+          </li>
+        
+          <li>
+            <a href="/2026/06/10/2026年重新理解AI编程助手/">2026年，重新理解AI编程助手</a>
+          </li>
+        
+          <li>
+            <a href="/2026/06/01/Claude-Code最常用的几个指令/">claude code 最常用的几个指令</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2026 Jinxing Chen<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">首页</a>
+  
+    <a href="/archives" class="mobile-nav-link">存档</a>
+  
+    <a href="/about" class="mobile-nav-link">关于</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+  </div>
+</body>
+</html>

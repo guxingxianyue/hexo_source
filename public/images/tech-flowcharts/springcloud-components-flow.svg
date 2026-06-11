@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="520" viewBox="0 0 980 520" role="img" aria-labelledby="title desc">
+  <title id="title">Spring Cloud 常用组件协作流程</title>
+  <desc id="desc">展示用户请求经过网关、服务发现、服务调用、配置、熔断、消息和监控链路的流程。</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#2f5d7c"/>
+    </marker>
+    <style>
+      .box{fill:#f7fbff;stroke:#2f5d7c;stroke-width:2;rx:10;ry:10}
+      .core{fill:#eef7f0;stroke:#347a44;stroke-width:2;rx:10;ry:10}
+      .warn{fill:#fff8e8;stroke:#9a6a16;stroke-width:2;rx:10;ry:10}
+      .text{font-family:Arial,'Microsoft YaHei',sans-serif;font-size:18px;fill:#1f2d3d}
+      .small{font-family:Arial,'Microsoft YaHei',sans-serif;font-size:14px;fill:#4d5b68}
+      .line{stroke:#2f5d7c;stroke-width:2.2;fill:none;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect width="980" height="520" fill="#ffffff"/>
+  <text x="490" y="42" text-anchor="middle" class="text" font-size="26">Spring Cloud 微服务组件协作</text>
+
+  <rect x="40" y="95" width="140" height="74" class="box"/>
+  <text x="110" y="126" text-anchor="middle" class="text">用户/前端</text>
+  <text x="110" y="151" text-anchor="middle" class="small">统一访问入口</text>
+
+  <rect x="245" y="95" width="160" height="74" class="core"/>
+  <text x="325" y="126" text-anchor="middle" class="text">Gateway</text>
+  <text x="325" y="151" text-anchor="middle" class="small">路由 鉴权 限流</text>
+
+  <rect x="470" y="80" width="175" height="92" class="box"/>
+  <text x="557" y="112" text-anchor="middle" class="text">订单服务</text>
+  <text x="557" y="138" text-anchor="middle" class="small">Feign 调用下游</text>
+  <text x="557" y="158" text-anchor="middle" class="small">LoadBalancer 选实例</text>
+
+  <rect x="735" y="70" width="180" height="74" class="box"/>
+  <text x="825" y="101" text-anchor="middle" class="text">库存/采购服务</text>
+  <text x="825" y="126" text-anchor="middle" class="small">业务能力拆分</text>
+
+  <rect x="245" y="245" width="160" height="80" class="box"/>
+  <text x="325" y="277" text-anchor="middle" class="text">注册中心</text>
+  <text x="325" y="303" text-anchor="middle" class="small">Nacos/Eureka</text>
+
+  <rect x="470" y="245" width="175" height="80" class="box"/>
+  <text x="557" y="277" text-anchor="middle" class="text">配置中心</text>
+  <text x="557" y="303" text-anchor="middle" class="small">配置集中下发</text>
+
+  <rect x="735" y="245" width="180" height="80" class="warn"/>
+  <text x="825" y="277" text-anchor="middle" class="text">熔断/限流</text>
+  <text x="825" y="303" text-anchor="middle" class="small">Resilience4j/Sentinel</text>
+
+  <rect x="470" y="390" width="175" height="76" class="box"/>
+  <text x="557" y="421" text-anchor="middle" class="text">消息队列</text>
+  <text x="557" y="446" text-anchor="middle" class="small">异步事件 最终一致</text>
+
+  <rect x="735" y="390" width="180" height="76" class="box"/>
+  <text x="825" y="421" text-anchor="middle" class="text">监控/链路追踪</text>
+  <text x="825" y="446" text-anchor="middle" class="small">Actuator TraceId 指标</text>
+
+  <path class="line" d="M180 132 H245"/>
+  <path class="line" d="M405 132 H470"/>
+  <path class="line" d="M645 126 H735"/>
+  <path class="line" d="M325 245 V171"/>
+  <path class="line" d="M405 285 H470"/>
+  <path class="line" d="M645 285 H735"/>
+  <path class="line" d="M557 172 V245"/>
+  <path class="line" d="M557 325 V390"/>
+  <path class="line" d="M645 428 H735"/>
+  <path class="line" d="M825 144 V245"/>
+
+  <text x="211" y="118" class="small">HTTP</text>
+  <text x="427" y="118" class="small">路由</text>
+  <text x="667" y="112" class="small">服务调用</text>
+  <text x="342" y="210" class="small">发现实例</text>
+  <text x="576" y="214" class="small">读取配置</text>
+  <text x="667" y="272" class="small">保护下游</text>
+</svg>

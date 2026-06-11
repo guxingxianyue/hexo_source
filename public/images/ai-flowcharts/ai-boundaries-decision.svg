@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="560" viewBox="0 0 980 560" role="img" aria-labelledby="title desc">
+  <title id="title">普通开发者使用AI的三条边界</title>
+  <desc id="desc">用成本、隐私和正确性三条边界判断AI任务适合直接执行、辅助生成还是只做分析。</desc>
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M2,2 L10,6 L2,10 Z" fill="#7a4e9b"/>
+    </marker>
+    <style>
+      .bg{fill:#fbf8ff}
+      .node{fill:#fff;stroke:#a77bc4;stroke-width:2;rx:12}
+      .warn{fill:#fff3f0;stroke:#d97962}
+      .ok{fill:#f0fbf4;stroke:#5eaa73}
+      .mid{fill:#fffbea;stroke:#d7aa3d}
+      .title{font:700 26px Arial,"Microsoft YaHei",sans-serif;fill:#39224f}
+      .label{font:700 17px Arial,"Microsoft YaHei",sans-serif;fill:#39224f}
+      .note{font:14px Arial,"Microsoft YaHei",sans-serif;fill:#5f516a}
+      .arrow{fill:none;stroke:#7a4e9b;stroke-width:3;marker-end:url(#arrow)}
+      .small{font:13px Arial,"Microsoft YaHei",sans-serif;fill:#74637f}
+    </style>
+  </defs>
+  <rect class="bg" width="980" height="560" rx="18"/>
+  <text class="title" x="490" y="46" text-anchor="middle">使用AI前，先过三条边界</text>
+
+  <rect class="node" x="380" y="82" width="220" height="70"/>
+  <text class="label" x="490" y="111" text-anchor="middle">准备交给AI的任务</text>
+  <text class="note" x="490" y="135" text-anchor="middle">先不要急着执行</text>
+
+  <rect class="node" x="105" y="210" width="210" height="86"/>
+  <text class="label" x="210" y="240" text-anchor="middle">成本边界</text>
+  <text class="note" x="210" y="265" text-anchor="middle">解释成本是否划算？</text>
+  <text class="small" x="210" y="285" text-anchor="middle">时间、费用、注意力</text>
+
+  <rect class="node" x="385" y="210" width="210" height="86"/>
+  <text class="label" x="490" y="240" text-anchor="middle">隐私边界</text>
+  <text class="note" x="490" y="265" text-anchor="middle">是否包含敏感信息？</text>
+  <text class="small" x="490" y="285" text-anchor="middle">密钥、用户数据、生产库</text>
+
+  <rect class="node" x="665" y="210" width="210" height="86"/>
+  <text class="label" x="770" y="240" text-anchor="middle">正确性边界</text>
+  <text class="note" x="770" y="265" text-anchor="middle">结果是否可验证？</text>
+  <text class="small" x="770" y="285" text-anchor="middle">测试、文档、日志、页面</text>
+
+  <rect class="ok" x="95" y="398" width="220" height="86" rx="12"/>
+  <text class="label" x="205" y="428" text-anchor="middle">低风险：直接辅助</text>
+  <text class="note" x="205" y="453" text-anchor="middle">整理文档、解释报错</text>
+  <text class="note" x="205" y="473" text-anchor="middle">生成脚手架</text>
+
+  <rect class="mid" x="380" y="398" width="220" height="86" rx="12"/>
+  <text class="label" x="490" y="428" text-anchor="middle">中风险：初稿+review</text>
+  <text class="note" x="490" y="453" text-anchor="middle">业务代码、测试、配置</text>
+  <text class="note" x="490" y="473" text-anchor="middle">人类确认后合并</text>
+
+  <rect class="warn" x="665" y="398" width="220" height="86" rx="12"/>
+  <text class="label" x="775" y="428" text-anchor="middle">高风险：只做分析</text>
+  <text class="note" x="775" y="453" text-anchor="middle">生产数据、权限、安全</text>
+  <text class="note" x="775" y="473" text-anchor="middle">不让AI直接执行</text>
+
+  <path class="arrow" d="M490 152 V188"/>
+  <path class="arrow" d="M490 188 C350 188 210 188 210 200"/>
+  <path class="arrow" d="M490 188 V200"/>
+  <path class="arrow" d="M490 188 C630 188 770 188 770 200"/>
+  <path class="arrow" d="M210 296 C210 338 205 360 205 388"/>
+  <path class="arrow" d="M490 296 V388"/>
+  <path class="arrow" d="M770 296 C770 338 775 360 775 388"/>
+</svg>

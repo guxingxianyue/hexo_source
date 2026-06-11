@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="620" viewBox="0 0 1080 620" role="img" aria-labelledby="title desc">
+  <title id="title">Redis 分布式锁安全流程</title>
+  <desc id="desc">展示 Redis 锁的加锁、续期、业务执行、释放和异常处理流程。</desc>
+  <rect width="1080" height="620" fill="#f8fafc"/>
+  <text x="540" y="42" text-anchor="middle" font-family="Arial, 'Microsoft YaHei', sans-serif" font-size="26" font-weight="700" fill="#111827">Redis 锁：防丢失与防死锁的关键路径</text>
+  <g font-family="Arial, 'Microsoft YaHei', sans-serif" font-size="15" fill="#111827">
+    <rect x="60" y="100" width="170" height="88" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
+    <text x="145" y="132" text-anchor="middle" font-weight="700">请求加锁</text>
+    <text x="145" y="158" text-anchor="middle">业务 key + requestId</text>
+    <rect x="285" y="100" width="180" height="88" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
+    <text x="375" y="132" text-anchor="middle" font-weight="700">SET NX PX</text>
+    <text x="375" y="158" text-anchor="middle">原子加锁 + 过期时间</text>
+    <rect x="520" y="100" width="180" height="88" rx="10" fill="#ffffff" stroke="#059669" stroke-width="2"/>
+    <text x="610" y="132" text-anchor="middle" font-weight="700">执行临界区</text>
+    <text x="610" y="158" text-anchor="middle">幂等/短事务</text>
+    <rect x="755" y="100" width="180" height="88" rx="10" fill="#ffffff" stroke="#059669" stroke-width="2"/>
+    <text x="845" y="132" text-anchor="middle" font-weight="700">Lua 释放</text>
+    <text x="845" y="158" text-anchor="middle">先比 owner 再删除</text>
+    <rect x="170" y="295" width="190" height="92" rx="10" fill="#ffffff" stroke="#f59e0b" stroke-width="2"/>
+    <text x="265" y="329" text-anchor="middle" font-weight="700">加锁失败</text>
+    <text x="265" y="356" text-anchor="middle">退避重试/快速失败</text>
+    <rect x="445" y="295" width="190" height="92" rx="10" fill="#ffffff" stroke="#f59e0b" stroke-width="2"/>
+    <text x="540" y="329" text-anchor="middle" font-weight="700">任务过长</text>
+    <text x="540" y="356" text-anchor="middle">看门狗续期/拆小任务</text>
+    <rect x="720" y="295" width="190" height="92" rx="10" fill="#ffffff" stroke="#dc2626" stroke-width="2"/>
+    <text x="815" y="329" text-anchor="middle" font-weight="700">异常宕机</text>
+    <text x="815" y="356" text-anchor="middle">TTL 自动释放</text>
+    <rect x="245" y="480" width="590" height="72" rx="10" fill="#fef2f2" stroke="#dc2626" stroke-width="2"/>
+    <text x="540" y="510" text-anchor="middle" font-weight="700">安全底线</text>
+    <text x="540" y="536" text-anchor="middle">唯一 owner、合理 TTL、Lua 删除、幂等业务、监控锁等待和超时</text>
+  </g>
+  <g stroke="#64748b" stroke-width="2" fill="none" marker-end="url(#arrow)">
+    <path d="M230 144H285"/>
+    <path d="M465 144H520"/>
+    <path d="M700 144H755"/>
+    <path d="M375 188C360 240 310 260 265 295"/>
+    <path d="M610 188C585 240 560 260 540 295"/>
+    <path d="M845 188C835 240 825 260 815 295"/>
+    <path d="M265 387C330 440 410 465 500 480"/>
+    <path d="M540 387V480"/>
+    <path d="M815 387C760 440 680 465 585 480"/>
+  </g>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#64748b"/>
+    </marker>
+  </defs>
+</svg>

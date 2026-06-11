@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="520" viewBox="0 0 980 520" role="img" aria-labelledby="title desc">
+  <title id="title">Claude Code 常用指令地图</title>
+  <desc id="desc">按项目初始化、任务执行、上下文管理、审查发布和故障处理整理常用指令。</desc>
+  <rect width="980" height="520" fill="#f8fafc"/>
+  <text x="490" y="44" text-anchor="middle" font-family="Arial, 'Microsoft YaHei', sans-serif" font-size="26" font-weight="700" fill="#111827">Claude Code 常用指令分组</text>
+  <g font-family="Arial, 'Microsoft YaHei', sans-serif" font-size="15" fill="#111827">
+    <rect x="70" y="86" width="250" height="145" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
+    <text x="195" y="118" text-anchor="middle" font-weight="700">项目准备</text>
+    <text x="100" y="150">claude</text>
+    <text x="100" y="178">/init</text>
+    <text x="100" y="206">/memory</text>
+    <rect x="365" y="86" width="250" height="145" rx="10" fill="#ffffff" stroke="#7c3aed" stroke-width="2"/>
+    <text x="490" y="118" text-anchor="middle" font-weight="700">任务推进</text>
+    <text x="395" y="150">/plan</text>
+    <text x="395" y="178">/model</text>
+    <text x="395" y="206">/effort</text>
+    <rect x="660" y="86" width="250" height="145" rx="10" fill="#ffffff" stroke="#0891b2" stroke-width="2"/>
+    <text x="785" y="118" text-anchor="middle" font-weight="700">上下文管理</text>
+    <text x="690" y="150">/context</text>
+    <text x="690" y="178">/compact</text>
+    <text x="690" y="206">/clear /resume</text>
+    <rect x="220" y="292" width="250" height="145" rx="10" fill="#ffffff" stroke="#059669" stroke-width="2"/>
+    <text x="345" y="324" text-anchor="middle" font-weight="700">审查发布</text>
+    <text x="250" y="356">/diff</text>
+    <text x="250" y="384">/code-review</text>
+    <text x="250" y="412">/review /security-review</text>
+    <rect x="515" y="292" width="250" height="145" rx="10" fill="#ffffff" stroke="#dc2626" stroke-width="2"/>
+    <text x="640" y="324" text-anchor="middle" font-weight="700">排障恢复</text>
+    <text x="545" y="356">/doctor</text>
+    <text x="545" y="384">/debug</text>
+    <text x="545" y="412">/rewind</text>
+  </g>
+  <g stroke="#94a3b8" stroke-width="2" fill="none" marker-end="url(#arrow)">
+    <path d="M320 158H365"/>
+    <path d="M615 158H660"/>
+    <path d="M490 231V292"/>
+    <path d="M550 231C620 250 646 270 640 292"/>
+  </g>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#94a3b8"/>
+    </marker>
+  </defs>
+</svg>

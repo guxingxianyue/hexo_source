@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="470" viewBox="0 0 980 470" role="img" aria-labelledby="title desc">
+  <title id="title">Skill 生命周期</title>
+  <desc id="desc">从重复提示到抽象技能、编写 SKILL.md、验证和共享的生命周期。</desc>
+  <rect width="980" height="470" fill="#f8fafc"/>
+  <text x="490" y="44" text-anchor="middle" font-family="Arial, 'Microsoft YaHei', sans-serif" font-size="26" font-weight="700" fill="#111827">从重复提示到自己的 Skill</text>
+  <g font-family="Arial, 'Microsoft YaHei', sans-serif" font-size="15" fill="#111827">
+    <rect x="65" y="112" width="150" height="90" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
+    <text x="140" y="146" text-anchor="middle" font-weight="700">发现重复</text>
+    <text x="140" y="174" text-anchor="middle">总在粘贴同一套流程</text>
+    <rect x="270" y="112" width="150" height="90" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
+    <text x="345" y="146" text-anchor="middle" font-weight="700">提炼边界</text>
+    <text x="345" y="174" text-anchor="middle">输入/输出/触发词</text>
+    <rect x="475" y="112" width="150" height="90" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
+    <text x="550" y="146" text-anchor="middle" font-weight="700">编写 SKILL.md</text>
+    <text x="550" y="174" text-anchor="middle">描述 + 步骤 + 约束</text>
+    <rect x="680" y="112" width="150" height="90" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
+    <text x="755" y="146" text-anchor="middle" font-weight="700">加入资源</text>
+    <text x="755" y="174" text-anchor="middle">scripts/references/assets</text>
+    <rect x="270" y="285" width="150" height="90" rx="10" fill="#ffffff" stroke="#059669" stroke-width="2"/>
+    <text x="345" y="319" text-anchor="middle" font-weight="700">本地验证</text>
+    <text x="345" y="347" text-anchor="middle">用真实任务跑一次</text>
+    <rect x="475" y="285" width="150" height="90" rx="10" fill="#ffffff" stroke="#059669" stroke-width="2"/>
+    <text x="550" y="319" text-anchor="middle" font-weight="700">迭代描述</text>
+    <text x="550" y="347" text-anchor="middle">触发太多或太少都改</text>
+    <rect x="680" y="285" width="150" height="90" rx="10" fill="#ffffff" stroke="#059669" stroke-width="2"/>
+    <text x="755" y="319" text-anchor="middle" font-weight="700">共享沉淀</text>
+    <text x="755" y="347" text-anchor="middle">个人/团队/插件</text>
+  </g>
+  <g stroke="#64748b" stroke-width="2" fill="none" marker-end="url(#arrow)">
+    <path d="M215 157H270"/>
+    <path d="M420 157H475"/>
+    <path d="M625 157H680"/>
+    <path d="M755 202C755 255 420 230 365 285"/>
+    <path d="M420 330H475"/>
+    <path d="M625 330H680"/>
+    <path d="M550 285C540 248 530 225 550 202"/>
+  </g>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#64748b"/>
+    </marker>
+  </defs>
+</svg>

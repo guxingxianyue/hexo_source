@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>什么是Skill，以及如何生成自己的Skill | 陈金星写字的地方</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="开场个人观察用 AI 编程工具一段时间后，我发现一个很现实的问题：很多提示词会被反复复制。比如“请先读代码不要修改”“请按这个格式输出审查结果”“请运行这些验证命令”“请用我们项目的发布流程”。这些话每次都粘一遍，既麻烦，也容易漏。 Skill 就是为了解决这类问题而出现的。它把一套可复用的工作流程、检查清单、领域知识或工具调用方式，包装成一个可以被 AI 按需加载的能力。你可以把它理解成“给 A">
+<meta name="keywords" content="AI,Claude Code,Codex,Skill,工程实践">
+<meta property="og:type" content="article">
+<meta property="og:title" content="什么是Skill，以及如何生成自己的Skill">
+<meta property="og:url" content="https://guxingxianyue.github.io/2026/05/22/什么是Skill以及如何生成自己的Skill/index.html">
+<meta property="og:site_name" content="陈金星写字的地方">
+<meta property="og:description" content="开场个人观察用 AI 编程工具一段时间后，我发现一个很现实的问题：很多提示词会被反复复制。比如“请先读代码不要修改”“请按这个格式输出审查结果”“请运行这些验证命令”“请用我们项目的发布流程”。这些话每次都粘一遍，既麻烦，也容易漏。 Skill 就是为了解决这类问题而出现的。它把一套可复用的工作流程、检查清单、领域知识或工具调用方式，包装成一个可以被 AI 按需加载的能力。你可以把它理解成“给 A">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://guxingxianyue.github.io/images/ai-flowcharts/skill-lifecycle.svg">
+<meta property="og:image" content="https://guxingxianyue.github.io/images/ai-flowcharts/skill-folder-guide.svg">
+<meta property="og:updated_time" content="2026-06-10T14:53:55.296Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="什么是Skill，以及如何生成自己的Skill">
+<meta name="twitter:description" content="开场个人观察用 AI 编程工具一段时间后，我发现一个很现实的问题：很多提示词会被反复复制。比如“请先读代码不要修改”“请按这个格式输出审查结果”“请运行这些验证命令”“请用我们项目的发布流程”。这些话每次都粘一遍，既麻烦，也容易漏。 Skill 就是为了解决这类问题而出现的。它把一套可复用的工作流程、检查清单、领域知识或工具调用方式，包装成一个可以被 AI 按需加载的能力。你可以把它理解成“给 A">
+<meta name="twitter:image" content="https://guxingxianyue.github.io/images/ai-flowcharts/skill-lifecycle.svg">
+  
+    <link rel="alternative" href="/atom.xml" title="陈金星写字的地方" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">陈金星写字的地方</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">less is more</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">首页</a>
+        
+          <a class="main-nav-link" href="/archives">存档</a>
+        
+          <a class="main-nav-link" href="/about">关于</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://guxingxianyue.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-什么是Skill以及如何生成自己的Skill" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2026/05/22/什么是Skill以及如何生成自己的Skill/" class="article-date">
+  <time datetime="2026-05-22T07:00:00.000Z" itemprop="datePublished">2026-05-22</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      什么是Skill，以及如何生成自己的Skill
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="开场个人观察"><a href="#开场个人观察" class="headerlink" title="开场个人观察"></a>开场个人观察</h2><p>用 AI 编程工具一段时间后，我发现一个很现实的问题：很多提示词会被反复复制。比如“请先读代码不要修改”“请按这个格式输出审查结果”“请运行这些验证命令”“请用我们项目的发布流程”。这些话每次都粘一遍，既麻烦，也容易漏。</p>
+<p>Skill 就是为了解决这类问题而出现的。它把一套可复用的工作流程、检查清单、领域知识或工具调用方式，包装成一个可以被 AI 按需加载的能力。你可以把它理解成“给 AI 用的操作手册”，但它比普通文档更强调触发条件和执行步骤。</p>
+<p>Claude Code 官方文档里说，skills 通过 <code>SKILL.md</code> 扩展 Claude 的能力，可以在相关时自动使用，也可以通过 <code>/skill-name</code> 直接调用。Codex 这边也有类似的技能机制：一个 skill 通常包含说明文件，以及可选的脚本、参考资料和资源文件。两者的共同点是：把重复经验沉淀为可复用流程。</p>
+<p><img src="/images/ai-flowcharts/skill-lifecycle.svg" alt="Skill生命周期"></p>
+<h2 id="核心观点"><a href="#核心观点" class="headerlink" title="核心观点"></a>核心观点</h2><p>Skill 不是越大越好，而是越清楚越好。一个好的 skill 应该回答四个问题：</p>
+<p>第一，它解决什么重复问题？</p>
+<p>第二，什么时候应该使用它？</p>
+<p>第三，使用它时要按什么步骤执行？</p>
+<p>第四，输出结果应该如何验证？</p>
+<p>如果一个 skill 只是把一大堆资料塞进去，反而会降低效果。因为 AI 每次使用时会消耗上下文，描述越含糊，越容易触发错误；内容越臃肿，越容易淹没真正关键的步骤。</p>
+<p>我更喜欢把 skill 做成“小而稳”的工具。比如：</p>
+<p><code>hexo-blog-writer</code>：专门指导 AI 写 Hexo 博客文章，包括 front matter、图片路径、生成命令、部署检查。</p>
+<p><code>api-review</code>：专门审查接口改动，包括鉴权、错误码、兼容性、日志、测试。</p>
+<p><code>release-check</code>：专门做发版前检查，包括 diff、测试、配置、回滚方案。</p>
+<p>这些 skill 都有明确边界，比“我的万能开发助手”更容易生效。</p>
+<p><img src="/images/ai-flowcharts/skill-folder-guide.svg" alt="Skill目录结构指引"></p>
+<h2 id="实践方法"><a href="#实践方法" class="headerlink" title="实践方法"></a>实践方法</h2><p>一个最小 skill 通常可以从一个文件夹开始：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">my-skill/</span><br><span class="line">  SKILL.md</span><br></pre></td></tr></table></figure>
+<p><code>SKILL.md</code> 里最重要的是 front matter 和正文说明：</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">---</span><br><span class="line">name: hexo-blog-writer</span><br><span class="line">description: Use when writing or updating Hexo blog posts with Markdown front matter, images, local generation, and GitHub Pages deployment checks.</span><br><span class="line">---</span><br><span class="line"></span><br><span class="line"><span class="section"># Hexo Blog Writer</span></span><br><span class="line"></span><br><span class="line">Use this skill when the user asks to write, update, generate, or deploy posts in this Hexo blog.</span><br><span class="line"></span><br><span class="line"><span class="section">## Workflow</span></span><br><span class="line"></span><br><span class="line"><span class="bullet">1. </span>Check existing posts under source/_posts.</span><br><span class="line"><span class="bullet">2. </span>Create UTF-8 Markdown with title, date, and tags.</span><br><span class="line"><span class="bullet">3. </span>Put images under source/images.</span><br><span class="line"><span class="bullet">4. </span>Generate the static site.</span><br><span class="line"><span class="bullet">5. </span>Verify archives and article pages.</span><br><span class="line"><span class="bullet">6. </span>Deploy only after generation succeeds.</span><br><span class="line"></span><br><span class="line"><span class="section">## Rules</span></span><br><span class="line"></span><br><span class="line"><span class="bullet">- </span>Do not edit old posts unless requested.</span><br><span class="line"><span class="bullet">- </span>Do not hand-edit public files unless this project's Hexo version requires a workaround.</span><br><span class="line"><span class="bullet">- </span>Always verify the generated archive page contains the new article.</span><br></pre></td></tr></table></figure>
+<p>这里的 <code>description</code> 很关键。它不是给人看的简介，而是帮助 AI 判断什么时候应该加载这个 skill。写得太窄，可能触发不了；写得太宽，又会到处乱触发。</p>
+<p>如果流程需要稳定执行脚本，可以加 <code>scripts/</code>：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">my-skill/</span><br><span class="line">  SKILL.md</span><br><span class="line">  scripts/</span><br><span class="line">    validate_front_matter.js</span><br></pre></td></tr></table></figure>
+<p>如果有较长参考资料，可以放到 <code>references/</code>，并在 <code>SKILL.md</code> 里说明什么时候读。这样平时不占上下文，只有需要时才加载。</p>
+<p>如果有模板、示例图片、配置样板，可以放到 <code>assets/</code>。例如写报告、生成幻灯片、创建博客配图时，这个目录很有用。</p>
+<p>我的生成步骤一般是：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">1. 先把重复任务写成普通提示词。</span><br><span class="line">2. 连续使用几次后，找出稳定不变的步骤。</span><br><span class="line">3. 把步骤整理成 SKILL.md。</span><br><span class="line">4. 用一个真实任务测试它。</span><br><span class="line">5. 如果触发太频繁，就收窄 description。</span><br><span class="line">6. 如果经常忘步骤，就把规则写得更明确。</span><br></pre></td></tr></table></figure>
+<h2 id="踩坑提醒"><a href="#踩坑提醒" class="headerlink" title="踩坑提醒"></a>踩坑提醒</h2><p>第一个坑，是把 skill 写成百科。Skill 不是知识库全文，它应该优先保存流程、约束和关键判断。长资料可以放 references，需要时再读。</p>
+<p>第二个坑，是 description 写得太虚。比如“帮助开发”这种描述几乎没有意义。更好的写法是“Use when reviewing API changes for authentication, compatibility, error handling, and tests.”</p>
+<p>第三个坑，是没有真实任务验证。一个 skill 看起来写得很好，不代表实际会触发，也不代表输出稳定。一定要拿真实项目试一次。</p>
+<p>第四个坑，是把易变信息写死。比如某个临时分支、一次性需求、当天的部署地址，不适合写进长期 skill。Skill 应该保存长期有效的规则。</p>
+<p>第五个坑，是让 skill 绕过人工判断。Skill 可以让 AI 更熟悉流程，但不能替你承担最终责任。尤其是部署、删除数据、改权限、处理密钥，仍然要有人确认。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Skill 的本质，是把反复出现的 AI 协作经验产品化。它不神秘，也不一定复杂。只要你发现自己第三次复制同一段提示词，就可以考虑把它做成一个 skill。</p>
+<p>我判断一个 skill 是否值得保留，通常看三个标准：是否减少重复输入，是否降低错误概率，是否让输出更容易验收。满足这三点，就值得沉淀。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a href="https://code.claude.com/docs/en/skills" target="_blank" rel="noopener">Claude Code skills</a></li>
+<li><a href="https://code.claude.com/docs/en/commands" target="_blank" rel="noopener">Claude Code commands reference</a></li>
+<li><a href="https://developers.openai.com/codex" target="_blank" rel="noopener">Codex skills</a></li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://guxingxianyue.github.io/2026/05/22/什么是Skill以及如何生成自己的Skill/" data-id="cmq8scy6v000vjsqhf6e33rkt" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/AI/">AI</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Claude-Code/">Claude Code</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Codex/">Codex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Skill/">Skill</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/工程实践/">工程实践</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2026/05/28/项目使用Codex有哪些注意事项/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          项目使用Codex有哪些注意事项
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2026/05/15/Claude-Code常用指令整理/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Claude Code常用指令整理</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI/">AI</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Agent/">Agent</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CAP/">CAP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Claude-Code/">Claude Code</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Codex/">Codex</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ERP/">ERP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/">Java</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kafka/">Kafka</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/">MySQL</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Redis/">Redis</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/">SQL</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL优化/">SQL优化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Skill/">Skill</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spring-Cloud/">Spring Cloud</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/事务/">事务</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/供应链系统/">供应链系统</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/分布式/">分布式</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/分布式系统/">分布式系统</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/分布式锁/">分布式锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/命令行/">命令行</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/工程实践/">工程实践</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/并发控制/">并发控制</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/微服务/">微服务</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/技术文章/">技术文章</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/报表统计/">报表统计</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据分析/">数据分析</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据库/">数据库</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据结构与算法/">数据结构与算法</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/架构设计/">架构设计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/消息队列/">消息队列</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/系统优化/">系统优化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/系统设计/">系统设计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/缓存/">缓存</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/编程效率/">编程效率</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/软件工程/">软件工程</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/锁/">锁</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/AI/" style="font-size: 20px;">AI</a> <a href="/tags/Agent/" style="font-size: 10px;">Agent</a> <a href="/tags/CAP/" style="font-size: 10px;">CAP</a> <a href="/tags/Claude-Code/" style="font-size: 15px;">Claude Code</a> <a href="/tags/Codex/" style="font-size: 13.33px;">Codex</a> <a href="/tags/ERP/" style="font-size: 10px;">ERP</a> <a href="/tags/Java/" style="font-size: 11.67px;">Java</a> <a href="/tags/Kafka/" style="font-size: 10px;">Kafka</a> <a href="/tags/MySQL/" style="font-size: 11.67px;">MySQL</a> <a href="/tags/Redis/" style="font-size: 11.67px;">Redis</a> <a href="/tags/SQL/" style="font-size: 10px;">SQL</a> <a href="/tags/SQL优化/" style="font-size: 10px;">SQL优化</a> <a href="/tags/Skill/" style="font-size: 10px;">Skill</a> <a href="/tags/Spring-Cloud/" style="font-size: 10px;">Spring Cloud</a> <a href="/tags/事务/" style="font-size: 10px;">事务</a> <a href="/tags/供应链系统/" style="font-size: 10px;">供应链系统</a> <a href="/tags/分布式/" style="font-size: 15px;">分布式</a> <a href="/tags/分布式系统/" style="font-size: 11.67px;">分布式系统</a> <a href="/tags/分布式锁/" style="font-size: 10px;">分布式锁</a> <a href="/tags/命令行/" style="font-size: 11.67px;">命令行</a> <a href="/tags/工程实践/" style="font-size: 13.33px;">工程实践</a> <a href="/tags/并发控制/" style="font-size: 10px;">并发控制</a> <a href="/tags/微服务/" style="font-size: 10px;">微服务</a> <a href="/tags/技术文章/" style="font-size: 18.33px;">技术文章</a> <a href="/tags/报表统计/" style="font-size: 10px;">报表统计</a> <a href="/tags/数据分析/" style="font-size: 10px;">数据分析</a> <a href="/tags/数据库/" style="font-size: 11.67px;">数据库</a> <a href="/tags/数据结构与算法/" style="font-size: 13.33px;">数据结构与算法</a> <a href="/tags/架构设计/" style="font-size: 11.67px;">架构设计</a> <a href="/tags/消息队列/" style="font-size: 10px;">消息队列</a> <a href="/tags/系统优化/" style="font-size: 10px;">系统优化</a> <a href="/tags/系统设计/" style="font-size: 11.67px;">系统设计</a> <a href="/tags/缓存/" style="font-size: 10px;">缓存</a> <a href="/tags/编程效率/" style="font-size: 16.67px;">编程效率</a> <a href="/tags/软件工程/" style="font-size: 13.33px;">软件工程</a> <a href="/tags/锁/" style="font-size: 10px;">锁</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/06/">六月 2026</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/05/">五月 2026</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">十一月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">八月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/05/">五月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">二月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">十一月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/07/">七月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">三月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">六月 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">四月 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">三月 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">一月 2016</a><span class="archive-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recents</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2026/06/10/Codex提高软件编程效率的10个技巧/">Codex提高软件编程效率的10个技巧</a>
+          </li>
+        
+          <li>
+            <a href="/2026/06/10/普通开发者使用AI的三条边界/">普通开发者使用AI的三条边界</a>
+          </li>
+        
+          <li>
+            <a href="/2026/06/10/AI-Agent时代的开发工作流/">AI Agent时代的开发工作流</a>
+          </li>
+        
+          <li>
+            <a href="/2026/06/10/2026年重新理解AI编程助手/">2026年，重新理解AI编程助手</a>
+          </li>
+        
+          <li>
+            <a href="/2026/06/01/Claude-Code最常用的几个指令/">claude code 最常用的几个指令</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2026 Jinxing Chen<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">首页</a>
+  
+    <a href="/archives" class="mobile-nav-link">存档</a>
+  
+    <a href="/about" class="mobile-nav-link">关于</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+  </div>
+</body>
+</html>

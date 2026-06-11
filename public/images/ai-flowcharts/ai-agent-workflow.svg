@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="560" viewBox="0 0 980 560" role="img" aria-labelledby="title desc">
+  <title id="title">AI Agent开发工作流</title>
+  <desc id="desc">从任务委派到计划、沙箱实现、验证、PR审查和合并的AI Agent工作流。</desc>
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M2,2 L10,6 L2,10 Z" fill="#2f6f5e"/>
+    </marker>
+    <style>
+      .bg{fill:#f7fcf9}
+      .lane{fill:#edf7f2;stroke:#9bc8b8;stroke-width:1.5}
+      .box{fill:#fff;stroke:#65a98f;stroke-width:2;rx:10}
+      .human{fill:#fff9e8;stroke:#d9a441}
+      .gate{fill:#fdf1f1;stroke:#ce6b6b}
+      .title{font:700 26px Arial,"Microsoft YaHei",sans-serif;fill:#173b31}
+      .laneText{font:700 18px Arial,"Microsoft YaHei",sans-serif;fill:#25594b}
+      .label{font:700 17px Arial,"Microsoft YaHei",sans-serif;fill:#18382f}
+      .note{font:14px Arial,"Microsoft YaHei",sans-serif;fill:#50645e}
+      .arrow{fill:none;stroke:#2f6f5e;stroke-width:3;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect class="bg" width="980" height="560" rx="18"/>
+  <text class="title" x="490" y="46" text-anchor="middle">AI Agent时代：从同步结对到异步委派</text>
+
+  <rect class="lane" x="40" y="82" width="900" height="120" rx="12"/>
+  <text class="laneText" x="92" y="122">人</text>
+  <rect class="box human" x="170" y="105" width="180" height="70"/>
+  <text class="label" x="260" y="134" text-anchor="middle">写清任务</text>
+  <text class="note" x="260" y="158" text-anchor="middle">目标、边界、验收</text>
+  <rect class="box human" x="630" y="105" width="180" height="70"/>
+  <text class="label" x="720" y="134" text-anchor="middle">审查结果</text>
+  <text class="note" x="720" y="158" text-anchor="middle">看diff、日志、页面</text>
+
+  <rect class="lane" x="40" y="222" width="900" height="160" rx="12"/>
+  <text class="laneText" x="92" y="268">Agent</text>
+  <rect class="box" x="120" y="260" width="150" height="70"/>
+  <text class="label" x="195" y="289" text-anchor="middle">阅读仓库</text>
+  <text class="note" x="195" y="313" text-anchor="middle">建立上下文</text>
+  <rect class="box" x="330" y="260" width="150" height="70"/>
+  <text class="label" x="405" y="289" text-anchor="middle">提出计划</text>
+  <text class="note" x="405" y="313" text-anchor="middle">先解释再修改</text>
+  <rect class="box" x="540" y="260" width="150" height="70"/>
+  <text class="label" x="615" y="289" text-anchor="middle">沙箱实现</text>
+  <text class="note" x="615" y="313" text-anchor="middle">小步改代码</text>
+  <rect class="box" x="750" y="260" width="150" height="70"/>
+  <text class="label" x="825" y="289" text-anchor="middle">输出证据</text>
+  <text class="note" x="825" y="313" text-anchor="middle">测试和命令日志</text>
+
+  <rect class="lane" x="40" y="402" width="900" height="112" rx="12"/>
+  <text class="laneText" x="92" y="448">质量门禁</text>
+  <rect class="box gate" x="205" y="428" width="180" height="62"/>
+  <text class="label" x="295" y="454" text-anchor="middle">失败则回到计划</text>
+  <text class="note" x="295" y="476" text-anchor="middle">缩小范围或补上下文</text>
+  <rect class="box gate" x="590" y="428" width="180" height="62"/>
+  <text class="label" x="680" y="454" text-anchor="middle">通过才进入PR</text>
+  <text class="note" x="680" y="476" text-anchor="middle">保留人类review</text>
+
+  <path class="arrow" d="M350 140 H620"/>
+  <path class="arrow" d="M260 175 C260 210 195 220 195 250"/>
+  <path class="arrow" d="M270 295 H320"/>
+  <path class="arrow" d="M480 295 H530"/>
+  <path class="arrow" d="M690 295 H740"/>
+  <path class="arrow" d="M825 330 C825 380 680 382 680 418"/>
+  <path class="arrow" d="M590 459 H395"/>
+  <path class="arrow" d="M680 428 C705 392 718 350 720 185"/>
+  <path class="arrow" d="M295 428 C280 380 375 355 405 330"/>
+</svg>

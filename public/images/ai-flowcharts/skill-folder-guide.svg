@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="520" viewBox="0 0 980 520" role="img" aria-labelledby="title desc">
+  <title id="title">Skill 目录结构指引图</title>
+  <desc id="desc">展示一个 skill 文件夹中 SKILL.md、scripts、references、assets 的关系。</desc>
+  <rect width="980" height="520" fill="#f8fafc"/>
+  <text x="490" y="46" text-anchor="middle" font-family="Arial, 'Microsoft YaHei', sans-serif" font-size="26" font-weight="700" fill="#111827">一个 Skill 可以长这样</text>
+  <rect x="95" y="82" width="790" height="360" rx="12" fill="#111827"/>
+  <g font-family="Consolas, 'Microsoft YaHei', monospace" font-size="20">
+    <text x="135" y="135" fill="#f9fafb">my-skill/</text>
+    <text x="175" y="182" fill="#93c5fd">├─ SKILL.md</text>
+    <text x="175" y="229" fill="#a7f3d0">├─ scripts/</text>
+    <text x="215" y="276" fill="#a7f3d0">│  └─ check.py</text>
+    <text x="175" y="323" fill="#fde68a">├─ references/</text>
+    <text x="215" y="370" fill="#fde68a">│  └─ domain.md</text>
+    <text x="175" y="417" fill="#fca5a5">└─ assets/</text>
+  </g>
+  <g font-family="Arial, 'Microsoft YaHei', sans-serif" font-size="15" fill="#111827">
+    <rect x="570" y="150" width="250" height="44" rx="8" fill="#dbeafe"/>
+    <text x="695" y="178" text-anchor="middle">SKILL.md：触发条件和核心流程</text>
+    <rect x="570" y="220" width="250" height="44" rx="8" fill="#dcfce7"/>
+    <text x="695" y="248" text-anchor="middle">scripts：稳定、可重复的操作</text>
+    <rect x="570" y="290" width="250" height="44" rx="8" fill="#fef3c7"/>
+    <text x="695" y="318" text-anchor="middle">references：需要时再读的资料</text>
+    <rect x="570" y="360" width="250" height="44" rx="8" fill="#fee2e2"/>
+    <text x="695" y="388" text-anchor="middle">assets：模板、图片、示例文件</text>
+  </g>
+</svg>

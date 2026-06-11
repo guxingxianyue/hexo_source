@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="520" viewBox="0 0 980 520" role="img" aria-labelledby="title desc">
+  <title id="title">CAP 在供应链系统中的取舍流程</title>
+  <desc id="desc">展示网络分区发生时，供应链库存业务在 CP 和 AP 之间的取舍。</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#315a78"/>
+    </marker>
+    <style>
+      .box{fill:#f7fbff;stroke:#315a78;stroke-width:2;rx:10;ry:10}
+      .decision{fill:#fff8e8;stroke:#9a6a16;stroke-width:2}
+      .cp{fill:#eef7f0;stroke:#347a44;stroke-width:2;rx:10;ry:10}
+      .ap{fill:#fff1f1;stroke:#a34242;stroke-width:2;rx:10;ry:10}
+      .text{font-family:Arial,'Microsoft YaHei',sans-serif;font-size:18px;fill:#1f2d3d}
+      .small{font-family:Arial,'Microsoft YaHei',sans-serif;font-size:14px;fill:#4d5b68}
+      .line{stroke:#315a78;stroke-width:2.2;fill:none;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect width="980" height="520" fill="#ffffff"/>
+  <text x="490" y="42" text-anchor="middle" class="text" font-size="26">供应链库存场景下的 CAP 取舍</text>
+
+  <rect x="385" y="80" width="210" height="74" class="box"/>
+  <text x="490" y="111" text-anchor="middle" class="text">客户同时下单</text>
+  <text x="490" y="136" text-anchor="middle" class="small">SKU A1001 只剩 1 件</text>
+
+  <path d="M490 195 L610 270 L490 345 L370 270 Z" class="decision"/>
+  <text x="490" y="260" text-anchor="middle" class="text">发生网络分区</text>
+  <text x="490" y="287" text-anchor="middle" class="small">上海和北京机房通信失败</text>
+
+  <rect x="75" y="230" width="225" height="92" class="cp"/>
+  <text x="187" y="262" text-anchor="middle" class="text">选择 CP</text>
+  <text x="187" y="288" text-anchor="middle" class="small">优先保证库存一致</text>
+  <text x="187" y="309" text-anchor="middle" class="small">无法确认时拒绝请求</text>
+
+  <rect x="680" y="230" width="225" height="92" class="ap"/>
+  <text x="792" y="262" text-anchor="middle" class="text">选择 AP</text>
+  <text x="792" y="288" text-anchor="middle" class="small">优先保证系统可用</text>
+  <text x="792" y="309" text-anchor="middle" class="small">允许短时间不一致</text>
+
+  <rect x="75" y="390" width="225" height="74" class="box"/>
+  <text x="187" y="421" text-anchor="middle" class="text">结果</text>
+  <text x="187" y="446" text-anchor="middle" class="small">不超卖 但可能下单失败</text>
+
+  <rect x="680" y="390" width="225" height="74" class="box"/>
+  <text x="792" y="421" text-anchor="middle" class="text">结果</text>
+  <text x="792" y="446" text-anchor="middle" class="small">可下单 但需要补偿对账</text>
+
+  <path class="line" d="M490 154 V195"/>
+  <path class="line" d="M370 270 H300"/>
+  <path class="line" d="M610 270 H680"/>
+  <path class="line" d="M187 322 V390"/>
+  <path class="line" d="M792 322 V390"/>
+  <text x="315" y="251" class="small">库存/财务/审批</text>
+  <text x="612" y="251" class="small">搜索/报表/通知</text>
+</svg>

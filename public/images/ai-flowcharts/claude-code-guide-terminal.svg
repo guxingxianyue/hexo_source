@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="500" viewBox="0 0 980 500" role="img" aria-labelledby="title desc">
+  <title id="title">Claude Code 终端指引图</title>
+  <desc id="desc">展示第一次使用 Claude Code 时的终端操作顺序。</desc>
+  <rect width="980" height="500" fill="#f8fafc"/>
+  <rect x="70" y="58" width="840" height="370" rx="12" fill="#111827"/>
+  <rect x="70" y="58" width="840" height="42" rx="12" fill="#374151"/>
+  <circle cx="98" cy="79" r="7" fill="#ef4444"/>
+  <circle cx="122" cy="79" r="7" fill="#f59e0b"/>
+  <circle cx="146" cy="79" r="7" fill="#10b981"/>
+  <text x="490" y="85" text-anchor="middle" font-family="Consolas, monospace" font-size="15" fill="#d1d5db">terminal</text>
+  <g font-family="Consolas, 'Microsoft YaHei', monospace" font-size="19">
+    <text x="105" y="145" fill="#a7f3d0">$ cd E:\workspace\your-project</text>
+    <text x="105" y="188" fill="#a7f3d0">$ claude</text>
+    <text x="105" y="231" fill="#e5e7eb">&gt; 先阅读项目结构，告诉我入口文件、测试命令和风险点。</text>
+    <text x="105" y="274" fill="#e5e7eb">&gt; /plan 给登录页增加错误提示，不要先改代码。</text>
+    <text x="105" y="317" fill="#e5e7eb">&gt; 按计划实现，完成后运行 npm test 并总结 diff。</text>
+    <text x="105" y="360" fill="#93c5fd">Claude: 我会先读取相关文件，然后给出最小修改方案...</text>
+  </g>
+  <g font-family="Arial, 'Microsoft YaHei', sans-serif" font-size="16" fill="#1f2937">
+    <rect x="105" y="448" width="205" height="28" rx="14" fill="#dbeafe"/>
+    <text x="207" y="468" text-anchor="middle">1. 先定位项目目录</text>
+    <rect x="330" y="448" width="185" height="28" rx="14" fill="#dcfce7"/>
+    <text x="422" y="468" text-anchor="middle">2. 先问结构</text>
+    <rect x="535" y="448" width="170" height="28" rx="14" fill="#fef3c7"/>
+    <text x="620" y="468" text-anchor="middle">3. 先计划</text>
+    <rect x="725" y="448" width="150" height="28" rx="14" fill="#fee2e2"/>
+    <text x="800" y="468" text-anchor="middle">4. 再执行</text>
+  </g>
+</svg>

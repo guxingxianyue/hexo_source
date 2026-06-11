@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="540" viewBox="0 0 980 540" role="img" aria-labelledby="title desc">
+  <title id="title">Codex权限与安全门禁</title>
+  <desc id="desc">使用Codex时围绕权限、秘密、命令、差异和验证设置安全门禁。</desc>
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M2,2 L10,6 L2,10 Z" fill="#b65050"/>
+    </marker>
+    <style>
+      .bg{fill:#fffafa}
+      .box{fill:#fff;stroke:#d87878;stroke-width:2;rx:12}
+      .ok{fill:#f0fbf4;stroke:#5aa86f;stroke-width:2;rx:12}
+      .title{font:700 26px Arial,"Microsoft YaHei",sans-serif;fill:#5b2222}
+      .label{font:700 17px Arial,"Microsoft YaHei",sans-serif;fill:#5b2222}
+      .note{font:14px Arial,"Microsoft YaHei",sans-serif;fill:#705151}
+      .arrow{fill:none;stroke:#b65050;stroke-width:3;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect class="bg" width="980" height="540" rx="18"/>
+  <text class="title" x="490" y="46" text-anchor="middle">效率不是放开所有权限，而是建立安全门禁</text>
+
+  <rect class="box" x="70" y="110" width="180" height="88"/>
+  <text class="label" x="160" y="142" text-anchor="middle">1. 权限最小化</text>
+  <text class="note" x="160" y="168" text-anchor="middle">默认沙箱和审批</text>
+  <text class="note" x="160" y="188" text-anchor="middle">只给任务需要的能力</text>
+
+  <rect class="box" x="300" y="110" width="180" height="88"/>
+  <text class="label" x="390" y="142" text-anchor="middle">2. 秘密不入上下文</text>
+  <text class="note" x="390" y="168" text-anchor="middle">脱敏密钥和数据</text>
+  <text class="note" x="390" y="188" text-anchor="middle">用样例替代真实值</text>
+
+  <rect class="box" x="530" y="110" width="180" height="88"/>
+  <text class="label" x="620" y="142" text-anchor="middle">3. 命令可解释</text>
+  <text class="note" x="620" y="168" text-anchor="middle">先说明目的</text>
+  <text class="note" x="620" y="188" text-anchor="middle">危险操作需确认</text>
+
+  <rect class="box" x="760" y="110" width="180" height="88"/>
+  <text class="label" x="850" y="142" text-anchor="middle">4. 差异可审查</text>
+  <text class="note" x="850" y="168" text-anchor="middle">只看真实diff</text>
+  <text class="note" x="850" y="188" text-anchor="middle">拒绝无关改动</text>
+
+  <rect class="ok" x="260" y="330" width="200" height="92"/>
+  <text class="label" x="360" y="362" text-anchor="middle">通过：进入合并</text>
+  <text class="note" x="360" y="388" text-anchor="middle">测试通过，风险清楚</text>
+  <text class="note" x="360" y="408" text-anchor="middle">保留提交记录</text>
+
+  <rect class="box" x="540" y="330" width="200" height="92"/>
+  <text class="label" x="640" y="362" text-anchor="middle">不通过：退回修正</text>
+  <text class="note" x="640" y="388" text-anchor="middle">补上下文、缩范围</text>
+  <text class="note" x="640" y="408" text-anchor="middle">重新验证</text>
+
+  <path class="arrow" d="M250 154 H290"/>
+  <path class="arrow" d="M480 154 H520"/>
+  <path class="arrow" d="M710 154 H750"/>
+  <path class="arrow" d="M850 198 C850 275 710 298 640 320"/>
+  <path class="arrow" d="M620 198 C580 270 440 298 360 320"/>
+</svg>

@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="560" viewBox="0 0 1080 560" role="img" aria-labelledby="title desc">
+  <title id="title">Kafka 生产者消费者工作流程</title>
+  <desc id="desc">展示 Kafka 生产者写入、Broker 存储、副本同步、消费者拉取和提交 offset 的整体流程。</desc>
+  <rect width="1080" height="560" fill="#f8fafc"/>
+  <text x="540" y="42" text-anchor="middle" font-family="Arial, 'Microsoft YaHei', sans-serif" font-size="26" font-weight="700" fill="#111827">Kafka 生产者与消费者核心链路</text>
+  <g font-family="Arial, 'Microsoft YaHei', sans-serif" font-size="15" fill="#111827">
+    <rect x="50" y="105" width="160" height="86" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
+    <text x="130" y="137" text-anchor="middle" font-weight="700">Producer</text>
+    <text x="130" y="163" text-anchor="middle">序列化/分区/批量发送</text>
+    <rect x="260" y="105" width="165" height="86" rx="10" fill="#ffffff" stroke="#7c3aed" stroke-width="2"/>
+    <text x="342" y="137" text-anchor="middle" font-weight="700">RecordAccumulator</text>
+    <text x="342" y="163" text-anchor="middle">batch + linger.ms</text>
+    <rect x="475" y="105" width="165" height="86" rx="10" fill="#ffffff" stroke="#0891b2" stroke-width="2"/>
+    <text x="558" y="137" text-anchor="middle" font-weight="700">Leader Broker</text>
+    <text x="558" y="163" text-anchor="middle">追加到分区日志</text>
+    <rect x="690" y="105" width="165" height="86" rx="10" fill="#ffffff" stroke="#059669" stroke-width="2"/>
+    <text x="772" y="137" text-anchor="middle" font-weight="700">Followers</text>
+    <text x="772" y="163" text-anchor="middle">ISR 副本同步</text>
+    <rect x="905" y="105" width="130" height="86" rx="10" fill="#ffffff" stroke="#059669" stroke-width="2"/>
+    <text x="970" y="137" text-anchor="middle" font-weight="700">ACK</text>
+    <text x="970" y="163" text-anchor="middle">0/1/all</text>
+    <rect x="185" y="305" width="180" height="92" rx="10" fill="#ffffff" stroke="#f59e0b" stroke-width="2"/>
+    <text x="275" y="339" text-anchor="middle" font-weight="700">Consumer Group</text>
+    <text x="275" y="366" text-anchor="middle">分区分配/负载均衡</text>
+    <rect x="445" y="305" width="180" height="92" rx="10" fill="#ffffff" stroke="#f59e0b" stroke-width="2"/>
+    <text x="535" y="339" text-anchor="middle" font-weight="700">Poll 拉取</text>
+    <text x="535" y="366" text-anchor="middle">批量读取并处理</text>
+    <rect x="705" y="305" width="180" height="92" rx="10" fill="#ffffff" stroke="#dc2626" stroke-width="2"/>
+    <text x="795" y="339" text-anchor="middle" font-weight="700">Commit Offset</text>
+    <text x="795" y="366" text-anchor="middle">手动提交更可控</text>
+  </g>
+  <g stroke="#64748b" stroke-width="2" fill="none" marker-end="url(#arrow)">
+    <path d="M210 148H260"/>
+    <path d="M425 148H475"/>
+    <path d="M640 148H690"/>
+    <path d="M855 148H905"/>
+    <path d="M970 191C930 265 660 255 535 305"/>
+    <path d="M535 305C520 246 535 210 558 191"/>
+    <path d="M365 351H445"/>
+    <path d="M625 351H705"/>
+    <path d="M795 397C720 470 350 455 275 397"/>
+  </g>
+  <g font-family="Arial, 'Microsoft YaHei', sans-serif" font-size="14" fill="#475569">
+    <text x="540" y="485" text-anchor="middle">吞吐量来自批量、压缩、并行分区和顺序写；可靠性来自 acks=all、ISR、副本数、幂等和手动提交。</text>
+  </g>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#64748b"/>
+    </marker>
+  </defs>
+</svg>

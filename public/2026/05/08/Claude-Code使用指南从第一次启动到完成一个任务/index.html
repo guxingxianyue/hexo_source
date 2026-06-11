@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Claude Code使用指南：从第一次启动到完成一个任务 | 陈金星写字的地方</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="开场个人观察这两年 AI 编程工具变化很快，从最早的补全、问答，到现在可以进入项目、读文件、改代码、跑命令的 coding agent，开发方式已经明显不一样了。Claude Code 属于这一类工具：它不是单纯的聊天窗口，而是更靠近终端里的协作开发助手。 我觉得普通开发者第一次用 Claude Code，最容易踩的坑不是“不会安装”，而是上来就把它当成万能实习生：丢一句“帮我优化项目”，然后等它">
+<meta name="keywords" content="AI,Claude Code,编程效率">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Claude Code使用指南：从第一次启动到完成一个任务">
+<meta property="og:url" content="https://guxingxianyue.github.io/2026/05/08/Claude-Code使用指南从第一次启动到完成一个任务/index.html">
+<meta property="og:site_name" content="陈金星写字的地方">
+<meta property="og:description" content="开场个人观察这两年 AI 编程工具变化很快，从最早的补全、问答，到现在可以进入项目、读文件、改代码、跑命令的 coding agent，开发方式已经明显不一样了。Claude Code 属于这一类工具：它不是单纯的聊天窗口，而是更靠近终端里的协作开发助手。 我觉得普通开发者第一次用 Claude Code，最容易踩的坑不是“不会安装”，而是上来就把它当成万能实习生：丢一句“帮我优化项目”，然后等它">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://guxingxianyue.github.io/images/ai-flowcharts/claude-code-guide-flow.svg">
+<meta property="og:image" content="https://guxingxianyue.github.io/images/ai-flowcharts/claude-code-guide-terminal.svg">
+<meta property="og:updated_time" content="2026-06-10T14:53:55.294Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Claude Code使用指南：从第一次启动到完成一个任务">
+<meta name="twitter:description" content="开场个人观察这两年 AI 编程工具变化很快，从最早的补全、问答，到现在可以进入项目、读文件、改代码、跑命令的 coding agent，开发方式已经明显不一样了。Claude Code 属于这一类工具：它不是单纯的聊天窗口，而是更靠近终端里的协作开发助手。 我觉得普通开发者第一次用 Claude Code，最容易踩的坑不是“不会安装”，而是上来就把它当成万能实习生：丢一句“帮我优化项目”，然后等它">
+<meta name="twitter:image" content="https://guxingxianyue.github.io/images/ai-flowcharts/claude-code-guide-flow.svg">
+  
+    <link rel="alternative" href="/atom.xml" title="陈金星写字的地方" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">陈金星写字的地方</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">less is more</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">首页</a>
+        
+          <a class="main-nav-link" href="/archives">存档</a>
+        
+          <a class="main-nav-link" href="/about">关于</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://guxingxianyue.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-Claude-Code使用指南从第一次启动到完成一个任务" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2026/05/08/Claude-Code使用指南从第一次启动到完成一个任务/" class="article-date">
+  <time datetime="2026-05-08T05:00:00.000Z" itemprop="datePublished">2026-05-08</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Claude Code使用指南：从第一次启动到完成一个任务
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="开场个人观察"><a href="#开场个人观察" class="headerlink" title="开场个人观察"></a>开场个人观察</h2><p>这两年 AI 编程工具变化很快，从最早的补全、问答，到现在可以进入项目、读文件、改代码、跑命令的 coding agent，开发方式已经明显不一样了。Claude Code 属于这一类工具：它不是单纯的聊天窗口，而是更靠近终端里的协作开发助手。</p>
+<p>我觉得普通开发者第一次用 Claude Code，最容易踩的坑不是“不会安装”，而是上来就把它当成万能实习生：丢一句“帮我优化项目”，然后等它自己理解所有背景。这样做偶尔能有惊喜，但很难稳定。更好的方式，是把它放进一个清楚的工作流里：先让它认识项目，再让它计划，再让它小步修改，最后看 diff 和验证结果。</p>
+<p>下面这篇笔记不追求把所有功能讲完，而是记录一套适合日常开发的入门流程。只要这套流程跑顺了，后面再去学命令、skills、hooks、MCP，都会自然很多。</p>
+<p><img src="/images/ai-flowcharts/claude-code-guide-flow.svg" alt="Claude Code使用流程"></p>
+<h2 id="核心观点"><a href="#核心观点" class="headerlink" title="核心观点"></a>核心观点</h2><p>Claude Code 的价值不在于“一句话生成一堆代码”，而在于把项目上下文、终端命令和代码修改串起来。你给它的任务越像一个可验收的小 issue，它的输出越容易 review。</p>
+<p>我会把一次比较稳的 Claude Code 使用过程分成六步：</p>
+<p>第一，进入正确的项目目录。AI 工具再强，也需要知道自己应该读哪个仓库、改哪个目录。</p>
+<p>第二，先问项目结构，不急着让它改代码。比如让它说明入口文件、构建命令、测试命令、核心模块和风险点。</p>
+<p>第三，把需求写清楚。最好包括目标、范围、验收标准、限制条件。</p>
+<p>第四，让它先计划。复杂任务尤其不要一开始就让它写文件。</p>
+<p>第五，小步执行。一次只做一个焦点，不要把修 bug、重构、加测试、改样式都塞进同一轮。</p>
+<p>第六，看 diff、跑测试、沉淀规则。AI 生成的代码必须被验证，不能只看它的总结。</p>
+<p><img src="/images/ai-flowcharts/claude-code-guide-terminal.svg" alt="Claude Code终端指引"></p>
+<h2 id="实践方法"><a href="#实践方法" class="headerlink" title="实践方法"></a>实践方法</h2><p>第一次进入一个项目，我会先在项目根目录启动：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /path/to/project</span><br><span class="line">claude</span><br></pre></td></tr></table></figure>
+<p>如果是在 Windows 上，路径可能类似：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cd E:\workspace\your-project</span><br><span class="line">claude</span><br></pre></td></tr></table></figure>
+<p>进入会话后，不要马上说“帮我改”。我更建议第一句这样写：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">先不要修改文件。请阅读这个项目的目录结构和关键配置，告诉我：</span><br><span class="line">1. 这是一个什么类型的项目；</span><br><span class="line">2. 入口文件和主要模块在哪里；</span><br><span class="line">3. 安装、测试、构建命令可能是什么；</span><br><span class="line">4. 如果后续要修改代码，哪些目录需要谨慎处理。</span><br></pre></td></tr></table></figure>
+<p>这个提示的作用，是先校准 Claude Code 对项目的理解。如果它一开始就找错入口，后面的修改很容易偏。</p>
+<p>当你已经知道要做什么，可以把需求写成一个小任务：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">目标：给登录页增加错误提示。</span><br><span class="line">范围：只修改登录页组件、登录请求处理和必要的测试。</span><br><span class="line">验收：输入错误密码时显示明确错误；网络失败时提示稍后重试；原有成功登录流程不变。</span><br><span class="line">限制：不要重构全局请求库，不要改路由结构。</span><br><span class="line">验证：完成后运行 npm test 和 npm run build；如果失败，请说明原因。</span><br></pre></td></tr></table></figure>
+<p>如果任务涉及多个文件，我会加一句：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">先给计划，不要直接改文件。计划里请列出准备阅读的文件、修改步骤、验证方式和可能风险。</span><br></pre></td></tr></table></figure>
+<p>计划确认后，再让它执行：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">按这个计划实现。每一步尽量保持最小改动，完成后总结改了哪些文件，并给出验证结果。</span><br></pre></td></tr></table></figure>
+<p>这套节奏看起来慢一点，但实际更省时间。因为你把“方向错了以后返工”的成本提前降下来了。</p>
+<h2 id="踩坑提醒"><a href="#踩坑提醒" class="headerlink" title="踩坑提醒"></a>踩坑提醒</h2><p>第一个坑，是让 Claude Code 同时做太多事。比如“顺便优化一下代码风格、顺便补测试、顺便升级依赖”。这些“顺便”很容易把任务边界打散。我的做法是：一个任务只保留一个核心目标，其他想法另开任务。</p>
+<p>第二个坑，是不看 diff。AI 工具会给你很自信的总结，但总结不等于真实改动。尤其是配置文件、权限文件、构建脚本、数据库迁移脚本，一定要逐个看。</p>
+<p>第三个坑，是把测试命令留到最后才想起来。更好的方式是在任务里直接写清楚“完成后要跑哪些命令”。如果项目没有测试，也要写手工验收标准。</p>
+<p>第四个坑，是没有项目记忆。Claude Code 官方文档提到可以用 <code>/init</code> 生成项目说明，也可以用记忆文件沉淀项目规则。我的理解是：只要某条规则你重复说了三次，就应该写进项目说明里。</p>
+<p>第五个坑，是会话太长还硬撑。长会话里上下文会越来越多，模型可能开始抓不住重点。这个时候应该用上下文管理命令压缩、清理或重新开会话，而不是继续堆提示词。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Claude Code 的入门重点不是背命令，而是建立一个稳定的协作节奏：先读项目，再给计划，小步执行，看 diff，跑验证，沉淀规则。</p>
+<p>如果把它当成“替我写代码的人”，你会经常担心它改错；如果把它当成“可以读项目、执行任务、接受 review 的协作助手”，它的价值会稳定很多。</p>
+<p>我的建议是：先拿一个低风险项目练习，从文档、测试、小 bug 开始，不要一上来就让它改核心链路。等你熟悉它的节奏之后，再逐渐把更复杂的任务交给它。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a href="https://code.claude.com/docs/en/cli-reference" target="_blank" rel="noopener">Claude Code CLI reference</a></li>
+<li><a href="https://code.claude.com/docs/en/common-workflows" target="_blank" rel="noopener">Claude Code common workflows</a></li>
+<li><a href="https://code.claude.com/docs/en/interactive-mode" target="_blank" rel="noopener">Claude Code interactive mode</a></li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://guxingxianyue.github.io/2026/05/08/Claude-Code使用指南从第一次启动到完成一个任务/" data-id="cmq8scy6f0000jsqh3coc9g2o" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/AI/">AI</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Claude-Code/">Claude Code</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/编程效率/">编程效率</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2026/05/15/Claude-Code常用指令整理/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          Claude Code常用指令整理
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2024/11/06/erp系统报表统计/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">erp系统报表统计</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI/">AI</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Agent/">Agent</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CAP/">CAP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Claude-Code/">Claude Code</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Codex/">Codex</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ERP/">ERP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/">Java</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kafka/">Kafka</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/">MySQL</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Redis/">Redis</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/">SQL</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL优化/">SQL优化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Skill/">Skill</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spring-Cloud/">Spring Cloud</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/事务/">事务</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/供应链系统/">供应链系统</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/分布式/">分布式</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/分布式系统/">分布式系统</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/分布式锁/">分布式锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/命令行/">命令行</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/工程实践/">工程实践</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/并发控制/">并发控制</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/微服务/">微服务</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/技术文章/">技术文章</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/报表统计/">报表统计</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据分析/">数据分析</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据库/">数据库</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据结构与算法/">数据结构与算法</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/架构设计/">架构设计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/消息队列/">消息队列</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/系统优化/">系统优化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/系统设计/">系统设计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/缓存/">缓存</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/编程效率/">编程效率</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/软件工程/">软件工程</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/锁/">锁</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/AI/" style="font-size: 20px;">AI</a> <a href="/tags/Agent/" style="font-size: 10px;">Agent</a> <a href="/tags/CAP/" style="font-size: 10px;">CAP</a> <a href="/tags/Claude-Code/" style="font-size: 15px;">Claude Code</a> <a href="/tags/Codex/" style="font-size: 13.33px;">Codex</a> <a href="/tags/ERP/" style="font-size: 10px;">ERP</a> <a href="/tags/Java/" style="font-size: 11.67px;">Java</a> <a href="/tags/Kafka/" style="font-size: 10px;">Kafka</a> <a href="/tags/MySQL/" style="font-size: 11.67px;">MySQL</a> <a href="/tags/Redis/" style="font-size: 11.67px;">Redis</a> <a href="/tags/SQL/" style="font-size: 10px;">SQL</a> <a href="/tags/SQL优化/" style="font-size: 10px;">SQL优化</a> <a href="/tags/Skill/" style="font-size: 10px;">Skill</a> <a href="/tags/Spring-Cloud/" style="font-size: 10px;">Spring Cloud</a> <a href="/tags/事务/" style="font-size: 10px;">事务</a> <a href="/tags/供应链系统/" style="font-size: 10px;">供应链系统</a> <a href="/tags/分布式/" style="font-size: 15px;">分布式</a> <a href="/tags/分布式系统/" style="font-size: 11.67px;">分布式系统</a> <a href="/tags/分布式锁/" style="font-size: 10px;">分布式锁</a> <a href="/tags/命令行/" style="font-size: 11.67px;">命令行</a> <a href="/tags/工程实践/" style="font-size: 13.33px;">工程实践</a> <a href="/tags/并发控制/" style="font-size: 10px;">并发控制</a> <a href="/tags/微服务/" style="font-size: 10px;">微服务</a> <a href="/tags/技术文章/" style="font-size: 18.33px;">技术文章</a> <a href="/tags/报表统计/" style="font-size: 10px;">报表统计</a> <a href="/tags/数据分析/" style="font-size: 10px;">数据分析</a> <a href="/tags/数据库/" style="font-size: 11.67px;">数据库</a> <a href="/tags/数据结构与算法/" style="font-size: 13.33px;">数据结构与算法</a> <a href="/tags/架构设计/" style="font-size: 11.67px;">架构设计</a> <a href="/tags/消息队列/" style="font-size: 10px;">消息队列</a> <a href="/tags/系统优化/" style="font-size: 10px;">系统优化</a> <a href="/tags/系统设计/" style="font-size: 11.67px;">系统设计</a> <a href="/tags/缓存/" style="font-size: 10px;">缓存</a> <a href="/tags/编程效率/" style="font-size: 16.67px;">编程效率</a> <a href="/tags/软件工程/" style="font-size: 13.33px;">软件工程</a> <a href="/tags/锁/" style="font-size: 10px;">锁</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/06/">六月 2026</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/05/">五月 2026</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">十一月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">八月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/05/">五月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">二月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">十一月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/07/">七月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">三月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">六月 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">四月 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">三月 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">一月 2016</a><span class="archive-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recents</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2026/06/10/Codex提高软件编程效率的10个技巧/">Codex提高软件编程效率的10个技巧</a>
+          </li>
+        
+          <li>
+            <a href="/2026/06/10/普通开发者使用AI的三条边界/">普通开发者使用AI的三条边界</a>
+          </li>
+        
+          <li>
+            <a href="/2026/06/10/AI-Agent时代的开发工作流/">AI Agent时代的开发工作流</a>
+          </li>
+        
+          <li>
+            <a href="/2026/06/10/2026年重新理解AI编程助手/">2026年，重新理解AI编程助手</a>
+          </li>
+        
+          <li>
+            <a href="/2026/06/01/Claude-Code最常用的几个指令/">claude code 最常用的几个指令</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2026 Jinxing Chen<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">首页</a>
+  
+    <a href="/archives" class="mobile-nav-link">存档</a>
+  
+    <a href="/about" class="mobile-nav-link">关于</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+  </div>
+</body>
+</html>

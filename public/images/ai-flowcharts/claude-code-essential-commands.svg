@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="560" viewBox="0 0 980 560" role="img" aria-labelledby="title desc">
+  <title id="title">Claude Code 最常用指令工作流</title>
+  <desc id="desc">展示 Claude Code 常用指令在项目开发中的使用顺序。</desc>
+  <rect width="980" height="560" fill="#f8fafc"/>
+  <text x="490" y="44" text-anchor="middle" font-family="Arial, 'Microsoft YaHei', sans-serif" font-size="26" font-weight="700" fill="#111827">Claude Code 最常用指令：从接手项目到提交前检查</text>
+  <g font-family="Arial, 'Microsoft YaHei', sans-serif" font-size="15" fill="#111827">
+    <rect x="58" y="92" width="160" height="88" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
+    <text x="138" y="124" text-anchor="middle" font-weight="700">/init</text>
+    <text x="138" y="151" text-anchor="middle">生成项目记忆</text>
+    <rect x="274" y="92" width="160" height="88" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
+    <text x="354" y="124" text-anchor="middle" font-weight="700">/memory</text>
+    <text x="354" y="151" text-anchor="middle">整理长期规则</text>
+    <rect x="490" y="92" width="160" height="88" rx="10" fill="#ffffff" stroke="#7c3aed" stroke-width="2"/>
+    <text x="570" y="124" text-anchor="middle" font-weight="700">/plan</text>
+    <text x="570" y="151" text-anchor="middle">先计划再实现</text>
+    <rect x="706" y="92" width="160" height="88" rx="10" fill="#ffffff" stroke="#7c3aed" stroke-width="2"/>
+    <text x="786" y="124" text-anchor="middle" font-weight="700">/model /effort</text>
+    <text x="786" y="151" text-anchor="middle">控制成本和深度</text>
+    <rect x="166" y="270" width="160" height="88" rx="10" fill="#ffffff" stroke="#0891b2" stroke-width="2"/>
+    <text x="246" y="302" text-anchor="middle" font-weight="700">/context</text>
+    <text x="246" y="329" text-anchor="middle">查看上下文占用</text>
+    <rect x="382" y="270" width="160" height="88" rx="10" fill="#ffffff" stroke="#0891b2" stroke-width="2"/>
+    <text x="462" y="302" text-anchor="middle" font-weight="700">/compact</text>
+    <text x="462" y="329" text-anchor="middle">压缩长会话</text>
+    <rect x="598" y="270" width="160" height="88" rx="10" fill="#ffffff" stroke="#059669" stroke-width="2"/>
+    <text x="678" y="302" text-anchor="middle" font-weight="700">/diff</text>
+    <text x="678" y="329" text-anchor="middle">验收真实改动</text>
+    <rect x="274" y="430" width="160" height="88" rx="10" fill="#ffffff" stroke="#dc2626" stroke-width="2"/>
+    <text x="354" y="462" text-anchor="middle" font-weight="700">/code-review</text>
+    <text x="354" y="489" text-anchor="middle">提交前审查</text>
+    <rect x="490" y="430" width="160" height="88" rx="10" fill="#ffffff" stroke="#dc2626" stroke-width="2"/>
+    <text x="570" y="462" text-anchor="middle" font-weight="700">/rewind</text>
+    <text x="570" y="489" text-anchor="middle">方向错了回退</text>
+  </g>
+  <g stroke="#64748b" stroke-width="2" fill="none" marker-end="url(#arrow)">
+    <path d="M218 136H274"/>
+    <path d="M434 136H490"/>
+    <path d="M650 136H706"/>
+    <path d="M786 180C786 240 310 220 246 270"/>
+    <path d="M326 314H382"/>
+    <path d="M542 314H598"/>
+    <path d="M678 358C678 410 430 390 354 430"/>
+    <path d="M434 474H490"/>
+    <path d="M570 430C560 395 610 380 678 358"/>
+  </g>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#64748b"/>
+    </marker>
+  </defs>
+</svg>

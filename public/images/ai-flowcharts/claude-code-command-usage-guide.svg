@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="620" viewBox="0 0 980 620" role="img" aria-labelledby="title desc">
+  <title id="title">Claude Code 常用指令项目用法速查</title>
+  <desc id="desc">列出常用指令、功能和项目使用方法。</desc>
+  <rect width="980" height="620" fill="#ffffff"/>
+  <text x="490" y="44" text-anchor="middle" font-family="Arial, 'Microsoft YaHei', sans-serif" font-size="26" font-weight="700" fill="#111827">项目里最常用的几个 Claude Code 指令</text>
+  <rect x="64" y="78" width="852" height="480" rx="12" fill="#f8fafc" stroke="#cbd5e1"/>
+  <g font-family="Arial, 'Microsoft YaHei', sans-serif" font-size="15" fill="#111827">
+    <text x="100" y="118" font-weight="700">指令</text>
+    <text x="235" y="118" font-weight="700">功能</text>
+    <text x="545" y="118" font-weight="700">项目里的用法</text>
+    <line x1="92" y1="137" x2="888" y2="137" stroke="#cbd5e1"/>
+    <text x="100" y="170">/init</text><text x="235" y="170">生成 CLAUDE.md</text><text x="545" y="170">新项目第一天，把测试和发布规则写进去</text>
+    <text x="100" y="220">/memory</text><text x="235" y="220">查看和编辑记忆</text><text x="545" y="220">把重复提醒沉淀成长期规则</text>
+    <text x="100" y="270">/plan</text><text x="235" y="270">进入计划模式</text><text x="545" y="270">多文件修改前先让它列路径、步骤和风险</text>
+    <text x="100" y="320">/context</text><text x="235" y="320">查看上下文占用</text><text x="545" y="320">长会话跑偏时先看上下文是否被塞满</text>
+    <text x="100" y="370">/compact</text><text x="235" y="370">压缩上下文</text><text x="545" y="370">保留目标、已改文件、验证结果再继续</text>
+    <text x="100" y="420">/diff</text><text x="235" y="420">显示当前改动</text><text x="545" y="420">验收前逐文件检查，不只看总结</text>
+    <text x="100" y="470">/code-review</text><text x="235" y="470">审查 diff</text><text x="545" y="470">提交前检查正确性、回归风险和测试缺口</text>
+    <text x="100" y="520">/rewind</text><text x="235" y="520">回到检查点</text><text x="545" y="520">方向错了及时回退，别在错误上继续叠补丁</text>
+  </g>
+  <text x="490" y="592" text-anchor="middle" font-family="Arial, 'Microsoft YaHei', sans-serif" font-size="16" fill="#475569">提醒：输入 / 查看你当前环境真实可用的命令，平台和计划不同会有差异。</text>
+</svg>
