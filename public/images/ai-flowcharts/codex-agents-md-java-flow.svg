@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="600" viewBox="0 0 1080 600" role="img" aria-labelledby="title desc">
+  <title id="title">Java 项目 AGENTS.md 内容结构</title>
+  <desc id="desc">展示 Java 系统项目中 AGENTS.md 应该包含的项目规则。</desc>
+  <rect width="1080" height="600" fill="#f8fafc"/>
+  <text x="540" y="44" text-anchor="middle" font-family="Arial, 'Microsoft YaHei', sans-serif" font-size="26" font-weight="700" fill="#111827">Java 项目 AGENTS.md 应该写什么</text>
+  <g font-family="Arial, 'Microsoft YaHei', sans-serif" font-size="15" fill="#111827">
+    <rect x="80" y="92" width="220" height="90" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
+    <text x="190" y="125" text-anchor="middle" font-weight="700">项目结构</text>
+    <text x="190" y="152" text-anchor="middle">controller/service/mapper</text>
+    <rect x="430" y="92" width="220" height="90" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
+    <text x="540" y="125" text-anchor="middle" font-weight="700">构建测试</text>
+    <text x="540" y="152" text-anchor="middle">mvn test / profile / docker</text>
+    <rect x="780" y="92" width="220" height="90" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
+    <text x="890" y="125" text-anchor="middle" font-weight="700">工程约束</text>
+    <text x="890" y="152" text-anchor="middle">事务/幂等/日志/异常</text>
+    <rect x="160" y="292" width="220" height="90" rx="10" fill="#ffffff" stroke="#059669" stroke-width="2"/>
+    <text x="270" y="325" text-anchor="middle" font-weight="700">代码风格</text>
+    <text x="270" y="352" text-anchor="middle">DTO/VO/命名/校验</text>
+    <rect x="430" y="292" width="220" height="90" rx="10" fill="#ffffff" stroke="#059669" stroke-width="2"/>
+    <text x="540" y="325" text-anchor="middle" font-weight="700">验收标准</text>
+    <text x="540" y="352" text-anchor="middle">测试通过 + diff 可 review</text>
+    <rect x="700" y="292" width="220" height="90" rx="10" fill="#ffffff" stroke="#059669" stroke-width="2"/>
+    <text x="810" y="325" text-anchor="middle" font-weight="700">禁区</text>
+    <text x="810" y="352" text-anchor="middle">不改无关配置/不泄密</text>
+    <rect x="300" y="465" width="480" height="60" rx="10" fill="#eef2ff" stroke="#7c3aed" stroke-width="2"/>
+    <text x="540" y="500" text-anchor="middle" font-weight="700">短、准、可执行，发现重复错误后再补规则</text>
+  </g>
+  <g stroke="#64748b" stroke-width="2" fill="none" marker-end="url(#arrow)">
+    <path d="M190 182C225 235 255 260 270 292"/>
+    <path d="M540 182V292"/>
+    <path d="M890 182C855 235 825 260 810 292"/>
+    <path d="M270 382C325 430 410 455 470 465"/>
+    <path d="M540 382V465"/>
+    <path d="M810 382C755 430 670 455 610 465"/>
+  </g>
+  <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#64748b"/></marker></defs>
+</svg>

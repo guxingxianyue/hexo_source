@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+  <title>利用openspec让Java项目Spec Coding更准确 | 陈金星写字的地方</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="开场个人观察Java 系统项目里，大需求最怕的是一上来就写代码。需求还没说清楚，接口就改了；边界还没确认，数据库字段就加了；异常流程还没过，测试就开始补。最后代码看起来写了很多，但业务验收时发现不是那回事。 我把 /openspec 理解成一种团队自定义 skill：它不急着写代码，而是先把自然语言需求整理成 spec。这里不假设每个 Codex 环境都内置这个命令。真正重要的是这个工作流：先规格">
+<meta name="keywords" content="AI,Codex,Java,Spec Coding">
+<meta property="og:type" content="article">
+<meta property="og:title" content="利用openspec让Java项目Spec Coding更准确">
+<meta property="og:url" content="https://guxingxianyue.github.io/2026/05/12/利用openspec让Java项目Spec-Coding更准确/index.html">
+<meta property="og:site_name" content="陈金星写字的地方">
+<meta property="og:description" content="开场个人观察Java 系统项目里，大需求最怕的是一上来就写代码。需求还没说清楚，接口就改了；边界还没确认，数据库字段就加了；异常流程还没过，测试就开始补。最后代码看起来写了很多，但业务验收时发现不是那回事。 我把 /openspec 理解成一种团队自定义 skill：它不急着写代码，而是先把自然语言需求整理成 spec。这里不假设每个 Codex 环境都内置这个命令。真正重要的是这个工作流：先规格">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://guxingxianyue.github.io/images/ai-flowcharts/codex-openspec-spec-flow.svg">
+<meta property="og:updated_time" content="2026-06-11T09:13:24.380Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="利用openspec让Java项目Spec Coding更准确">
+<meta name="twitter:description" content="开场个人观察Java 系统项目里，大需求最怕的是一上来就写代码。需求还没说清楚，接口就改了；边界还没确认，数据库字段就加了；异常流程还没过，测试就开始补。最后代码看起来写了很多，但业务验收时发现不是那回事。 我把 /openspec 理解成一种团队自定义 skill：它不急着写代码，而是先把自然语言需求整理成 spec。这里不假设每个 Codex 环境都内置这个命令。真正重要的是这个工作流：先规格">
+<meta name="twitter:image" content="https://guxingxianyue.github.io/images/ai-flowcharts/codex-openspec-spec-flow.svg">
+  
+    <link rel="alternative" href="/atom.xml" title="陈金星写字的地方" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head></html>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">陈金星写字的地方</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">less is more</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">首页</a>
+        
+          <a class="main-nav-link" href="/archives">存档</a>
+        
+          <a class="main-nav-link" href="/about">关于</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://guxingxianyue.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-利用openspec让Java项目Spec-Coding更准确" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2026/05/12/利用openspec让Java项目Spec-Coding更准确/" class="article-date">
+  <time datetime="2026-05-12T03:00:00.000Z" itemprop="datePublished">2026-05-12</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      利用openspec让Java项目Spec Coding更准确
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="开场个人观察"><a href="#开场个人观察" class="headerlink" title="开场个人观察"></a>开场个人观察</h2><p>Java 系统项目里，大需求最怕的是一上来就写代码。需求还没说清楚，接口就改了；边界还没确认，数据库字段就加了；异常流程还没过，测试就开始补。最后代码看起来写了很多，但业务验收时发现不是那回事。</p>
+<p>我把 <code>/openspec</code> 理解成一种团队自定义 skill：它不急着写代码，而是先把自然语言需求整理成 spec。这里不假设每个 Codex 环境都内置这个命令。真正重要的是这个工作流：先规格化需求，再让 Codex 按规格实现。</p>
+<p><img src="/images/ai-flowcharts/codex-openspec-spec-flow.svg" alt="openspec让Spec Coding更准确"></p>
+<h2 id="核心观点"><a href="#核心观点" class="headerlink" title="核心观点"></a>核心观点</h2><p>Spec Coding 的核心不是“多写文档”，而是把模糊需求变成可验收条件。对 Java 后端项目来说，一个可用的 spec 至少应该包含：</p>
+<p>业务目标：这次要解决哪个业务问题。</p>
+<p>接口变化：新增还是修改接口，请求参数、响应字段、兼容性如何。</p>
+<p>数据变化：是否新增表、字段、索引，是否涉及迁移。</p>
+<p>流程变化：正常流程、异常流程、回滚流程。</p>
+<p>非功能要求：性能、幂等、权限、日志、监控。</p>
+<p>验收标准：什么情况下算完成。</p>
+<p>有了这些，Codex 才能从“猜需求”变成“按规格工作”。</p>
+<h2 id="实践方法"><a href="#实践方法" class="headerlink" title="实践方法"></a>实践方法</h2><p>假设需求是“订单支持部分发货”。不要直接让 Codex 改代码，可以先这样用 <code>/openspec</code>：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">/openspec</span><br><span class="line">需求：订单支持部分发货。</span><br><span class="line">背景：当前订单只能整单发货，订单明细里有多个 SKU。仓库可能只发其中一部分 SKU，剩余 SKU 后续再发。</span><br><span class="line">请先生成 spec，不要写代码。</span><br></pre></td></tr></table></figure>
+<p>一个好的输出应该包括：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">1. 业务定义</span><br><span class="line">- 部分发货：订单明细中部分 SKU 已生成出库记录，订单整体未完成。</span><br><span class="line"></span><br><span class="line">2. 状态流转</span><br><span class="line">- 待发货 -&gt; 部分发货 -&gt; 已发货</span><br><span class="line">- 部分发货允许继续发剩余明细</span><br><span class="line"></span><br><span class="line">3. 接口</span><br><span class="line">- POST /orders/&#123;id&#125;/shipments</span><br><span class="line">- 请求包含明细 ID、发货数量、仓库 ID</span><br><span class="line"></span><br><span class="line">4. 数据</span><br><span class="line">- shipment 表记录发货批次</span><br><span class="line">- shipment_item 表记录每个 SKU 发货数量</span><br><span class="line">- order_item 增加 shipped_qty 或通过发货明细汇总</span><br><span class="line"></span><br><span class="line">5. 约束</span><br><span class="line">- 发货数量不能超过未发货数量</span><br><span class="line">- 同一请求需要幂等 key</span><br><span class="line">- 库存扣减和发货记录要在同一事务或可补偿流程内</span><br><span class="line"></span><br><span class="line">6. 验收</span><br><span class="line">- 部分发货后订单状态为部分发货</span><br><span class="line">- 全部明细发完后订单状态为已发货</span><br><span class="line">- 重复请求不重复扣库存</span><br><span class="line">- 异常时不产生半条发货记录</span><br></pre></td></tr></table></figure>
+<p>接下来再让 Codex 根据 spec 计划实现：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">根据上面的 spec，先给实现计划。</span><br><span class="line">请列出要修改的 Controller、Service、Mapper、表结构、测试用例。</span><br><span class="line">不要直接改文件。</span><br></pre></td></tr></table></figure>
+<p>这时 Codex 的计划就会更具体，也更容易 review。</p>
+<h2 id="踩坑提醒"><a href="#踩坑提醒" class="headerlink" title="踩坑提醒"></a>踩坑提醒</h2><p>第一个坑，是 spec 只写正常流程。真实 Java 系统最容易出问题的是异常流程，比如库存不足、重复请求、事务失败、部分写入。</p>
+<p>第二个坑，是不写兼容性。接口字段改名、枚举值变更、状态机变更，都可能影响前端或其他服务。</p>
+<p>第三个坑，是 spec 和实现脱节。写完 spec 后，要让 Codex 每轮实现都对照 spec，而不是写完一堆代码再说“差不多”。</p>
+<p>第四个坑，是 spec 太大。一个大需求可以拆多个 spec，比如“状态流转 spec”“库存扣减 spec”“发货单 spec”。每个 spec 能独立验收最好。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p><code>/openspec</code> 的价值，是让 Codex 在写 Java 代码前先把需求说清楚。它适合处理订单、库存、结算、权限、报表这类业务边界复杂的需求。</p>
+<p>当 spec 能清楚描述接口、数据、流程、异常、验收时，后面的 coding 才会更准确。否则 Codex 只是更快地写出一批可能不符合业务的代码。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a href="https://developers.openai.com/codex/learn/best-practices" target="_blank" rel="noopener">OpenAI Codex best practices</a></li>
+<li><a href="https://developers.openai.com/codex/config/skills" target="_blank" rel="noopener">OpenAI Codex Skills</a></li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://guxingxianyue.github.io/2026/05/12/利用openspec让Java项目Spec-Coding更准确/" data-id="cmq9aadk90006m4qhtd74eiw2" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/AI/">AI</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Codex/">Codex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/">Java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Spec-Coding/">Spec Coding</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2026/05/15/Claude-Code常用指令整理/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          Claude Code常用指令整理
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2026/05/08/Claude-Code使用指南从第一次启动到完成一个任务/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Claude Code使用指南：从第一次启动到完成一个任务</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AGENTS-md/">AGENTS.md</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI/">AI</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Agent/">Agent</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CAP/">CAP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Claude-Code/">Claude Code</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Codex/">Codex</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ERP/">ERP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/">Java</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kafka/">Kafka</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/">MySQL</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Redis/">Redis</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/">SQL</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL优化/">SQL优化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Skill/">Skill</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spec-Coding/">Spec Coding</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spring-Cloud/">Spring Cloud</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/事务/">事务</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/供应链系统/">供应链系统</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/分布式/">分布式</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/分布式系统/">分布式系统</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/分布式锁/">分布式锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/命令行/">命令行</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/工程实践/">工程实践</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/并发控制/">并发控制</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/微服务/">微服务</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/技术文章/">技术文章</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/报表统计/">报表统计</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据分析/">数据分析</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据库/">数据库</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据结构与算法/">数据结构与算法</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/架构设计/">架构设计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/消息队列/">消息队列</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/系统优化/">系统优化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/系统设计/">系统设计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/缓存/">缓存</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/编程效率/">编程效率</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/软件工程/">软件工程</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/锁/">锁</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/AGENTS-md/" style="font-size: 10px;">AGENTS.md</a> <a href="/tags/AI/" style="font-size: 20px;">AI</a> <a href="/tags/Agent/" style="font-size: 10px;">Agent</a> <a href="/tags/CAP/" style="font-size: 10px;">CAP</a> <a href="/tags/Claude-Code/" style="font-size: 14.29px;">Claude Code</a> <a href="/tags/Codex/" style="font-size: 18.57px;">Codex</a> <a href="/tags/ERP/" style="font-size: 10px;">ERP</a> <a href="/tags/Java/" style="font-size: 17.14px;">Java</a> <a href="/tags/Kafka/" style="font-size: 10px;">Kafka</a> <a href="/tags/MySQL/" style="font-size: 11.43px;">MySQL</a> <a href="/tags/Redis/" style="font-size: 11.43px;">Redis</a> <a href="/tags/SQL/" style="font-size: 10px;">SQL</a> <a href="/tags/SQL优化/" style="font-size: 10px;">SQL优化</a> <a href="/tags/Skill/" style="font-size: 10px;">Skill</a> <a href="/tags/Spec-Coding/" style="font-size: 12.86px;">Spec Coding</a> <a href="/tags/Spring-Cloud/" style="font-size: 10px;">Spring Cloud</a> <a href="/tags/事务/" style="font-size: 10px;">事务</a> <a href="/tags/供应链系统/" style="font-size: 10px;">供应链系统</a> <a href="/tags/分布式/" style="font-size: 14.29px;">分布式</a> <a href="/tags/分布式系统/" style="font-size: 11.43px;">分布式系统</a> <a href="/tags/分布式锁/" style="font-size: 10px;">分布式锁</a> <a href="/tags/命令行/" style="font-size: 11.43px;">命令行</a> <a href="/tags/工程实践/" style="font-size: 12.86px;">工程实践</a> <a href="/tags/并发控制/" style="font-size: 10px;">并发控制</a> <a href="/tags/微服务/" style="font-size: 10px;">微服务</a> <a href="/tags/技术文章/" style="font-size: 15.71px;">技术文章</a> <a href="/tags/报表统计/" style="font-size: 10px;">报表统计</a> <a href="/tags/数据分析/" style="font-size: 10px;">数据分析</a> <a href="/tags/数据库/" style="font-size: 11.43px;">数据库</a> <a href="/tags/数据结构与算法/" style="font-size: 12.86px;">数据结构与算法</a> <a href="/tags/架构设计/" style="font-size: 11.43px;">架构设计</a> <a href="/tags/消息队列/" style="font-size: 10px;">消息队列</a> <a href="/tags/系统优化/" style="font-size: 10px;">系统优化</a> <a href="/tags/系统设计/" style="font-size: 11.43px;">系统设计</a> <a href="/tags/缓存/" style="font-size: 10px;">缓存</a> <a href="/tags/编程效率/" style="font-size: 15.71px;">编程效率</a> <a href="/tags/软件工程/" style="font-size: 14.29px;">软件工程</a> <a href="/tags/锁/" style="font-size: 10px;">锁</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/06/">六月 2026</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/05/">五月 2026</a><span class="archive-list-count">9</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">十一月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">八月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/05/">五月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">二月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">十一月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/07/">七月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">三月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">六月 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">四月 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">三月 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">一月 2016</a><span class="archive-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recents</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2026/06/10/Codex提高软件编程效率的10个技巧/">Codex提高软件编程效率的10个技巧</a>
+          </li>
+        
+          <li>
+            <a href="/2026/06/10/普通开发者使用AI的三条边界/">普通开发者使用AI的三条边界</a>
+          </li>
+        
+          <li>
+            <a href="/2026/06/10/AI-Agent时代的开发工作流/">AI Agent时代的开发工作流</a>
+          </li>
+        
+          <li>
+            <a href="/2026/06/10/2026年重新理解AI编程助手/">2026年，重新理解AI编程助手</a>
+          </li>
+        
+          <li>
+            <a href="/2026/06/01/Claude-Code最常用的几个指令/">claude code 最常用的几个指令</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2026 Jinxing Chen<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">首页</a>
+  
+    <a href="/archives" class="mobile-nav-link">存档</a>
+  
+    <a href="/about" class="mobile-nav-link">关于</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+  </div>
+</body>
+</html>

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-<head>
+<head><meta name="generator" content="Hexo 3.9.0">
   <meta charset="utf-8">
   
   <title>陈金星写字的地方</title>
@@ -25,7 +25,7 @@
   <link rel="stylesheet" href="/css/style.css">
   
 
-</head>
+</head></html>
 <body>
   <div id="container">
     <div id="wrap">
@@ -68,10 +68,10 @@
       <div class="outer">
         <section id="main">
   
-    <article id="post-kafka组件里面生产者和消费者的原理" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-MySQL性能优化" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2023/03/18/kafka组件里面生产者和消费者的原理/" class="article-date">
-  <time datetime="2023-03-18T01:30:00.000Z" itemprop="datePublished">2023-03-18</time>
+    <a href="/2024/08/24/MySQL性能优化/" class="article-date">
+  <time datetime="2024-08-24T06:15:00.000Z" itemprop="datePublished">2024-08-24</time>
 </a>
     
   </div>
@@ -82,7 +82,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2023/03/18/kafka组件里面生产者和消费者的原理/">kafka组件里面生产者和消费者的原理</a>
+      <a class="article-title" href="/2024/08/24/MySQL性能优化/">MySQL性能优化</a>
     </h1>
   
 
@@ -90,51 +90,208 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="开场个人观察"><a href="#开场个人观察" class="headerlink" title="开场个人观察"></a>开场个人观察</h2><p>Kafka 这种组件，刚开始学的时候很容易记成几个名词：Producer、Consumer、Topic、Partition、Broker、Offset。真正用到项目里以后才会发现，Kafka 的难点不在于“会不会发消息”，而在于吞吐量、顺序性、可靠性和消费进度之间的取舍。</p>
-<p>在供应链、订单、库存、ERP 同步这类系统里，Kafka 很常见。比如订单创建后通知库存系统预占库存，采购单状态变化后通知财务系统生成应付记录，仓库出库后通知报表系统刷新数据。这些业务都有一个共同点：消息量可能很大，但业务又不能随便丢。</p>
-<p>所以理解 Kafka，不能只看 API，要看完整链路：生产者怎么把消息写进去，Broker 怎么存，消费者怎么拉取，offset 怎么提交，失败时怎么恢复。</p>
-<p><img src="/images/tech-flowcharts/kafka-producer-consumer-flow.svg" alt="Kafka生产者消费者工作流程"></p>
-<h2 id="核心观点"><a href="#核心观点" class="headerlink" title="核心观点"></a>核心观点</h2><p>Kafka 的核心设计可以概括成三句话。</p>
-<p>第一，生产者不是一条一条傻发，而是会把消息按 topic 和 partition 组织起来，经过序列化、分区选择、批量缓存后再发送给 Broker。</p>
-<p>第二，Broker 不是把消息存在一个普通队列里，而是把消息追加到分区日志中。分区是 Kafka 并行能力的基础，日志追加是它高吞吐的基础。</p>
-<p>第三，消费者不是等 Broker 推消息，而是主动 poll 拉取。消费者属于某个 consumer group，同一个 group 里一个分区同一时刻通常只会分给一个消费者处理，处理进度通过 offset 记录。</p>
-<p>Kafka 的吞吐量来自批量、顺序写、分区并行和零拷贝等机制；可靠性来自副本、ack、幂等、事务和 offset 提交策略。项目里真正要做的，是根据业务重要性选择合适参数，而不是一味追求“最快”。</p>
-<h2 id="实践方法"><a href="#实践方法" class="headerlink" title="实践方法"></a>实践方法</h2><p>先看生产者。生产者发送一条消息时，大致会经历这些步骤：</p>
+        <p>MySQL 性能优化不是看到慢 SQL 就立刻加索引。真正有效的优化过程，应该先确认问题范围，再定位瓶颈，再选择成本最低、收益最稳定的方案。很多线上问题不是某一条 SQL 写得差，而是数据量、索引设计、查询模型、分页方式、事务范围和业务流程共同导致的。</p>
+<p>在供应链系统里，订单、库存、采购、出入库、结算这些表增长很快。系统刚上线时几万条数据跑得很快，半年后变成几千万条，原来的查询就可能从几十毫秒变成几秒。优化 MySQL 的关键是让数据库少扫描、少排序、少回表、少锁等待。</p>
+<p><img src="/images/tech-flowcharts/mysql-optimization-flow.svg" alt="MySQL SQL 优化步骤流程"></p>
+<h2 id="第一步：先确认是不是数据库慢"><a href="#第一步：先确认是不是数据库慢" class="headerlink" title="第一步：先确认是不是数据库慢"></a>第一步：先确认是不是数据库慢</h2><p>当用户反馈订单列表慢时，不要直接打开 SQL 改写。应该先确认耗时发生在哪里。</p>
+<p>一次请求的耗时可能来自：</p>
+<ul>
+<li>网关排队。</li>
+<li>应用线程池不足。</li>
+<li>远程服务调用慢。</li>
+<li>Redis 缓存超时。</li>
+<li>MySQL 查询慢。</li>
+<li>返回数据过大导致网络传输慢。</li>
+<li>前端渲染慢。</li>
+</ul>
+<p>可以通过接口日志、链路追踪、APM、慢查询日志来拆分耗时。如果接口总耗时 3 秒，其中 MySQL 查询只用了 80 毫秒，那优化 SQL 不是当前重点。</p>
+<p>在 Java 应用里，建议每个核心接口记录 traceId、SQL 耗时、调用下游耗时、返回条数。没有这些数据，优化容易变成猜。</p>
+<h2 id="第二步：找到真实慢-SQL"><a href="#第二步：找到真实慢-SQL" class="headerlink" title="第二步：找到真实慢 SQL"></a>第二步：找到真实慢 SQL</h2><p>确认瓶颈在数据库后，再打开 MySQL 慢查询日志或使用监控平台找慢 SQL。</p>
+<p>慢 SQL 的判断不能只看单次耗时，还要看调用频率。一个报表 SQL 偶尔跑 5 秒不一定最急；一个订单列表 SQL 每次 300 毫秒、每分钟调用几千次，可能对系统压力更大。</p>
+<p>常用观察指标包括：</p>
+<ul>
+<li>平均耗时。</li>
+<li>P95、P99 耗时。</li>
+<li>扫描行数。</li>
+<li>返回行数。</li>
+<li>执行次数。</li>
+<li>是否频繁创建临时表。</li>
+<li>是否频繁 filesort。</li>
+<li>锁等待时间。</li>
+</ul>
+<p>供应链系统中常见慢 SQL 包括订单多条件查询、库存流水查询、采购单明细关联、应收应付报表、仓库作业统计。</p>
+<h2 id="第三步：使用-EXPLAIN-分析执行计划"><a href="#第三步：使用-EXPLAIN-分析执行计划" class="headerlink" title="第三步：使用 EXPLAIN 分析执行计划"></a>第三步：使用 EXPLAIN 分析执行计划</h2><p>拿到慢 SQL 后，必须用 <code>EXPLAIN</code> 看执行计划。执行计划告诉我们 MySQL 准备怎么执行这条 SQL。</p>
+<p>重点关注这些字段：</p>
+<ul>
+<li><code>type</code>：访问类型，至少应尽量达到 <code>range</code>、<code>ref</code>，避免大表 <code>ALL</code>。</li>
+<li><code>key</code>：实际使用的索引。</li>
+<li><code>rows</code>：预估扫描行数。</li>
+<li><code>Extra</code>：是否出现 <code>Using temporary</code>、<code>Using filesort</code>。</li>
+<li><code>filtered</code>：过滤比例。</li>
+</ul>
+<p>比如订单表 <code>scm_order</code> 有 3000 万行，页面按客户、状态、创建时间查询：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">id</span>, order_no, customer_id, <span class="keyword">status</span>, created_at, total_amount</span><br><span class="line"><span class="keyword">FROM</span> scm_order</span><br><span class="line"><span class="keyword">WHERE</span> customer_id = <span class="number">10086</span></span><br><span class="line">  <span class="keyword">AND</span> <span class="keyword">status</span> = <span class="string">'WAIT_DELIVERY'</span></span><br><span class="line">  <span class="keyword">AND</span> created_at &gt;= <span class="string">'2024-08-01'</span></span><br><span class="line"><span class="keyword">ORDER</span> <span class="keyword">BY</span> created_at <span class="keyword">DESC</span></span><br><span class="line"><span class="keyword">LIMIT</span> <span class="number">20</span>;</span><br></pre></td></tr></table></figure>
+<p>如果只在 <code>customer_id</code> 上有单列索引，MySQL 可能先找出该客户所有订单，再过滤状态和时间，并排序。客户订单量大时，这个查询就会慢。</p>
+<h2 id="第四步：按查询模式设计联合索引"><a href="#第四步：按查询模式设计联合索引" class="headerlink" title="第四步：按查询模式设计联合索引"></a>第四步：按查询模式设计联合索引</h2><p>索引不是越多越好。索引会提升查询，也会增加写入成本和存储成本。优化时应该根据高频查询模式设计联合索引。</p>
+<p>上面的订单查询可以考虑：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">INDEX</span> idx_customer_status_created</span><br><span class="line"><span class="keyword">ON</span> scm_order(customer_id, <span class="keyword">status</span>, created_at);</span><br></pre></td></tr></table></figure>
+<p>这样 MySQL 可以先按客户过滤，再按状态过滤，再按时间范围扫描。由于排序字段也在索引里，<code>ORDER BY created_at DESC LIMIT 20</code> 的成本会明显降低。</p>
+<p>联合索引设计要考虑最左前缀原则。等值条件通常放在前面，范围条件和排序字段放在后面。对于不同查询，不要为了每个页面都创建一个索引，而是合并相近查询，找最核心的访问路径。</p>
+<p>供应链系统里的常见索引组合包括：</p>
+<ul>
+<li>订单：<code>customer_id + status + created_at</code>。</li>
+<li>采购单：<code>supplier_id + status + created_at</code>。</li>
+<li>库存流水：<code>sku_id + warehouse_id + created_at</code>。</li>
+<li>出库单：<code>warehouse_id + status + planned_ship_time</code>。</li>
+<li>财务单据：<code>tenant_id + bill_type + bill_date</code>。</li>
+</ul>
+<h2 id="第五步：避免-SELECT"><a href="#第五步：避免-SELECT" class="headerlink" title="第五步：避免 SELECT *"></a>第五步：避免 SELECT *</h2><p>很多列表接口习惯写 <code>SELECT *</code>，这在数据量小时问题不明显，数据量大后会导致更多 IO、更多网络传输，也更容易触发回表。</p>
+<p>列表页应该只查询展示需要的字段。详情页再根据主键查询完整信息。</p>
+<p>例如订单列表只需要订单号、客户、状态、金额、创建时间，就不要把备注、扩展 JSON、收货地址、审批意见一起查出来。供应链系统里很多表有大字段，比如合同备注、物流轨迹、扩展属性，这些字段对列表查询非常不友好。</p>
+<p>如果查询字段都在索引里，还可能形成覆盖索引，减少回表。</p>
+<h2 id="第六步：优化分页方式"><a href="#第六步：优化分页方式" class="headerlink" title="第六步：优化分页方式"></a>第六步：优化分页方式</h2><p>深分页是 MySQL 性能问题的高发点。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">id</span>, order_no, created_at</span><br><span class="line"><span class="keyword">FROM</span> scm_order</span><br><span class="line"><span class="keyword">WHERE</span> <span class="keyword">status</span> = <span class="string">'FINISHED'</span></span><br><span class="line"><span class="keyword">ORDER</span> <span class="keyword">BY</span> created_at <span class="keyword">DESC</span></span><br><span class="line"><span class="keyword">LIMIT</span> <span class="number">100000</span>, <span class="number">20</span>;</span><br></pre></td></tr></table></figure>
+<p>这条 SQL 需要先跳过 100000 行，再返回 20 行。页码越深，成本越高。</p>
+<p>更好的方式是基于游标分页：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">id</span>, order_no, created_at</span><br><span class="line"><span class="keyword">FROM</span> scm_order</span><br><span class="line"><span class="keyword">WHERE</span> <span class="keyword">status</span> = <span class="string">'FINISHED'</span></span><br><span class="line">  <span class="keyword">AND</span> created_at &lt; <span class="string">'2024-08-24 14:00:00'</span></span><br><span class="line"><span class="keyword">ORDER</span> <span class="keyword">BY</span> created_at <span class="keyword">DESC</span></span><br><span class="line"><span class="keyword">LIMIT</span> <span class="number">20</span>;</span><br></pre></td></tr></table></figure>
+<p>页面保存上一页最后一条记录的创建时间和 id，下一页从这个位置继续查。对于订单流水、库存流水、操作日志这类按时间滚动查看的数据，游标分页更稳定。</p>
+<p>如果必须支持跳页，可以用延迟关联优化：先通过索引查出主键，再回表查详情。</p>
+<h2 id="第七步：减少大表-JOIN-和复杂统计"><a href="#第七步：减少大表-JOIN-和复杂统计" class="headerlink" title="第七步：减少大表 JOIN 和复杂统计"></a>第七步：减少大表 JOIN 和复杂统计</h2><p>供应链系统经常有多表关联：订单表、客户表、商品表、库存表、仓库表、结算表。开发时写一个大 JOIN 很方便，但数据量上来后很难优化。</p>
+<p>优化思路包括：</p>
+<ul>
+<li>把高频展示字段冗余到主表，例如客户名称、供应商名称、仓库名称。</li>
+<li>明细表和主表分开查询，避免列表页一次 JOIN 大量明细。</li>
+<li>报表类查询走宽表、汇总表或数仓，不要压在交易库上。</li>
+<li>对低频复杂查询做异步导出。</li>
+</ul>
+<p>例如订单列表需要展示客户名称，可以在订单表冗余 <code>customer_name_snapshot</code>。客户改名时不影响历史订单展示，也减少订单列表 JOIN 客户表。</p>
+<h2 id="第八步：控制事务范围和锁"><a href="#第八步：控制事务范围和锁" class="headerlink" title="第八步：控制事务范围和锁"></a>第八步：控制事务范围和锁</h2><p>SQL 慢不一定是扫描慢，也可能是锁等待。</p>
+<p>供应链系统里库存扣减、采购入库、出库确认都可能更新同一批库存行。如果事务里先调用外部接口，再更新库存，就会把锁持有时间拉长，导致并发请求排队。</p>
+<p>优化原则是：</p>
+<ul>
+<li>事务内只做必要的数据库操作。</li>
+<li>外部接口调用放在事务外。</li>
+<li>固定多表更新顺序，减少死锁。</li>
+<li>库存扣减使用条件更新，避免先查后改的并发漏洞。</li>
+<li>对热点库存考虑分仓、分批次、分桶。</li>
+</ul>
+<p>库存扣减可以写成：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span> scm_inventory</span><br><span class="line"><span class="keyword">SET</span> available_qty = available_qty - <span class="number">10</span>,</span><br><span class="line">    locked_qty = locked_qty + <span class="number">10</span></span><br><span class="line"><span class="keyword">WHERE</span> sku_id = <span class="number">123</span></span><br><span class="line">  <span class="keyword">AND</span> warehouse_id = <span class="number">8</span></span><br><span class="line">  <span class="keyword">AND</span> available_qty &gt;= <span class="number">10</span>;</span><br></pre></td></tr></table></figure>
+<p>然后根据影响行数判断是否锁定成功。这比先查询库存再更新更安全。</p>
+<h2 id="第九步：用业务模型减少查询压力"><a href="#第九步：用业务模型减少查询压力" class="headerlink" title="第九步：用业务模型减少查询压力"></a>第九步：用业务模型减少查询压力</h2><p>有些性能问题不能只靠 SQL 调优解决，而要调整业务模型。</p>
+<p>例如 ERP 首页要展示今天订单数、待发货数、库存预警数、采购待审数。如果每次打开首页都实时扫订单表、库存表、采购表，数据库压力会很大。</p>
+<p>更合理的方式是把这些指标做成统计表：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">scm_dashboard_metric</span><br><span class="line">- metric_date</span><br><span class="line">- tenant_id</span><br><span class="line">- wait_delivery_count</span><br><span class="line">- low_stock_sku_count</span><br><span class="line">- pending_purchase_count</span><br><span class="line">- updated_at</span><br></pre></td></tr></table></figure>
+<p>业务事件发生后异步更新统计表，首页直接读统计结果。这样牺牲几秒一致性，换来稳定的查询性能。</p>
+<h2 id="第十步：验证优化效果"><a href="#第十步：验证优化效果" class="headerlink" title="第十步：验证优化效果"></a>第十步：验证优化效果</h2><p>优化完成后，必须验证，而不是只看执行计划。</p>
+<p>验证内容包括：</p>
+<ul>
+<li>优化前后 SQL 耗时对比。</li>
+<li>扫描行数是否下降。</li>
+<li>是否仍然出现临时表和 filesort。</li>
+<li>高并发下连接池、CPU、IO 是否改善。</li>
+<li>写入性能是否被新增索引拖慢。</li>
+<li>结果是否和优化前一致。</li>
+</ul>
+<p>对于核心 SQL，建议把优化结论记录下来：原 SQL、问题原因、改造方案、索引变更、回滚方式、压测结果。这样后续团队维护时不会重复踩坑。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>MySQL 性能优化的步骤可以概括为：确认瓶颈、定位慢 SQL、分析执行计划、设计索引、改写 SQL、优化分页、减少大 JOIN、控制事务、调整业务模型、验证效果。</p>
+<p>在供应链系统里，性能优化不能只看数据库技巧，还要理解业务访问模式。订单列表、库存流水、采购审批、财务报表的查询目标不同，优化策略也不同。真正稳定的优化方案，是让 SQL、索引和业务模型匹配起来。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://guxingxianyue.github.io/2024/08/24/MySQL性能优化/" data-id="cmq8scy6p000ejsqhwj2xn9lc" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/">MySQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SQL优化/">SQL优化</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/供应链系统/">供应链系统</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/数据库/">数据库</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-Java分布式系统里面的CAP理论" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2024/05/12/Java分布式系统里面的CAP理论/" class="article-date">
+  <time datetime="2024-05-12T02:20:00.000Z" itemprop="datePublished">2024-05-12</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2024/05/12/Java分布式系统里面的CAP理论/">Java分布式系统里面的CAP理论</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>CAP 理论是理解分布式系统取舍的基础。很多人第一次听 CAP 时，会把它理解成一个技术名词：一致性、可用性、分区容错性三选二。这个说法没有错，但如果只停留在口号层面，很容易在真实系统设计里误用。</p>
+<p>更实用的理解是：当系统出现网络分区时，分布式系统必须在一致性和可用性之间做取舍。平时网络正常时，一个系统可以同时做到比较好的一致性和可用性；真正考验架构选择的，是网络异常、节点超时、跨机房通信失败、消息延迟这些情况。</p>
+<p><img src="/images/tech-flowcharts/cap-supply-chain-flow.svg" alt="CAP 在供应链系统中的取舍流程"></p>
+<h2 id="CAP-分别是什么意思"><a href="#CAP-分别是什么意思" class="headerlink" title="CAP 分别是什么意思"></a>CAP 分别是什么意思</h2><p>CAP 包含三个概念。</p>
+<p>Consistency，一致性，指所有节点在同一时刻看到的数据是一致的。用户从任意节点读取同一个业务对象，都应该读到最新写入后的结果。</p>
+<p>Availability，可用性，指每个非故障节点都能在合理时间内返回响应。注意这里强调的是返回响应，不代表一定返回最新数据。</p>
+<p>Partition Tolerance，分区容错性，指系统在网络分区发生时仍然能够继续运行。网络分区可以理解为节点之间无法通信，或者通信延迟大到系统认为对方已经不可用。</p>
+<p>在单机系统里，不需要讨论 P，因为没有跨节点通信。但 Java 分布式系统天然存在多个进程、多个节点、多个数据库副本、多个机房，P 几乎不可避免。只要系统是分布式的，就必须默认网络会出问题。</p>
+<h2 id="为什么不是简单的三选二"><a href="#为什么不是简单的三选二" class="headerlink" title="为什么不是简单的三选二"></a>为什么不是简单的三选二</h2><p>CAP 经常被简化成 C、A、P 三选二，但工程上更准确的说法是：在发生网络分区时，如果继续对外提供服务，就可能牺牲强一致性；如果坚持强一致性，就可能拒绝部分请求，从而牺牲可用性。</p>
+<p>也就是说，P 不是一个可以随便放弃的选项。对于真实分布式系统，网络分区一定要考虑。选择更多发生在 CP 和 AP 之间。</p>
+<p>CP 系统优先保证一致性。网络异常时，它宁可让部分请求失败，也不返回可能错误的数据。</p>
+<p>AP 系统优先保证可用性。网络异常时，它允许部分节点继续提供服务，但可能出现短时间数据不一致，后续通过补偿、同步、校验来恢复一致。</p>
+<h2 id="供应链业务里的库存扣减例子"><a href="#供应链业务里的库存扣减例子" class="headerlink" title="供应链业务里的库存扣减例子"></a>供应链业务里的库存扣减例子</h2><p>假设有一个供应链系统，核心业务链路是：客户下单、锁定库存、生成出库任务、仓库拣货、物流发货。</p>
+<p>其中库存是最容易体现 CAP 取舍的对象。系统有两个机房：上海机房和北京机房。为了提高访问速度，两个机房都部署了订单服务和库存服务，并且都有库存数据副本。</p>
+<p>现在有一个 SKU：<code>A1001</code>，可售库存只剩 1 件。上海客户和北京客户几乎同时下单。</p>
+<p>如果系统选择强一致性，库存扣减必须经过统一的主库、分布式锁或一致性协议确认。只有一个订单能成功锁定库存，另一个订单会失败或进入等待。这样能保证不会超卖，但如果上海和北京之间网络断开，北京机房可能无法确认最新库存，就要拒绝下单或提示系统繁忙。</p>
+<p>这就是 CP 取舍：宁可不可用，也不能卖出不存在的库存。</p>
+<p>如果系统选择高可用，上海机房和北京机房可以在网络分区时各自接单。两个机房都认为库存还有 1 件，于是两个订单都成功。等网络恢复后，系统发现库存被多扣了，需要做补偿：取消后下单的订单、通知客服、给用户补偿券，或者从其他仓库调拨。</p>
+<p>这就是 AP 取舍：先保证用户能下单，再通过业务补偿处理不一致。</p>
+<h2 id="哪些供应链场景更适合-CP"><a href="#哪些供应链场景更适合-CP" class="headerlink" title="哪些供应链场景更适合 CP"></a>哪些供应链场景更适合 CP</h2><p>不是所有业务都需要强一致性，但有些场景不应该轻易牺牲一致性。</p>
+<p>第一类是库存最后一件商品的锁定。对于稀缺商品、定制件、批次严格的物料，如果超卖会带来严重履约风险，库存锁定应该偏 CP。</p>
+<p>第二类是财务结算。供应商应付、客户应收、账期核销、发票金额，这些数据一旦错了，后续修正成本很高，甚至会影响审计。财务主账通常要选择强一致或准强一致。</p>
+<p>第三类是审批状态。采购订单从待审到已审、已驳回、已作废，状态流转必须清晰。不能一个节点显示已审批，另一个节点还允许继续修改明细。</p>
+<p>第四类是唯一性约束。例如采购单号、出库单号、批次号，不能因为网络分区在两个节点生成重复编号。</p>
+<p>这些场景的共同点是：错误数据比短暂不可用更可怕。系统可以提示稍后重试，但不能让错误状态进入主流程。</p>
+<h2 id="哪些供应链场景可以偏-AP"><a href="#哪些供应链场景可以偏-AP" class="headerlink" title="哪些供应链场景可以偏 AP"></a>哪些供应链场景可以偏 AP</h2><p>也有很多场景更适合优先保证可用性。</p>
+<p>第一类是商品基础信息展示。商品名称、图片、描述、类目、品牌等信息短时间不一致，通常不会造成严重后果。读多写少的数据可以通过缓存和异步同步提升可用性。</p>
+<p>第二类是报表统计。当天订单量、仓库作业量、供应商履约率这些指标允许分钟级延迟。报表更关心趋势和分析，不一定要求每一次刷新都读到最新事务数据。</p>
+<p>第三类是搜索索引。订单搜索、商品搜索、供应商搜索往往使用 Elasticsearch 等搜索引擎，索引延迟几秒或几十秒通常可以接受。</p>
+<p>第四类是消息通知。订单创建后发送短信、站内信、邮件，如果短时间失败，可以重试或补发，不应该阻塞主交易链路。</p>
+<p>这些场景的共同点是：短时间不一致可以被用户接受，系统可以通过最终一致性修复。</p>
+<h2 id="Java-系统里常见的-CAP-落地方式"><a href="#Java-系统里常见的-CAP-落地方式" class="headerlink" title="Java 系统里常见的 CAP 落地方式"></a>Java 系统里常见的 CAP 落地方式</h2><p>在 Java 分布式系统里，CAP 不是只体现在数据库选型上，也体现在服务设计、缓存策略、消息机制和降级策略里。</p>
+<p>对于偏 CP 的场景，可以使用数据库事务、唯一索引、乐观锁、悲观锁、分布式锁、Raft 协议组件、强一致主从复制等方式。比如库存锁定时用 <code>sku_id + warehouse_id</code> 作为库存行，通过版本号做乐观锁扣减，保证并发扣减不会突破库存。</p>
+<p>对于偏 AP 的场景，可以使用缓存、消息队列、异步任务、重试补偿、定时对账、事件溯源、最终一致性表等方式。比如订单创建后发送库存变更事件，报表系统异步消费事件生成统计结果。</p>
+<p>关键是不要把所有业务都设计成一种取舍。供应链系统里，库存、财务、审批偏一致性；报表、搜索、通知偏可用性；订单主流程则通常是分段取舍：核心状态强一致，周边动作最终一致。</p>
+<h2 id="一个完整的订单链路取舍"><a href="#一个完整的订单链路取舍" class="headerlink" title="一个完整的订单链路取舍"></a>一个完整的订单链路取舍</h2><p>可以把下单流程拆成几个步骤：</p>
 <ol>
-<li>业务代码构造消息，比如订单号、业务类型、变更时间。</li>
-<li>序列化，把对象转成字节。</li>
-<li>选择分区，如果指定 key，通常会根据 key hash 到固定 partition。</li>
-<li>放入本地缓冲区，按 batch 组织。</li>
-<li>Sender 线程把 batch 发给对应 Broker。</li>
-<li>Broker 追加日志并根据 ack 策略返回结果。</li>
+<li>创建订单草稿。</li>
+<li>校验客户、价格、合同。</li>
+<li>锁定库存。</li>
+<li>写入订单主表。</li>
+<li>发送订单创建事件。</li>
+<li>生成出库任务。</li>
+<li>通知客户下单成功。</li>
 </ol>
-<p>如果要增大生产吞吐量，常见方向有几个。</p>
-<p><code>batch.size</code> 可以调大，让更多消息合并成一个批次。批量越充分，网络请求次数越少。</p>
-<p><code>linger.ms</code> 可以适当增加，让生产者多等几毫秒凑批次。它会牺牲一点延迟，换更高吞吐。</p>
-<p><code>compression.type</code> 可以使用 <code>lz4</code>、<code>snappy</code> 或 <code>zstd</code>，减少网络传输和磁盘占用。消息体较大时效果明显。</p>
-<p>分区数要足够。一个 topic 如果只有一个 partition，再多消费者也无法在同一个 consumer group 内并行消费这个 topic。</p>
-<p>生产者可以设置 <code>acks=all</code>、开启幂等 <code>enable.idempotence=true</code>，并合理配置重试。这样可以在 Broker 短暂失败时自动恢复，同时避免重试造成重复写入。</p>
-<p>再看消费者。消费者是通过 poll 拉取消息，处理后提交 offset。这里最关键的是 offset 提交时机。</p>
-<p>如果先提交 offset 再处理业务，消费者宕机后这批消息可能永远不会再处理，容易丢消息。</p>
-<p>如果先处理业务再提交 offset，宕机后可能重复消费，但至少消息不会丢。大多数核心业务更接受“重复但可幂等”，而不是“直接丢”。</p>
-<p>所以在订单、库存这类场景里，我更倾向于手动提交 offset：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">poll 消息</span><br><span class="line">执行业务处理</span><br><span class="line">写入业务库或幂等表</span><br><span class="line">处理成功后 commit offset</span><br></pre></td></tr></table></figure>
-<p>为了防止重复消费，业务侧要做幂等。比如用消息唯一 ID 建一张消费记录表，或者让订单状态流转本身具备幂等判断：已经处理过的状态不再重复扣减库存。</p>
-<h2 id="踩坑提醒"><a href="#踩坑提醒" class="headerlink" title="踩坑提醒"></a>踩坑提醒</h2><p>第一个坑，是只调大分区数，不看消费者处理能力。分区数增加能提高并行度，但也会带来更多文件句柄、更多 leader 选举和更复杂的再均衡。分区不是越多越好。</p>
-<p>第二个坑，是为了吞吐把 <code>acks</code> 调成 0。这样生产者发出去就不管了，速度很快，但 Broker 是否收到并不确定。日志、埋点可以这么考虑，订单状态、库存变更就不应该这么随意。</p>
-<p>第三个坑，是自动提交 offset。自动提交很方便，但它提交的是消费进度，不是业务成功。只要业务处理和 offset 提交之间没有绑定，就要接受消息丢失或重复的风险。</p>
-<p>第四个坑，是忽略 rebalance。消费者数量变化、心跳超时、poll 时间过长，都可能触发再均衡。处理单条消息耗时很长时，要注意 <code>max.poll.interval.ms</code> 和批量大小，避免消费者被踢出 group。</p>
-<p>第五个坑，是把 Kafka 当数据库。Kafka 适合做日志流和消息流，不适合承担复杂查询。业务状态仍然要落到数据库、缓存或搜索系统中。</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Kafka 的生产者负责高效、可靠地把消息写入分区日志；消费者负责按分区拉取消息、处理业务并提交 offset。吞吐量靠批量、压缩、分区和顺序写；可靠性靠副本、ack、幂等、事务和手动提交。</p>
-<p>在真实项目里，我会按业务重要性分层：日志类消息可以优先吞吐，核心业务消息优先可靠；允许重复，但不能无声丢失。只要这条原则清楚，Kafka 参数就不会乱调。</p>
+<p>其中第 2、3、4 步属于主交易链路，应该更重视一致性。第 5、6、7 步可以更多使用消息和补偿，保证主链路响应速度和可用性。</p>
+<p>如果库存服务暂时不可用，系统可以拒绝创建正式订单，保留草稿并提示稍后重试。如果短信服务不可用，订单仍然可以创建成功，短信后续重试。这就是按业务重要性拆分 CAP 取舍。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>CAP 理论的价值不是让我们背诵一致性、可用性、分区容错性，而是提醒我们：分布式系统一定会遇到网络异常，异常发生时必须提前决定哪些数据不能错，哪些流程不能停。</p>
+<p>供应链系统的设计原则可以总结成一句话：核心交易数据宁可慢一点，也不要错；辅助查询和通知可以快一点，再通过最终一致性修正。</p>
+<p>真正成熟的 Java 分布式系统，不会简单宣称自己是 CP 或 AP，而是会在不同业务边界上做不同取舍，并且把补偿、对账、幂等和监控一起设计进去。</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2023/03/18/kafka组件里面生产者和消费者的原理/" data-id="cmq8scy6r000ljsqhmtpvuhot" class="article-share-link">Share</a>
+      <a data-url="https://guxingxianyue.github.io/2024/05/12/Java分布式系统里面的CAP理论/" data-id="cmq8scy6n000cjsqhnf3gh4st" class="article-share-link">Share</a>
       
       
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Kafka/">Kafka</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/分布式/">分布式</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/消息队列/">消息队列</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/系统设计/">系统设计</a></li></ul>
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CAP/">CAP</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/">Java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/分布式系统/">分布式系统</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/架构设计/">架构设计</a></li></ul>
 
     </footer>
   </div>
@@ -143,10 +300,10 @@
 
 
   
-    <article id="post-SQL里面各种锁的原理" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-springcloud里面常用的组件" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2022/09/17/SQL里面各种锁的原理/" class="article-date">
-  <time datetime="2022-09-17T03:25:00.000Z" itemprop="datePublished">2022-09-17</time>
+    <a href="/2024/02/18/springcloud里面常用的组件/" class="article-date">
+  <time datetime="2024-02-18T01:30:00.000Z" itemprop="datePublished">2024-02-18</time>
 </a>
     
   </div>
@@ -157,7 +314,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2022/09/17/SQL里面各种锁的原理/">SQL里面各种锁的原理</a>
+      <a class="article-title" href="/2024/02/18/springcloud里面常用的组件/">springcloud 里面常用的组件</a>
     </h1>
   
 
@@ -165,163 +322,99 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>SQL 里面的锁，表面上看是数据库为了防止并发冲突做的限制，实际本质是数据库在并发读写之间做秩序管理。只要系统里存在多个事务同时读写同一批数据，就一定会遇到锁。锁设计得好，系统可以同时保证数据正确和较高吞吐；锁用得不好，轻则接口变慢，重则死锁、阻塞、库存扣错、订单状态错乱。</p>
-<p>很多开发者第一次接触锁，是因为线上出现了 <code>Lock wait timeout exceeded</code> 或 <code>Deadlock found</code>。但真正理解锁，不能只背“共享锁、排他锁、行锁、表锁”这些名称，而要看清楚三个问题：锁保护的对象是什么、锁之间是否兼容、锁在事务什么时候加上和释放。</p>
-<p><img src="/images/tech-flowcharts/sql-locks-principle-flow.svg" alt="SQL 锁类型和事务执行流程"></p>
-<h2 id="为什么数据库需要锁"><a href="#为什么数据库需要锁" class="headerlink" title="为什么数据库需要锁"></a>为什么数据库需要锁</h2><p>数据库锁要解决的核心问题是并发一致性。</p>
-<p>假设供应链系统里有一条库存记录：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sku_id = 1001</span><br><span class="line">warehouse_id = 8</span><br><span class="line">available_qty = 10</span><br></pre></td></tr></table></figure>
-<p>现在两个订单同时提交，每个订单都要锁定 8 件库存。如果两个事务都先读到 <code>available_qty = 10</code>，然后都认为库存足够，再分别把库存更新为 2，就会出现超卖。数据库必须让这两个更新按某种顺序执行，或者让其中一个事务发现条件已经不满足。</p>
-<p>锁就是这个顺序的基础。它告诉数据库：某个事务正在读或写某个资源，其他事务能不能同时读、能不能同时写、要不要等待。</p>
-<h2 id="共享锁和排他锁"><a href="#共享锁和排他锁" class="headerlink" title="共享锁和排他锁"></a>共享锁和排他锁</h2><p>共享锁也叫 S 锁，英文是 Shared Lock。它表示当前事务要读取数据，并且希望读取期间数据不要被别人修改。</p>
-<p>排他锁也叫 X 锁，英文是 Exclusive Lock。它表示当前事务要修改数据，其他事务不能同时修改，也通常不能再加共享锁读取同一行。</p>
-<p>它们的兼容关系可以简单理解为：</p>
-<table>
-<thead>
-<tr>
-<th>已有锁</th>
-<th>新申请共享锁</th>
-<th>新申请排他锁</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>共享锁</td>
-<td>兼容</td>
-<td>不兼容</td>
-</tr>
-<tr>
-<td>排他锁</td>
-<td>不兼容</td>
-<td>不兼容</td>
-</tr>
-</tbody>
-</table>
-<p>共享锁之间兼容，是因为多个事务同时读同一行数据不会破坏数据。排他锁和任何锁都不兼容，是因为写操作必须独占资源。</p>
-<p>在 MySQL InnoDB 中，可以通过下面的方式显式加锁：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span> inventory</span><br><span class="line"><span class="keyword">WHERE</span> sku_id = <span class="number">1001</span></span><br><span class="line"><span class="keyword">LOCK</span> <span class="keyword">IN</span> <span class="keyword">SHARE</span> <span class="keyword">MODE</span>;</span><br></pre></td></tr></table></figure>
-<p>或者：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span> inventory</span><br><span class="line"><span class="keyword">WHERE</span> sku_id = <span class="number">1001</span></span><br><span class="line"><span class="keyword">FOR</span> <span class="keyword">UPDATE</span>;</span><br></pre></td></tr></table></figure>
-<p><code>LOCK IN SHARE MODE</code> 倾向于加共享锁，<code>FOR UPDATE</code> 会对命中的记录加排他锁。业务里更常见的是更新语句自动加排他锁：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span> inventory</span><br><span class="line"><span class="keyword">SET</span> available_qty = available_qty - <span class="number">8</span></span><br><span class="line"><span class="keyword">WHERE</span> sku_id = <span class="number">1001</span></span><br><span class="line">  <span class="keyword">AND</span> available_qty &gt;= <span class="number">8</span>;</span><br></pre></td></tr></table></figure>
-<p>这条 SQL 在更新命中的记录时，会自动对相关记录加排他锁。</p>
-<h2 id="表锁和行锁"><a href="#表锁和行锁" class="headerlink" title="表锁和行锁"></a>表锁和行锁</h2><p>表锁保护的是整张表。一个事务锁住表以后，其他事务对这张表的读写可能都会受到影响。表锁粒度大，管理简单，但并发能力弱。</p>
-<p>行锁保护的是某一行或某个索引范围。行锁粒度小，并发能力强，但实现复杂，也更容易出现死锁。</p>
-<p>举个例子，ERP 系统里有一张 <code>order</code> 表。如果系统对整张订单表加表锁，那么一个用户修改订单时，其他用户可能连其他订单也无法修改。这对高并发系统非常不友好。</p>
-<p>如果使用行锁，一个用户修改订单 <code>A001</code>，另一个用户修改订单 <code>A002</code>，两者互不影响。只有两个事务同时修改同一张订单时，才需要等待。</p>
-<p>InnoDB 支持行级锁，但有一个非常重要的前提：行锁通常是加在索引上的。如果查询条件没有命中索引，数据库可能扫描大量记录，锁范围也会扩大，甚至表现得像锁了很多行。</p>
-<p>例如：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span> order_info</span><br><span class="line"><span class="keyword">SET</span> <span class="keyword">status</span> = <span class="string">'CLOSED'</span></span><br><span class="line"><span class="keyword">WHERE</span> order_no = <span class="string">'SO20220917001'</span>;</span><br></pre></td></tr></table></figure>
-<p>如果 <code>order_no</code> 有唯一索引，InnoDB 可以精准锁住这一行。如果 <code>order_no</code> 没有索引，数据库需要扫描全表判断哪些行满足条件，锁冲突风险就会明显增加。</p>
-<h2 id="意向锁"><a href="#意向锁" class="headerlink" title="意向锁"></a>意向锁</h2><p>意向锁是很多人容易忽略的一类锁。它不是直接锁某一行业务数据，而是用来协调表锁和行锁。</p>
-<p>假设事务 A 已经对订单表中的某一行加了排他行锁。此时事务 B 想对整张订单表加表级排他锁。数据库必须知道表里是否已经有行锁，否则就要扫描整张表逐行检查，成本很高。</p>
-<p>意向锁就是一个提示：某个事务打算在这张表里的某些行上加锁。</p>
-<p>常见意向锁有：</p>
+        <p>Spring Cloud 不是一个单独的框架，而是一组围绕微服务落地的工程组件。它解决的不是某一个业务功能，而是微服务拆分之后必然出现的一组基础问题：服务在哪里、请求怎么进来、服务之间怎么调用、配置怎么管理、故障怎么隔离、链路怎么追踪。</p>
+<p>如果把一个供应链系统拆成订单服务、库存服务、采购服务、仓储服务、结算服务，每个服务都可以独立部署和扩容。拆分之后的好处是边界清晰、扩展灵活，但随之而来的问题是系统从一个进程变成了多个进程的协作。Spring Cloud 常用组件就是为了处理这些协作问题。</p>
+<p><img src="/images/tech-flowcharts/springcloud-components-flow.svg" alt="Spring Cloud 常用组件协作流程"></p>
+<h2 id="服务注册与发现：Eureka、Nacos、Consul"><a href="#服务注册与发现：Eureka、Nacos、Consul" class="headerlink" title="服务注册与发现：Eureka、Nacos、Consul"></a>服务注册与发现：Eureka、Nacos、Consul</h2><p>服务注册中心负责回答一个最基础的问题：服务在哪里。</p>
+<p>在单体系统里，方法调用发生在同一个进程内，不需要知道网络地址。拆成微服务之后，订单服务调用库存服务，需要知道库存服务当前有哪些实例、实例的 IP 和端口是什么、哪些实例健康、哪些实例已经下线。</p>
+<p>注册中心的工作方式通常是：</p>
+<ol>
+<li>服务启动时，把自己的服务名、地址、端口、健康状态注册到注册中心。</li>
+<li>服务运行期间，持续向注册中心发送心跳。</li>
+<li>调用方从注册中心拉取可用实例列表。</li>
+<li>注册中心根据心跳和健康检查剔除不可用实例。</li>
+</ol>
+<p>Eureka 是 Spring Cloud 早期常用的注册中心，强调 AP 思路，在短时间网络抖动时更倾向于保证服务发现可用。Nacos 同时支持服务发现和配置管理，在国内项目里使用较多。Consul 提供服务发现、健康检查和 KV 存储，也常用于基础设施统一管理。</p>
+<p>在供应链系统里，库存服务可能部署 6 个实例。订单服务不应该写死某一个库存服务地址，而是通过服务名 <code>inventory-service</code> 找到健康实例，再把请求分发过去。</p>
+<h2 id="配置中心：Spring-Cloud-Config、Nacos-Config"><a href="#配置中心：Spring-Cloud-Config、Nacos-Config" class="headerlink" title="配置中心：Spring Cloud Config、Nacos Config"></a>配置中心：Spring Cloud Config、Nacos Config</h2><p>配置中心负责回答另一个问题：配置怎么统一管理。</p>
+<p>微服务数量多了以后，如果每个服务都把数据库地址、开关配置、限流阈值、第三方接口地址写在本地配置文件里，修改一次配置就要重新打包和发布多个服务，风险很高。</p>
+<p>配置中心的工作原理是把配置从应用包里抽出来，集中存储和下发。服务启动时从配置中心读取配置，运行期间也可以通过刷新机制拿到最新配置。</p>
+<p>典型配置包括：</p>
 <ul>
-<li>IS，意向共享锁，表示事务准备在某些行上加共享锁。</li>
-<li>IX，意向排他锁，表示事务准备在某些行上加排他锁。</li>
+<li>数据库连接信息。</li>
+<li>Redis、MQ、搜索服务地址。</li>
+<li>业务开关，例如是否启用新的库存锁定策略。</li>
+<li>限流、超时、熔断阈值。</li>
+<li>不同环境的差异配置。</li>
 </ul>
-<p>当事务要给某行加共享锁时，会先在表上加 IS 锁。当事务要给某行加排他锁时，会先在表上加 IX 锁。</p>
-<p>意向锁的价值是让表级锁判断冲突更快。它像是在表门口挂了一个牌子：里面已经有人在某些行上操作，整表加锁前先看看是否兼容。</p>
-<h2 id="记录锁"><a href="#记录锁" class="headerlink" title="记录锁"></a>记录锁</h2><p>记录锁是 InnoDB 最容易理解的行锁，它锁住的是索引上的一条记录。</p>
-<p>例如库存表有唯一索引：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">UNIQUE KEY uk_sku_warehouse (sku_id, warehouse_id)</span><br></pre></td></tr></table></figure>
-<p>执行：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> *</span><br><span class="line"><span class="keyword">FROM</span> inventory</span><br><span class="line"><span class="keyword">WHERE</span> sku_id = <span class="number">1001</span></span><br><span class="line">  <span class="keyword">AND</span> warehouse_id = <span class="number">8</span></span><br><span class="line"><span class="keyword">FOR</span> <span class="keyword">UPDATE</span>;</span><br></pre></td></tr></table></figure>
-<p>如果命中一条记录，InnoDB 会对这条索引记录加排他记录锁。其他事务再想更新同一条库存记录，就必须等待当前事务提交或回滚。</p>
-<p>记录锁适合解决“同一行业务数据不能被并发修改”的问题，例如订单状态流转、库存数量变更、账户余额扣减。</p>
-<h2 id="间隙锁"><a href="#间隙锁" class="headerlink" title="间隙锁"></a>间隙锁</h2><p>间隙锁锁住的不是已经存在的记录，而是索引记录之间的空隙。它的目的主要是防止幻读。</p>
-<p>假设库存预警表里已有预警阈值：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">threshold: 10, 20, 50</span><br></pre></td></tr></table></figure>
-<p>一个事务执行范围查询：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> *</span><br><span class="line"><span class="keyword">FROM</span> stock_warning_rule</span><br><span class="line"><span class="keyword">WHERE</span> threshold <span class="keyword">BETWEEN</span> <span class="number">10</span> <span class="keyword">AND</span> <span class="number">50</span></span><br><span class="line"><span class="keyword">FOR</span> <span class="keyword">UPDATE</span>;</span><br></pre></td></tr></table></figure>
-<p>如果数据库只锁住 10、20、50 这几条已经存在的记录，另一个事务仍然可以插入 <code>threshold = 30</code> 的新记录。第一个事务再次查询时，就会发现多了一条之前不存在的数据，这就是幻读。</p>
-<p>间隙锁会锁住索引范围中的空隙，让其他事务不能在这个范围里插入新记录。它牺牲了一部分并发能力，换取范围查询的一致性。</p>
-<p>需要注意，间隙锁依赖索引范围。如果 SQL 没有合适索引，锁范围可能比预期大很多。</p>
-<h2 id="Next-Key-Lock"><a href="#Next-Key-Lock" class="headerlink" title="Next-Key Lock"></a>Next-Key Lock</h2><p>Next-Key Lock 可以理解为记录锁加间隙锁。它既锁住已经存在的索引记录，也锁住记录前后的范围。</p>
-<p>在 InnoDB 的可重复读隔离级别下，范围查询加锁时经常会使用 Next-Key Lock 来防止幻读。</p>
-<p>例如：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> *</span><br><span class="line"><span class="keyword">FROM</span> purchase_order</span><br><span class="line"><span class="keyword">WHERE</span> supplier_id = <span class="number">88</span></span><br><span class="line">  <span class="keyword">AND</span> amount <span class="keyword">BETWEEN</span> <span class="number">10000</span> <span class="keyword">AND</span> <span class="number">50000</span></span><br><span class="line"><span class="keyword">FOR</span> <span class="keyword">UPDATE</span>;</span><br></pre></td></tr></table></figure>
-<p>如果 <code>supplier_id, amount</code> 上有联合索引，InnoDB 会锁定这个索引范围内的记录和间隙。其他事务不能随便插入符合这个范围的新采购单。</p>
-<p>Next-Key Lock 的好处是一致性强，坏处是容易让范围更新、范围查询变得更容易互相阻塞。因此业务 SQL 要尽量让范围条件走合适索引，避免锁住过大的范围。</p>
-<h2 id="乐观锁"><a href="#乐观锁" class="headerlink" title="乐观锁"></a>乐观锁</h2><p>乐观锁不是数据库引擎内部固定的一种锁，而是一种并发控制思想。它假设冲突不常发生，所以不提前阻塞别人，而是在提交更新时检查数据有没有被别人改过。</p>
-<p>最常见实现是版本号字段：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span> inventory</span><br><span class="line"><span class="keyword">SET</span> available_qty = available_qty - <span class="number">8</span>,</span><br><span class="line">    <span class="keyword">version</span> = <span class="keyword">version</span> + <span class="number">1</span></span><br><span class="line"><span class="keyword">WHERE</span> sku_id = <span class="number">1001</span></span><br><span class="line">  <span class="keyword">AND</span> warehouse_id = <span class="number">8</span></span><br><span class="line">  <span class="keyword">AND</span> available_qty &gt;= <span class="number">8</span></span><br><span class="line">  <span class="keyword">AND</span> <span class="keyword">version</span> = <span class="number">12</span>;</span><br></pre></td></tr></table></figure>
-<p>如果更新影响行数为 1，说明版本没变，扣减成功。如果影响行数为 0，说明数据已经被别人改过，当前事务需要重试或提示失败。</p>
-<p>乐观锁适合读多写少、冲突概率低的场景。例如商品资料编辑、客户档案修改、配置项更新。它的优点是不会长时间阻塞，缺点是冲突发生时需要业务处理重试和失败提示。</p>
-<h2 id="悲观锁"><a href="#悲观锁" class="headerlink" title="悲观锁"></a>悲观锁</h2><p>悲观锁也是一种思想。它假设冲突很可能发生，所以在操作前先把数据锁住。</p>
-<p>典型写法是：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> *</span><br><span class="line"><span class="keyword">FROM</span> inventory</span><br><span class="line"><span class="keyword">WHERE</span> sku_id = <span class="number">1001</span></span><br><span class="line">  <span class="keyword">AND</span> warehouse_id = <span class="number">8</span></span><br><span class="line"><span class="keyword">FOR</span> <span class="keyword">UPDATE</span>;</span><br></pre></td></tr></table></figure>
-<p>当前事务拿到锁以后，再计算库存、写入订单、更新库存。其他事务想修改同一条库存记录，就必须等待。</p>
-<p>悲观锁适合写冲突高、数据不能错的场景，例如库存扣减、余额扣减、核心单据状态流转。缺点也明显：事务时间越长，等待越多，吞吐越低。</p>
-<p>所以悲观锁一定要控制事务范围。不要在持有锁期间调用外部接口、发送 MQ、请求第三方系统，也不要在事务里做复杂计算。</p>
-<h2 id="元数据锁"><a href="#元数据锁" class="headerlink" title="元数据锁"></a>元数据锁</h2><p>元数据锁也叫 MDL，Metadata Lock。它保护的是表结构，而不是具体业务行。</p>
-<p>当一个事务正在查询或修改某张表时，数据库会持有这张表的元数据锁，防止另一个会话同时修改表结构。否则就可能出现一个事务读表读到一半，另一个事务把字段删了。</p>
-<p>常见问题是：一个长事务一直不提交，导致 <code>ALTER TABLE</code> 等 DDL 操作被阻塞；DDL 又反过来阻塞后续普通查询，最后形成一串等待。</p>
-<p>例如：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">BEGIN</span>;</span><br><span class="line"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span> order_info <span class="keyword">WHERE</span> <span class="keyword">id</span> = <span class="number">1</span>;</span><br><span class="line"><span class="comment">-- 长时间不提交</span></span><br></pre></td></tr></table></figure>
-<p>此时另一个会话执行：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">ALTER</span> <span class="keyword">TABLE</span> order_info <span class="keyword">ADD</span> <span class="keyword">COLUMN</span> source_type <span class="built_in">varchar</span>(<span class="number">32</span>);</span><br></pre></td></tr></table></figure>
-<p>DDL 可能会等待前面的事务释放 MDL。后续新的查询又可能排在 DDL 后面，导致业务接口突然大面积变慢。</p>
-<p>线上做 DDL 时，必须关注长事务和元数据锁等待。大表变更最好使用在线 DDL 工具或低峰期执行。</p>
-<h2 id="自增锁"><a href="#自增锁" class="headerlink" title="自增锁"></a>自增锁</h2><p>自增锁用于处理自增主键分配。多个事务同时插入数据时，数据库要保证自增 ID 不重复。</p>
-<p>InnoDB 对自增锁做过很多优化，不同配置下表现不同。简单理解，普通插入通常可以较快分配自增值；批量插入、<code>INSERT ... SELECT</code> 这类语句可能持有自增相关锁更久。</p>
-<p>业务上不建议依赖自增 ID 的连续性。事务回滚、插入失败、并发插入都可能造成 ID 跳号。自增 ID 的目标是唯一和大体递增，不是绝对连续。</p>
-<h2 id="死锁是怎么发生的"><a href="#死锁是怎么发生的" class="headerlink" title="死锁是怎么发生的"></a>死锁是怎么发生的</h2><p>死锁是两个或多个事务互相等待对方释放锁。</p>
-<p>例如供应链系统里同时更新订单和库存：</p>
-<p>事务 A：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">1. 锁订单 O1001</span><br><span class="line">2. 再锁库存 S1001</span><br></pre></td></tr></table></figure>
-<p>事务 B：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">1. 锁库存 S1001</span><br><span class="line">2. 再锁订单 O1001</span><br></pre></td></tr></table></figure>
-<p>事务 A 拿到了订单锁，等待库存锁。事务 B 拿到了库存锁，等待订单锁。双方都不释放，就形成死锁。</p>
-<p>数据库通常会检测死锁，并主动回滚其中一个事务。业务系统看到的就是死锁异常。</p>
-<p>减少死锁的关键方法是：</p>
+<p>例如采购系统要临时关闭自动补货功能，只需要在配置中心修改 <code>autoReplenish.enabled=false</code>，再让采购服务刷新配置，不需要重新发布服务。</p>
+<h2 id="网关：Spring-Cloud-Gateway、Zuul"><a href="#网关：Spring-Cloud-Gateway、Zuul" class="headerlink" title="网关：Spring Cloud Gateway、Zuul"></a>网关：Spring Cloud Gateway、Zuul</h2><p>网关是微服务系统的统一入口。</p>
+<p>如果没有网关，前端要直接知道订单服务、库存服务、报表服务、用户服务的地址，这会让前端和后端部署结构强耦合。网关把外部请求统一接进来，再根据路由规则转发到内部服务。</p>
+<p>网关常见职责包括：</p>
 <ul>
-<li>多表更新保持固定顺序。</li>
-<li>批量更新时按主键排序。</li>
-<li>事务尽量短。</li>
-<li>查询条件命中索引，减少锁范围。</li>
-<li>避免在事务中做远程调用。</li>
-<li>捕获死锁异常，对幂等操作做有限重试。</li>
+<li>路由转发：把 <code>/api/orders/**</code> 转发到订单服务。</li>
+<li>鉴权认证：统一校验 token、登录态、权限。</li>
+<li>限流降级：对高频接口做访问控制。</li>
+<li>日志审计：记录请求来源、耗时、状态码。</li>
+<li>协议适配：对外暴露统一 HTTP 接口，对内转发到多个服务。</li>
 </ul>
-<h2 id="怎么排查锁等待"><a href="#怎么排查锁等待" class="headerlink" title="怎么排查锁等待"></a>怎么排查锁等待</h2><p>线上出现锁等待时，不要只盯着慢 SQL。要看谁在等锁，谁持有锁，事务已经执行了多久。</p>
-<p>MySQL 里常用的排查方向包括：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> <span class="keyword">PROCESSLIST</span>;</span><br></pre></td></tr></table></figure>
-<p>查看当前连接状态。</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> <span class="keyword">ENGINE</span> <span class="keyword">INNODB</span> <span class="keyword">STATUS</span>;</span><br></pre></td></tr></table></figure>
-<p>查看最近死锁、锁等待、事务信息。</p>
-<p>在 MySQL 8 中，也可以通过 <code>performance_schema</code> 和 <code>sys</code> 库查看锁等待关系。</p>
-<p>排查时重点看：</p>
+<p>Spring Cloud Gateway 基于响应式模型，性能和扩展性比早期 Zuul 1 更适合新项目。一个常见做法是把所有供应链后台请求都先打到网关，网关校验用户身份后，再转到订单、库存、采购等服务。</p>
+<h2 id="服务调用：OpenFeign、RestTemplate、WebClient"><a href="#服务调用：OpenFeign、RestTemplate、WebClient" class="headerlink" title="服务调用：OpenFeign、RestTemplate、WebClient"></a>服务调用：OpenFeign、RestTemplate、WebClient</h2><p>服务调用组件负责让一个服务更方便地调用另一个服务。</p>
+<p>OpenFeign 的价值是把远程 HTTP 调用写得像本地接口调用。开发者只需要定义接口、声明服务名和路径，Feign 会根据服务发现结果、负载均衡策略和 HTTP 编码规则发起请求。</p>
+<p>例如订单服务创建订单时，需要调用库存服务锁定库存：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@FeignClient</span>(name = <span class="string">"inventory-service"</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">InventoryClient</span> </span>&#123;</span><br><span class="line">    <span class="meta">@PostMapping</span>(<span class="string">"/inventory/lock"</span>)</span><br><span class="line">    <span class="function">LockResult <span class="title">lock</span><span class="params">(@RequestBody LockInventoryCommand command)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>它背后的核心流程是：根据服务名找到实例列表，选择一个实例，组装 HTTP 请求，发送请求，解析响应，异常时交给重试、熔断或降级逻辑处理。</p>
+<p>RestTemplate 是较早的同步 HTTP 客户端，WebClient 支持响应式调用。对于大多数普通业务服务，OpenFeign 的声明式调用更容易维护。</p>
+<h2 id="负载均衡：Ribbon、Spring-Cloud-LoadBalancer"><a href="#负载均衡：Ribbon、Spring-Cloud-LoadBalancer" class="headerlink" title="负载均衡：Ribbon、Spring Cloud LoadBalancer"></a>负载均衡：Ribbon、Spring Cloud LoadBalancer</h2><p>负载均衡负责决定请求发给哪一个服务实例。</p>
+<p>当库存服务有多个实例时，订单服务不能永远调用同一个实例，否则这个实例会成为热点。客户端负载均衡会从注册中心拿到实例列表，然后根据策略选择一个实例。</p>
+<p>常见策略包括：</p>
 <ul>
-<li>哪个事务持有锁。</li>
-<li>持锁事务执行了多久。</li>
-<li>等待的 SQL 是什么。</li>
-<li>是否存在未提交长事务。</li>
-<li>SQL 是否走了索引。</li>
-<li>是否有 DDL 和普通业务 SQL 互相阻塞。</li>
+<li>轮询：请求依次分配给不同实例。</li>
+<li>随机：随机选择一个实例。</li>
+<li>权重：性能更强或权重更高的实例承担更多请求。</li>
+<li>最少连接或响应时间优先：尽量选择当前压力较小的实例。</li>
 </ul>
-<h2 id="实际开发里的用锁建议"><a href="#实际开发里的用锁建议" class="headerlink" title="实际开发里的用锁建议"></a>实际开发里的用锁建议</h2><p>第一，能用一条原子 SQL 解决的，不要拆成先查再改。</p>
-<p>库存扣减推荐写成：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span> inventory</span><br><span class="line"><span class="keyword">SET</span> available_qty = available_qty - <span class="number">8</span>,</span><br><span class="line">    locked_qty = locked_qty + <span class="number">8</span></span><br><span class="line"><span class="keyword">WHERE</span> sku_id = <span class="number">1001</span></span><br><span class="line">  <span class="keyword">AND</span> warehouse_id = <span class="number">8</span></span><br><span class="line">  <span class="keyword">AND</span> available_qty &gt;= <span class="number">8</span>;</span><br></pre></td></tr></table></figure>
-<p>然后根据影响行数判断是否成功。</p>
-<p>第二，加锁查询必须有合适索引。</p>
-<p><code>FOR UPDATE</code> 不是魔法。如果条件没有索引，锁范围会扩大，性能和并发都会出问题。</p>
-<p>第三，事务里只放必须保持一致的操作。</p>
-<p>订单创建、库存锁定、订单主表写入可以放在事务里；短信通知、日志上报、消息推送应该放到事务提交后。</p>
-<p>第四，统一更新顺序。</p>
-<p>如果业务规定先锁订单，再锁库存，再锁财务单据，那么所有代码都要遵守这个顺序。不要一个接口先锁订单，另一个接口先锁库存。</p>
-<p>第五，锁冲突高的热点数据要做业务拆分。</p>
-<p>例如某个爆款 SKU 的库存行成为热点，可以按仓库、批次、库存桶拆分，降低单行竞争。</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>SQL 里的锁不是孤立概念，而是一套并发控制体系。共享锁和排他锁决定读写是否兼容，表锁和行锁决定锁粒度，意向锁协调表级和行级锁，记录锁保护已有记录，间隙锁和 Next-Key Lock 保护索引范围，乐观锁和悲观锁是两种业务并发控制思想，元数据锁保护表结构，自增锁保证自增值分配。</p>
-<p>真正写业务代码时，最重要的不是记住所有锁名，而是控制三个东西：索引、事务范围、更新顺序。索引决定锁得准不准，事务范围决定锁持有多久，更新顺序决定是否容易死锁。把这三点做好，绝大多数 SQL 锁问题都会少很多。</p>
+<p>Ribbon 是早期常见组件，新版本 Spring Cloud 更推荐 Spring Cloud LoadBalancer。它们的核心目标一致：让调用方不用关心某个服务具体部署了多少实例。</p>
+<h2 id="熔断与限流：Hystrix、Resilience4j、Sentinel"><a href="#熔断与限流：Hystrix、Resilience4j、Sentinel" class="headerlink" title="熔断与限流：Hystrix、Resilience4j、Sentinel"></a>熔断与限流：Hystrix、Resilience4j、Sentinel</h2><p>熔断和限流负责防止局部故障拖垮整个系统。</p>
+<p>在分布式系统里，一个服务慢并不可怕，可怕的是调用它的服务都被拖慢。比如库存服务数据库异常，订单服务大量线程卡在库存锁定接口上，随后订单服务也无法响应，最终网关、前端和其他服务都受到影响。</p>
+<p>熔断器的工作原理类似电路保护：</p>
+<ol>
+<li>统计一段时间内的失败率、慢调用比例、异常数量。</li>
+<li>当指标超过阈值时，打开熔断器。</li>
+<li>熔断打开后，请求不再真实调用下游，而是直接失败或走降级结果。</li>
+<li>过一段时间进入半开状态，放少量请求试探下游是否恢复。</li>
+<li>如果试探成功，关闭熔断；如果失败，继续熔断。</li>
+</ol>
+<p>Hystrix 曾经是 Spring Cloud 里最常见的熔断组件，但已经进入维护状态。新项目更常见的是 Resilience4j 或 Sentinel。Sentinel 在限流、热点参数控制、系统自适应保护方面更完整。</p>
+<h2 id="消息总线和消息驱动：Spring-Cloud-Bus、Stream"><a href="#消息总线和消息驱动：Spring-Cloud-Bus、Stream" class="headerlink" title="消息总线和消息驱动：Spring Cloud Bus、Stream"></a>消息总线和消息驱动：Spring Cloud Bus、Stream</h2><p>微服务之间不一定都要同步调用。对于不要求立即返回结果的业务，异步消息更适合。</p>
+<p>Spring Cloud Stream 把消息中间件抽象成绑定模型，让业务代码不直接依赖 Kafka、RabbitMQ 等具体实现。Spring Cloud Bus 常用于配置刷新、服务间事件通知。</p>
+<p>供应链系统里的典型场景是订单创建成功后发送 <code>OrderCreatedEvent</code>。库存服务订阅事件后扣减可售库存，仓储服务订阅事件后准备出库任务，积分服务订阅事件后累计客户积分。这样订单服务不需要同步等待所有下游服务完成。</p>
+<p>异步消息的关键不是简单地把请求丢到 MQ，而是要处理幂等、重复消费、消息顺序、失败重试和最终一致性。</p>
+<h2 id="链路追踪：Sleuth、Zipkin、Micrometer-Tracing"><a href="#链路追踪：Sleuth、Zipkin、Micrometer-Tracing" class="headerlink" title="链路追踪：Sleuth、Zipkin、Micrometer Tracing"></a>链路追踪：Sleuth、Zipkin、Micrometer Tracing</h2><p>链路追踪负责回答线上排查时最痛苦的问题：一次请求到底经过了哪些服务，慢在哪里。</p>
+<p>当用户点击创建采购单，可能经过网关、采购服务、供应商服务、库存服务、审批服务、消息队列。没有链路追踪时，只能分别查多个服务日志，很难把它们串起来。</p>
+<p>链路追踪的工作方式是给每次请求生成 traceId，并在服务之间透传。每个服务再生成自己的 spanId，记录当前服务处理了什么、耗时多少、是否异常。Zipkin 或其他追踪平台负责收集和展示完整调用链。</p>
+<p>Spring Cloud Sleuth 曾经负责自动注入 traceId 和 spanId。新版本生态里，Micrometer Tracing 是更主流的观测方案。</p>
+<h2 id="监控与治理：Actuator、Admin、Prometheus"><a href="#监控与治理：Actuator、Admin、Prometheus" class="headerlink" title="监控与治理：Actuator、Admin、Prometheus"></a>监控与治理：Actuator、Admin、Prometheus</h2><p>服务能跑起来只是第一步，更重要的是知道它跑得怎么样。</p>
+<p>Spring Boot Actuator 提供健康检查、指标、线程、环境变量等端点。Spring Boot Admin 可以集中查看服务状态。Prometheus 和 Grafana 常用于采集指标和展示监控面板。</p>
+<p>供应链系统至少应该关注：</p>
+<ul>
+<li>接口成功率和 P95、P99 响应时间。</li>
+<li>数据库连接池使用率。</li>
+<li>MQ 积压数量。</li>
+<li>服务实例健康状态。</li>
+<li>线程池队列长度。</li>
+<li>熔断、限流、降级次数。</li>
+</ul>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Spring Cloud 常用组件本质上是在处理微服务运行期治理问题。注册中心解决服务在哪里，配置中心解决配置如何统一，网关解决入口治理，Feign 解决服务调用，负载均衡解决实例选择，熔断限流解决故障隔离，消息组件解决异步解耦，链路追踪和监控解决可观测性。</p>
+<p>真正落地时不要为了组件而组件。系统规模小的时候，可以先从注册中心、网关、配置中心、Feign、基础监控开始。等调用链复杂、流量变大、故障影响扩大时，再逐步引入熔断限流、链路追踪、消息驱动和更细的治理能力。</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2022/09/17/SQL里面各种锁的原理/" data-id="cmq8scy6r000jjsqhmuckrd9v" class="article-share-link">Share</a>
+      <a data-url="https://guxingxianyue.github.io/2024/02/18/springcloud里面常用的组件/" data-id="cmq8scy6w000yjsqhcwentzul" class="article-share-link">Share</a>
       
       
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/">MySQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SQL/">SQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/事务/">事务</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/数据库/">数据库</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/锁/">锁</a></li></ul>
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/">Java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Spring-Cloud/">Spring Cloud</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/分布式系统/">分布式系统</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/微服务/">微服务</a></li></ul>
 
     </footer>
   </div>
@@ -330,10 +423,10 @@
 
 
   
-    <article id="post-redis入门" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-redis锁有哪些" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2017/05/10/redis入门/" class="article-date">
-  <time datetime="2017-05-10T11:06:07.000Z" itemprop="datePublished">2017-05-10</time>
+    <a href="/2023/11/23/redis锁有哪些/" class="article-date">
+  <time datetime="2023-11-23T03:10:00.000Z" itemprop="datePublished">2023-11-23</time>
 </a>
     
   </div>
@@ -344,7 +437,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/05/10/redis入门/">redis入门</a>
+      <a class="article-title" href="/2023/11/23/redis锁有哪些/">redis锁有哪些</a>
     </h1>
   
 
@@ -352,563 +445,61 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="安装gcc"><a href="#安装gcc" class="headerlink" title="安装gcc"></a>安装gcc</h2><ul>
-<li><p>Redis在linux上的安装首先必须先安装gcc，这个是用来编译redis的源文件的。首先需要先切换的到root用户：</p>
-<pre><code>[chenjx@localhost ~]$ su
-Password: 
-[root@localhost chenjx]#
-</code></pre></li>
-<li><p>然后开始安装gcc:</p>
-<pre><code>//这个命令是在线安装的，所以在这之前你的PC必须能够上网
-[root@localhost /]# yum install gcc-c++
-</code></pre></li>
-</ul>
-<h2 id="解压redis的源文件"><a href="#解压redis的源文件" class="headerlink" title="解压redis的源文件"></a>解压redis的源文件</h2><pre><code>[root@localhost chenjx]# cd Desktop/
-[root@localhost Desktop]# ls
-redis-4.0.1.tar.gz
-[root@localhost Desktop]# tar zxvf redis-4.0.1.tar.gz 
-redis-4.0.1/
-redis-4.0.1/.gitignore
-redis-4.0.1/00-RELEASENOTES
-redis-4.0.1/BUGS
-redis-4.0.1/CONTRIBUTING
-</code></pre><h2 id="进入redis的解压目录"><a href="#进入redis的解压目录" class="headerlink" title="进入redis的解压目录"></a>进入redis的解压目录</h2><pre><code>[root@localhost Desktop]# ls
-redis-4.0.1  redis-4.0.1.tar.gz
-[root@localhost Desktop]# cd redis-4.0.1/
-</code></pre><h2 id="使用make命令编译"><a href="#使用make命令编译" class="headerlink" title="使用make命令编译"></a>使用make命令编译</h2><pre><code>[root@localhost redis-4.0.1]# make
-
-//出现以下信息即是编译成功
-CC notify.o
-CC setproctitle.o
-CC blocked.o
-CC hyperloglog.o
-CC latency.o
-CC sparkline.o
-CC redis-check-rdb.o
-CC redis-check-aof.o
-CC geo.o
-CC lazyfree.o
-CC module.o
-CC evict.o
-CC expire.o
-CC geohash.o
-CC geohash_helper.o
-CC childinfo.o
-CC defrag.o
-CC siphash.o
-CC rax.o
-LINK redis-server
-INSTALL redis-sentinel
-CC redis-cli.o
-LINK redis-cli
-CC redis-benchmark.o
-LINK redis-benchmark
-INSTALL redis-check-rdb
-INSTALL redis-check-aof
-</code></pre><p>进入解压的src目录下</p>
-<pre><code>[root@localhost redis-4.0.1]# cd src
-</code></pre><p>运行make test测试是否可以安装,检查的一大堆，都是绿色的ok。这就可以了</p>
-<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><pre><code>[root@localhost src]# make PREFIX=/usr/local/redis install 
-</code></pre><p>安装成功后，去/usr/local/redis/bin目录看，会发现如下文件：</p>
-<p><img src="https://i.imgur.com/esFeEOX.png" alt=""></p>
-<p>都是一个个工具命令</p>
-<p>然后把解压的redis路径下的redis.conf文件拷贝到安装路径/usr/local/redis下面</p>
-<pre><code>[root@localhost redis-4.0.1]# cp redis.conf /usr/local/redis
-[root@localhost redis-4.0.1]# cd /usr/local/redis
-[root@localhost redis]# ls
-bin  redis.conf
-</code></pre><p>到这里redis已经安装成功了。</p>
-<h2 id="启动redis"><a href="#启动redis" class="headerlink" title="启动redis"></a>启动redis</h2><h4 id="第一种方法：进入安装路径下的bin"><a href="#第一种方法：进入安装路径下的bin" class="headerlink" title="第一种方法：进入安装路径下的bin"></a>第一种方法：进入安装路径下的bin</h4><pre><code>[root@localhost redis]# cd bin
-[root@localhost bin]# ./redis-server
-</code></pre><p>但是这属于前端启动，启动redis之后，我们的控制台就不能进行任何操作了。只能ctrl+c停止启动。</p>
-<h4 id="第二种方法：后端启动"><a href="#第二种方法：后端启动" class="headerlink" title="第二种方法：后端启动"></a>第二种方法：后端启动</h4><ul>
-<li><p>首先编辑redis.conf</p>
-<p>  [root@localhost redis]# vim redis.conf</p>
-</li>
-<li><p>找到daemonize no将其改为yes</p>
-</li>
-<li><p>再次启动 </p>
-<pre><code>[root@localhost redis]# ls
-bin  redis.conf
-[root@localhost redis]# ./bin/redis-server ./redis.conf
-//这里加载配置文件
-
-80167:C 30 Jul 16:01:58.145 # oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
-80167:C 30 Jul 16:01:58.145 # Redis version=4.0.1, bits=64, commit=00000000, modified=0, pid=80167, just started
-80167:C 30 Jul 16:01:58.145 # Configuration loaded
-</code></pre></li>
-</ul>
-<p>这样redis就启动了</p>
-<pre><code>可以通过
-ps -ef|grep redis
-来查看是否启动
-</code></pre><p>关闭redis</p>
-<pre><code>[root@localhost redis]# ./bin/redis-cli shutdown
-</code></pre><h2 id="简单的使用"><a href="#简单的使用" class="headerlink" title="简单的使用"></a>简单的使用</h2><pre><code>//首先链接客户端
-[root@localhost redis]# ./bin/redis-cli
-//检查网络是否可以
-127.0.0.1:6379&gt; ping
-PONG
-//设置一个键值对
-127.0.0.1:6379&gt; set name chenjx
-OK
-//获取刚刚设置的键值对
-127.0.0.1:6379&gt; get name
-&quot;chenjx&quot;
-//查看所有的键
-127.0.0.1:6379&gt; keys *
-1) &quot;name&quot;
-//删除name这个键
-127.0.0.1:6379&gt; del name
-(integer) 1
-127.0.0.1:6379&gt; keys *
-(empty list or set)
-127.0.0.1:6379&gt;
-</code></pre><h2 id="设置登录密码"><a href="#设置登录密码" class="headerlink" title="设置登录密码"></a>设置登录密码</h2><p>redis在生产环境中通常都会设置密码以保证一定的安全性</p>
-<h4 id="首先修改redis-conf"><a href="#首先修改redis-conf" class="headerlink" title="首先修改redis.conf"></a>首先修改redis.conf</h4><p>打开redis.conf文件，搜索requirepass关键字</p>
-<pre><code>################################## SECURITY ###################################
-
-# Require clients to issue AUTH &lt;PASSWORD&gt; before processing any other
-# commands.  This might be useful in environments in which you do not trust
-# others with access to the host running redis-server.
-#
-# This should stay commented out for backward compatibility and because most
-# people do not need auth (e.g. they run their own servers).
-#
-# Warning: since Redis is pretty fast an outside user can try up to
-# 150k passwords per second against a good box. This means that you should
-# use a very strong password otherwise it will be very easy to break.
-#
-# requirepass foobared
-</code></pre><p>关注标记的那一行，#requirepass foobared。设置密码的方法就是去掉注释的#，把foobared替换成自己的密码即可，例如将密码设置为123456： </p>
-<pre><code>################################## SECURITY ###################################
-
-# Require clients to issue AUTH &lt;PASSWORD&gt; before processing any other
-# commands.  This might be useful in environments in which you do not trust
-# others with access to the host running redis-server.
-#
-# This should stay commented out for backward compatibility and because most
-# people do not need auth (e.g. they run their own servers).
-#
-# Warning: since Redis is pretty fast an outside user can try up to
-# 150k passwords per second against a good box. This means that you should
-# use a very strong password otherwise it will be very easy to break.
-#
-requirepass 123456
-</code></pre><p>修改完成后重启redis，再次通过redis客户端redis-cli登录并操作可以发现会报一个身份认证错误：</p>
-<p><img src="https://i.imgur.com/sR9PtPZ.png" alt=""></p>
-<p>这就说明我们已经成功的设置了密码，所以通过客户端连接的话必须加上密码参数才能正常连接： </p>
-<p><img src="https://i.imgur.com/EpEgFQr.png" alt=""></p>
-<p>如上图所示，加了-a参数之后即可正常连接并操作redis。</p>
-<h2 id="jedis连接设置密码"><a href="#jedis连接设置密码" class="headerlink" title="jedis连接设置密码"></a>jedis连接设置密码</h2><p>当我们用Java客户端连接redis时会遇到同样的问题，下面看一段简单的jedis连接redis的测试代码：</p>
-<pre><code>@Test
-public void testTwo() {
-    Jedis jedis = new Jedis(&quot;192.168.145.10&quot;);
-    System.out.println(&quot;Connection to server sucessfully&quot;);
-    // 查看服务是否运行
-    System.out.println(&quot;Server is running: &quot; + jedis.ping());
-}
-</code></pre><p>运行junit后我们发现报异常了：</p>
-<pre><code>redis.clients.jedis.exceptions.JedisDataException: NOAUTH Authentication required.
-at redis.clients.jedis.Protocol.processError(Protocol.java:117)
-at redis.clients.jedis.Protocol.process(Protocol.java:142)
-at redis.clients.jedis.Protocol.read(Protocol.java:196)
-</code></pre><p>由于我们设置了密码但在这里又没有指定密码，所以报了和刚才相同的错误,Jedis的父类BinaryJedis提供了这样一样方法：</p>
-<pre><code>public String auth(final String password) {
-    checkIsInMulti();
-    client.auth(password);
-    return client.getStatusCodeReply();
-}
-</code></pre><p>所以在创建了Jedis的实例后再加上一行jedis.auth(“123456”); 即可</p>
-<pre><code>@Test
-public void testTwo() {
-    Jedis jedis = new Jedis(&quot;192.168.145.10&quot;);
-    jedis.auth(&quot;123456&quot;);
-    System.out.println(&quot;Connection to server sucessfully&quot;);
-    // 查看服务是否运行
-    System.out.println(&quot;Server is running: &quot; + jedis.ping());
-}
-</code></pre><p><img src="https://i.imgur.com/MpHJLvu.png" alt=""></p>
-<h2 id="spring-data-redis设置密码"><a href="#spring-data-redis设置密码" class="headerlink" title="spring-data-redis设置密码"></a>spring-data-redis设置密码</h2><p>通常情况下在实际的java项目中我们会选择Spring提供的spring-data-redis来操作redis，spring的封装可以给我们提供很多便捷之处。那么spring-data-redis又是如何设置密码的呢？首先定义一个redis.properties配置文件，定义一组redis属性供spring加载使用，其中就包含密码（redis.password）：</p>
-<pre><code># Redis settings  
-redis.host=192.168.145.10 
-redis.port=6379  
-redis.password=123456
-redis.database=2
-redis.timeout=100000  
-redis.maxTotal=300  
-redis.maxIdle=100
-redis.minIdle=10
-redis.maxWaitMillis=1000  
-redis.testOnBorrow=true  
-</code></pre><p>然后在由Spring封装的JedisConnectionFactory中来设置密码属性即可，下面是完整redis配置：</p>
-<pre><code>&lt;!-- redis配置 --&gt;
-&lt;bean id=&quot;poolConfig&quot; class=&quot;redis.clients.jedis.JedisPoolConfig&quot;&gt;
-    &lt;property name=&quot;maxIdle&quot; value=&quot;${redis.maxIdle}&quot; /&gt;
-    &lt;property name=&quot;maxWaitMillis&quot; value=&quot;${redis.maxWaitMillis}&quot; /&gt;
-    &lt;property name=&quot;testOnBorrow&quot; value=&quot;${redis.testOnBorrow}&quot; /&gt;
-&lt;/bean&gt;
-
-&lt;bean id=&quot;connectionFactory&quot; class=&quot;org.springframework.data.redis.connection.jedis.JedisConnectionFactory&quot;
-    p:host-name=&quot;${redis.host}&quot; p:port=&quot;${redis.port}&quot; 
-    p:password=&quot;${redis.password}&quot; p:pool-config-ref=&quot;poolConfig&quot; /&gt;
-
-&lt;bean id=&quot;redisTemplate&quot; class=&quot;org.springframework.data.redis.core.StringRedisTemplate&quot;&gt;
-    &lt;property name=&quot;connectionFactory&quot; ref=&quot;connectionFactory&quot; /&gt;
-&lt;/bean&gt;
-</code></pre><h2 id="Redis常用数据类型介绍、使用场景及其操作命令"><a href="#Redis常用数据类型介绍、使用场景及其操作命令" class="headerlink" title="Redis常用数据类型介绍、使用场景及其操作命令"></a>Redis常用数据类型介绍、使用场景及其操作命令</h2><p>Redis目前支持5种数据类型，分别是：</p>
-<ul>
-<li>String（字符串）</li>
-<li>List（列表）</li>
-<li>Hash（字典）</li>
-<li>Set（集合）</li>
-<li>Sorted Set（有序集合）</li>
-</ul>
-<p>下面就分别介绍这五种数据类型及其相应的操作命令。</p>
-<h3 id="String（字符串）"><a href="#String（字符串）" class="headerlink" title="String（字符串）"></a>String（字符串）</h3><p>String是简单的 key-value 键值对，value 不仅可以是 String，也可以是数字。String在redis内部存储默认就是一个字符串，被redisObject所引用，当遇到incr,decr等操作时会转成数值型进行计算，此时redisObject的encoding字段为int。</p>
-<p>String在redis内部存储默认就是一个字符串，被redisObject所引用，当遇到incr,decr等操作时会转成数值型进行计算，此时redisObject的encoding字段为int。</p>
-<ul>
-<li>应用场景</li>
-</ul>
-<p>String是最常用的一种数据类型，普通的key/value存储都可以归为此类，这里就不所做解释了。</p>
-<ul>
-<li><p>相关命令</p>
-<pre><code>SET key value                   设置key=value
-GET key                         或者键key对应的值
-GETRANGE key start end          得到字符串的子字符串存放在一个键
-GETSET key value                设置键的字符串值，并返回旧值
-GETBIT key offset               返回存储在键位值的字符串值的偏移
-MGET key1 [key2..]              得到所有的给定键的值
-SETBIT key offset value         设置或清除该位在存储在键的字符串值偏移
-SETEX key seconds value         键到期时设置值
-SETNX key value                 设置键的值，只有当该键不存在
-SETRANGE key offset value       覆盖字符串的一部分从指定键的偏移
-STRLEN key                      得到存储在键的值的长度
-MSET key value [key value...]   设置多个键和多个值
-MSETNX key value [key value...] 设置多个键多个值，只有在当没有按键的存在时
-PSETEX key milliseconds value   设置键的毫秒值和到期时间
-INCR key                        增加键的整数值一次
-INCRBY key increment            由给定的数量递增键的整数值
-INCRBYFLOAT key increment       由给定的数量递增键的浮点值
-DECR key                        递减键一次的整数值
-DECRBY key decrement            由给定数目递减键的整数值
-APPEND key value                追加值到一个键
-</code></pre></li>
-<li><p>其中用于操作管理键的命令有：</p>
-<pre><code>DEL key                         如果存在删除键
-DUMP key                        返回存储在指定键的值的序列化版本
-EXISTS key                      此命令检查该键是否存在
-EXPIRE key seconds              指定键的过期时间
-EXPIREAT key timestamp          指定的键过期时间。在这里，时间是在Unix时间戳格式
-PEXPIRE key milliseconds        设置键以毫秒为单位到期
-PEXPIREAT key milliseconds-timestamp        设置键在Unix时间戳指定为毫秒到期
-KEYS pattern                    查找与指定模式匹配的所有键
-MOVE key db                     移动键到另一个数据库
-PERSIST key                     移除过期的键
-PTTL key                        以毫秒为单位获取剩余时间的到期键。
-TTL key                         获取键到期的剩余时间。
-RANDOMKEY                       从Redis返回随机键
-RENAME key newkey               更改键的名称
-RENAMENX key newkey             重命名键，如果新的键不存在
-TYPE key                        返回存储在键的数据类型的值。
-</code></pre></li>
-<li><p>实例：</p>
-<pre><code>redis 127.0.0.1:6379&gt; set baidu http://www.baidu
-OK
-redis 127.0.0.1:6379&gt; append baidu .com
-(integer) 20
-redis 127.0.0.1:6379&gt; get baidu
-&quot;http://www.baidu.com&quot;
-redis 127.0.0.1:6379&gt; set visitors 0
-OK
-redis 127.0.0.1:6379&gt; incr visitors
-(integer) 1
-redis 127.0.0.1:6379&gt; incr visitors
-(integer) 2
-redis 127.0.0.1:6379&gt; get visitors
-&quot;2&quot;
-redis 127.0.0.1:6379&gt; incrby visitors 100
-(integer) 102
-redis 127.0.0.1:6379&gt; get visitors
-&quot;102&quot;
-redis 127.0.0.1:6379&gt; type baidu
-string
-redis 127.0.0.1:6379&gt; type visitors
-string
-redis 127.0.0.1:6379&gt; ttl baidu
-(integer) -1
-redis 127.0.0.1:6379&gt; rename baidu baidu-site
-OK
-redis 127.0.0.1:6379&gt; get baidu
-(nil)
-redis 127.0.0.1:6379&gt; get baidu-site
-&quot;http://www.baidu.com&quot;
-</code></pre></li>
-</ul>
-<h4 id="List（列表）"><a href="#List（列表）" class="headerlink" title="List（列表）"></a>List（列表）</h4><p>Redis list的实现为一个双向链表，即可以支持反向查找和遍历，更方便操作，不过带来了部分额外的内存开销，Redis内部的很多实现，包括发送缓冲队列等也都是用的这个数据结构。可以从头部或尾部向Redis列表添加元素。列表的最大长度为2^32 - 1，也即每个列表支持超过40亿个元素。</p>
-<ul>
-<li>应用场景</li>
-</ul>
-<p>Redis list的应用场景非常多，也是Redis最重要的数据结构之一，比如twitter的关注列表、粉丝列表等都可以用Redis的list结构来实现，再比如有的应用使用Redis的list类型实现一个简单的轻量级消息队列，生产者push，消费者pop</p>
-<ul>
-<li><p>相关命令</p>
-<pre><code>BLPOP
-BLPOP key1 [key2 ] timeout 取出并获取列表中的第一个元素，或阻塞，直到有可用
-BRPOP
-BRPOP key1 [key2 ] timeout 取出并获取列表中的最后一个元素，或阻塞，直到有可用
-BRPOPLPUSH
-BRPOPLPUSH source destination timeout 从列表中弹出一个值，它推到另一个列表并返回它;或阻塞，直到有可用
-LINDEX
-LINDEX key index 从一个列表其索引获取对应的元素
-LINSERT
-LINSERT key BEFORE|AFTER pivot value 在列表中的其他元素之后或之前插入一个元素
-LLEN
-LLEN key 获取列表的长度
-LPOP
-LPOP key 获取并取出列表中的第一个元素
-LPUSH
-LPUSH key value1 [value2] 在前面加上一个或多个值的列表
-LPUSHX
-LPUSHX key value 在前面加上一个值列表，仅当列表中存在
-LRANGE
-LRANGE key start stop 从一个列表获取各种元素
-LREM
-LREM key count value 从列表中删除元素
-LSET
-LSET key index value 在列表中的索引设置一个元素的值
-LTRIM
-LTRIM key start stop 修剪列表到指定的范围内
-RPOP
-RPOP key 取出并获取列表中的最后一个元素
-RPOPLPUSH
-RPOPLPUSH source destination 删除最后一个元素的列表，将其附加到另一个列表并返回它
-RPUSH
-RPUSH key value1 [value2] 添加一个或多个值到列表头部
-RPUSHX
-RPUSHX key value 添加一个值列表，仅当列表中存在
-</code></pre></li>
-<li><p>使用示例</p>
-<pre><code>redis 127.0.0.1:6379&gt; lpush list1 redis
-(integer) 1
-redis 127.0.0.1:6379&gt; lpush list1 hello
-(integer) 2
-redis 127.0.0.1:6379&gt; rpush list1 world
-(integer) 3
-redis 127.0.0.1:6379&gt; llen list1
-(integer) 3
-redis 127.0.0.1:6379&gt; lrange list1 0 3
-1) &quot;hello&quot;
-2) &quot;redis&quot;
-3) &quot;world&quot;
-redis 127.0.0.1:6379&gt; lpop list1
-&quot;hello&quot;
-redis 127.0.0.1:6379&gt; rpop list1
-&quot;world&quot;
-redis 127.0.0.1:6379&gt; lrange list1 0 3
-1) &quot;redis&quot;
-</code></pre></li>
-</ul>
-<h4 id="Hash（字典，哈希表）"><a href="#Hash（字典，哈希表）" class="headerlink" title="Hash（字典，哈希表）"></a>Hash（字典，哈希表）</h4><p>类似C#中的dict类型或者C++中的hash_map类型</p>
-<p>Redis Hash对应Value内部实际就是一个HashMap，实际这里会有2种不同实现，这个Hash的成员比较少时Redis为了节省内存会采用类似一维数组的方式来紧凑存储，而不会采用真正的HashMap结构，对应的value redisObject的encoding为zipmap,当成员数量增大时会自动转成真正的HashMap</p>
-<ul>
-<li>应用场景</li>
-</ul>
-<p>假设有多个用户及对应的用户信息，可以用来存储以用户ID为key，将用户信息序列化为比如json格式做为value进行保存。</p>
-<ul>
-<li><p>相关命令</p>
-<pre><code>HDEL
-HDEL key field[field...] 删除对象的一个或几个属性域，不存在的属性将被忽略
-HEXISTS
-HEXISTS key field 查看对象是否存在该属性域
-HGET
-HGET key field 获取对象中该field属性域的值
-HGETALL
-HGETALL key 获取对象的所有属性域和值
-HINCRBY
-HINCRBY key field value 将该对象中指定域的值增加给定的value，原子自增操作，只能是integer的属性值可以使用
-HINCRBYFLOAT
-HINCRBYFLOAT key field increment 将该对象中指定域的值增加给定的浮点数
-HKEYS
-HKEYS key 获取对象的所有属性字段
-HVALS
-HVALS key 获取对象的所有属性值
-HLEN
-HLEN key 获取对象的所有属性字段的总数
-HMGET
-HMGET key field[field...] 获取对象的一个或多个指定字段的值
-HSET
-HSET key field value 设置对象指定字段的值
-HMSET
-HMSET key field value [field value ...] 同时设置对象中一个或多个字段的值
-HSETNX
-HSETNX key field value 只在对象不存在指定的字段时才设置字段的值
-HSTRLEN
-HSTRLEN key field 返回对象指定field的value的字符串长度，如果该对象或者field不存在，返回0.
-HSCAN
-HSCAN key cursor [MATCH pattern] [COUNT count] 类似SCAN命令
-</code></pre></li>
-<li><p>使用示例</p>
-<pre><code>127.0.0.1:6379&gt; hset person name jack
-(integer) 1
-127.0.0.1:6379&gt; hset person age 20
-(integer) 1
-127.0.0.1:6379&gt; hset person sex famale
-(integer) 1
-127.0.0.1:6379&gt; hgetall person
-1) &quot;name&quot;
-2) &quot;jack&quot;
-3) &quot;age&quot;
-4) &quot;20&quot;
-5) &quot;sex&quot;
-6) &quot;famale&quot;
-127.0.0.1:6379&gt; hkeys person
-1) &quot;name&quot;
-2) &quot;age&quot;
-3) &quot;sex&quot;
-127.0.0.1:6379&gt; hvals person
-1) &quot;jack&quot;
-2) &quot;20&quot;
-3) &quot;famale&quot;
-</code></pre></li>
-</ul>
-<h4 id="Set（集合）"><a href="#Set（集合）" class="headerlink" title="Set（集合）"></a>Set（集合）</h4><p>可以理解为一堆值不重复的列表，类似数学领域中的集合概念，且Redis也提供了针对集合的求交集、并集、差集等操作。</p>
-<p>set 的内部实现是一个 value永远为null的HashMap，实际就是通过计算hash的方式来快速排重的，这也是set能提供判断一个成员是否在集合内的原因。</p>
-<ul>
-<li>应用场景</li>
-</ul>
-<p>Redis set对外提供的功能与list类似是一个列表的功能，特殊之处在于set是可以自动排重的，当你需要存储一个列表数据，又不希望出现重复数据时，set是一个很好的选择，并且set提供了判断某个成员是否在一个set集合内的重要接口，这个也是list所不能提供的。</p>
-<ul>
-<li><p>相关命令</p>
-<pre><code>SADD
-SADD key member [member ...] 添加一个或者多个元素到集合(set)里
-SACRD
-SCARD key 获取集合里面的元素数量
-SDIFF
-SDIFF key [key ...] 获得队列不存在的元素
-SDIFFSTORE
-SDIFFSTORE destination key [key ...] 获得队列不存在的元素，并存储在一个关键的结果集
-SINTER
-SINTER key [key ...] 获得两个集合的交集
-SINTERSTORE
-SINTERSTORE destination key [key ...] 获得两个集合的交集，并存储在一个集合中
-SISMEMBER
-SISMEMBER key member 确定一个给定的值是一个集合的成员
-SMEMBERS
-SMEMBERS key 获取集合里面的所有key
-SMOVE
-SMOVE source destination member 移动集合里面的一个key到另一个集合
-SPOP
-SPOP key [count] 获取并删除一个集合里面的元素
-SRANDMEMBER
-SRANDMEMBER key [count] 从集合里面随机获取一个元素
-SREM
-SREM key member [member ...] 从集合里删除一个或多个元素，不存在的元素会被忽略
-SUNION
-SUNION key [key ...] 添加多个set元素
-SUNIONSTORE
-SUNIONSTORE destination key [key ...] 合并set元素，并将结果存入新的set里面
-SSCAN
-SSCAN key cursor [MATCH pattern] [COUNT count] 迭代set里面的元素
-</code></pre></li>
-<li><p>使用示例</p>
-<pre><code>redis&gt; SADD myset &quot;Hello&quot;
-(integer) 1
-redis&gt; SADD myset &quot;World&quot;
-(integer) 1
-redis&gt; SMEMBERS myset
-1) &quot;World&quot;
-2) &quot;Hello&quot;
-redis&gt; SADD myset &quot;one&quot;
-(integer) 1
-redis&gt; SISMEMBER myset &quot;one&quot;
-(integer) 1
-redis&gt; SISMEMBER myset &quot;two&quot;
-(integer) 0
-</code></pre></li>
-</ul>
-<h4 id="Sorted-Set（有序集合）"><a href="#Sorted-Set（有序集合）" class="headerlink" title="Sorted Set（有序集合）"></a>Sorted Set（有序集合）</h4><p>Redis有序集合类似Redis集合，不同的是增加了一个功能，即集合是有序的。一个有序集合的每个成员带有分数，用于进行排序。</p>
-<p>Redis有序集合添加、删除和测试的时间复杂度均为O(1)(固定时间，无论里面包含的元素集合的数量)。列表的最大长度为2^32- 1元素(4294967295，超过40亿每个元素的集合)。</p>
-<p>Redis sorted set的内部使用HashMap和跳跃表(SkipList)来保证数据的存储和有序，HashMap里放的是成员到score的映射，而跳跃表里存放的是所有的成员，排序依据是HashMap里存的score,使用跳跃表的结构可以获得比较高的查找效率，并且在实现上比较简单。</p>
-<ul>
-<li>使用场景</li>
-</ul>
-<p>Redis sorted set的使用场景与set类似，区别是set不是自动有序的，而sorted set可以通过用户额外提供一个优先级(score)的参数来为成员排序，并且是插入有序的，即自动排序。当你需要一个有序的并且不重复的集合列表，那么可以选择sorted set数据结构.</p>
-<p>比如用户的积分排行榜需求就可以通过有序集合实现。还有上面介绍的使用List实现轻量级的消息队列，其实也可以通过Sorted Set实现有优先级或按权重的队列。</p>
-<ul>
-<li><p>相关命令</p>
-<pre><code>ZADD
-ZADD key score1 member1 [score2 member2] 添加一个或多个成员到有序集合，或者如果它已经存在更新其分数
-ZCARD
-ZCARD key 得到的有序集合成员的数量
-ZCOUNT
-ZCOUNT key min max 计算一个有序集合成员与给定值范围内的分数
-ZINCRBY
-ZINCRBY key increment member 在有序集合增加成员的分数
-ZINTERSTORE
-ZINTERSTORE destination numkeys key [key ...] 多重交叉排序集合，并存储生成一个新的键有序集合。
-ZLEXCOUNT
-ZLEXCOUNT key min max 计算一个给定的字典范围之间的有序集合成员的数量
-ZRANGE
-ZRANGE key start stop [WITHSCORES] 由索引返回一个成员范围的有序集合（从低到高）
-ZRANGEBYLEX
-ZRANGEBYLEX key min max [LIMIT offset count]返回一个成员范围的有序集合（由字典范围）
-ZRANGEBYSCORE
-ZRANGEBYSCORE key min max [WITHSCORES] [LIMIT] 返回有序集key中，所有 score 值介于 min 和 max 之间(包括等于 min 或 max )的成员，有序集成员按 score 值递增(从小到大)次序排列
-ZRANK
-ZRANK key member 确定成员的索引中有序集合
-ZREM
-ZREM key member [member ...] 从有序集合中删除一个或多个成员，不存在的成员将被忽略
-ZREMRANGEBYLEX
-ZREMRANGEBYLEX key min max 删除所有成员在给定的字典范围之间的有序集合
-ZREMRANGEBYRANK
-ZREMRANGEBYRANK key start stop 在给定的索引之内删除所有成员的有序集合
-ZREMRANGEBYSCORE
-ZREMRANGEBYSCORE key min max 在给定的分数之内删除所有成员的有序集合
-ZREVRANGE
-ZREVRANGE key start stop [WITHSCORES] 返回一个成员范围的有序集合，通过索引，以分数排序，从高分到低分
-ZREVRANGEBYSCORE
-ZREVRANGEBYSCORE key max min [WITHSCORES] 返回一个成员范围的有序集合，以socre排序从高到低
-ZREVRANK
-ZREVRANK key member 确定一个有序集合成员的索引，以分数排序，从高分到低分
-ZSCORE
-ZSCORE key member 获取给定成员相关联的分数在一个有序集合
-ZUNIONSTORE
-ZUNIONSTORE destination numkeys key [key ...] 添加多个集排序，所得排序集合存储在一个新的键
-ZSCAN
-ZSCAN key cursor [MATCH pattern] [COUNT count] 增量迭代排序元素集和相关的分数
-</code></pre></li>
-<li><p>使用示例</p>
-<pre><code>redis 127.0.0.1:6379&gt; zadd dbs 100 redis
-(integer) 1
-redis 127.0.0.1:6379&gt; zadd dbs 98 memcached
-(integer) 1
-redis 127.0.0.1:6379&gt; zadd dbs 99 mongodb
-(integer) 1
-redis 127.0.0.1:6379&gt; zadd dbs 99 leveldb
-(integer) 1
-redis 127.0.0.1:6379&gt; zcard dbs
-(integer) 4
-redis 127.0.0.1:6379&gt; zcount dbs 10 99
-(integer) 3
-redis 127.0.0.1:6379&gt; zrank dbs leveldb
-(integer) 1
-redis 127.0.0.1:6379&gt; zrank dbs other
-(nil)
-redis 127.0.0.1:6379&gt; zrangebyscore dbs 98 100
-1) &quot;memcached&quot;
-2) &quot;leveldb&quot;
-3) &quot;mongodb&quot;
-4) &quot;redis&quot;
-</code></pre></li>
-</ul>
+        <h2 id="开场个人观察"><a href="#开场个人观察" class="headerlink" title="开场个人观察"></a>开场个人观察</h2><p>Redis 锁是很多 Java 项目都会遇到的话题。比如供应链系统里，多个服务同时扣减库存；ERP 里同一张单据不能被重复审核；定时任务在多台机器上部署，但同一批数据只能被一个节点处理。这些场景都需要某种“互斥”。</p>
+<p>但 Redis 锁也是容易写错的地方。很多人第一版会写成 <code>setnx lock 1</code>，看起来能用，线上一遇到超时、宕机、重试、主从切换，就会暴露问题。分布式锁不是“抢到 key 就完事”，它要考虑 owner、过期时间、释放原子性、业务幂等和异常恢复。</p>
+<p>这篇笔记按常见 Redis 锁类型梳理：简单 <code>SETNX</code> 锁、带过期时间的锁、带唯一标识和 Lua 释放的锁、可重入锁、Redisson 看门狗锁、RedLock 思路。重点还是落到项目里怎么避免锁丢失和死锁。</p>
+<p><img src="/images/tech-flowcharts/redis-lock-flow.svg" alt="Redis分布式锁安全流程"></p>
+<h2 id="核心观点"><a href="#核心观点" class="headerlink" title="核心观点"></a>核心观点</h2><p>一个相对安全的 Redis 锁，至少要满足四个条件。</p>
+<p>第一，加锁要原子。不能先 <code>SETNX</code> 再单独 <code>EXPIRE</code>，因为中间如果进程宕机，锁可能永不过期。</p>
+<p>第二，锁要有唯一 owner。释放锁时必须确认锁是自己加的，不能误删别人的锁。</p>
+<p>第三，释放要原子。检查 owner 和删除 key 要放在 Lua 脚本里执行，避免检查后锁过期、别人重新加锁、自己又误删。</p>
+<p>第四，业务要幂等。分布式环境里很难只靠锁保证绝对一次执行，业务本身也要能处理重复请求。</p>
+<h2 id="实践方法"><a href="#实践方法" class="headerlink" title="实践方法"></a>实践方法</h2><p>最朴素的锁是 <code>SETNX</code>：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SETNX order:lock:1001 1</span><br></pre></td></tr></table></figure>
+<p>它的优点是简单，缺点也明显：如果没有过期时间，持锁进程挂了就可能死锁。</p>
+<p>稍微好一点的写法是原子设置锁和值和过期时间：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SET order:lock:1001 requestId NX PX 30000</span><br></pre></td></tr></table></figure>
+<p>这里 <code>NX</code> 表示 key 不存在才设置，<code>PX 30000</code> 表示 30 秒过期，<code>requestId</code> 表示锁的持有者。这个写法解决了加锁和设置过期时间的原子性问题。</p>
+<p>释放锁时不要直接：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">DEL order:lock:1001</span><br></pre></td></tr></table></figure>
+<p>因为你的业务可能执行超过 30 秒，锁已经过期，另一个线程重新拿到锁。如果你这时直接删除，就会删掉别人的锁。</p>
+<p>更安全的释放方式是 Lua：</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> redis.call(<span class="string">"GET"</span>, KEYS[<span class="number">1</span>]) == ARGV[<span class="number">1</span>] <span class="keyword">then</span></span><br><span class="line">  <span class="keyword">return</span> redis.call(<span class="string">"DEL"</span>, KEYS[<span class="number">1</span>])</span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
+<p>这段脚本把“判断 owner”和“删除 key”放到 Redis 单线程执行里，避免中间被打断。</p>
+<p>如果业务执行时间不确定，可以使用带看门狗机制的锁。Redisson 的思路是：加锁成功后，如果业务线程还活着，就定期延长锁过期时间；业务结束后主动释放。这样可以避免业务正常运行但锁提前过期。</p>
+<p>不过看门狗也不是万能的。如果任务本身可能跑几分钟甚至几十分钟，我更倾向于拆小任务，或者使用任务状态表控制流程，而不是让一个 Redis 锁长时间占着。</p>
+<p>可重入锁适合一个线程在同一调用链里重复进入同一把锁的场景。它一般会记录线程标识和重入次数。优点是符合 Java <code>ReentrantLock</code> 的使用习惯，缺点是实现复杂，依赖客户端框架管理。</p>
+<p>RedLock 是一种尝试在多个 Redis 节点上获取多数锁的算法。它的目标是减少单点 Redis 故障对锁安全性的影响。但它实现和时钟假设更复杂，业务上是否需要要谨慎评估。多数普通后台系统，用单 Redis 主节点加合理业务幂等，或者直接用数据库唯一约束/状态机，反而更容易解释和维护。</p>
+<h2 id="业务例子"><a href="#业务例子" class="headerlink" title="业务例子"></a>业务例子</h2><p>以供应链库存预占为例。用户下单后，系统要对 SKU 做库存预占，不能让两个请求同时把同一批库存扣成负数。</p>
+<p>可以按 SKU 加锁：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">stock:lock:sku1001</span><br></pre></td></tr></table></figure>
+<p>流程是：</p>
+<ol>
+<li>请求生成唯一 <code>requestId</code>。</li>
+<li>使用 <code>SET key requestId NX PX 30000</code> 加锁。</li>
+<li>查询库存可用量。</li>
+<li>写入库存流水和订单预占记录。</li>
+<li>更新库存。</li>
+<li>提交数据库事务。</li>
+<li>用 Lua 判断 owner 后释放锁。</li>
+</ol>
+<p>这里还要做一层幂等：订单号和 SKU 的预占记录要有唯一约束。如果请求重试，即使再次进入，也不会重复预占。</p>
+<p>再比如 ERP 单据审核，同一张采购单不能同时被两个人审核。可以用 <code>po:audit:lock:{poNo}</code> 做锁，但最终仍然要在数据库里校验单据状态：只有 <code>待审核</code> 才能流转到 <code>已审核</code>。Redis 锁减少并发冲突，数据库状态机保证最终正确。</p>
+<h2 id="踩坑提醒"><a href="#踩坑提醒" class="headerlink" title="踩坑提醒"></a>踩坑提醒</h2><p>第一个坑，是没有过期时间。没有 TTL 的锁，遇到进程宕机就可能永远释放不了。</p>
+<p>第二个坑，是锁过期时间太短。业务还没执行完，锁先没了，其他线程进来就会并发执行。过期时间要结合业务耗时和最大抖动设置。</p>
+<p>第三个坑，是直接删除锁。释放前不判断 owner，很容易误删别人的锁。</p>
+<p>第四个坑，是只依赖锁不做幂等。网络重试、消费者重复消费、接口超时重放都可能导致同一业务重复进入。锁只是降低并发概率，幂等才是最后防线。</p>
+<p>第五个坑，是大锁。比如用一个 <code>global:lock</code> 锁住所有库存操作，会严重影响吞吐量。锁粒度要尽量贴近业务资源，比如按 SKU、订单号、仓库维度拆分。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Redis 锁常见形态从简单 <code>SETNX</code> 到带 TTL、带 owner、Lua 释放、可重入锁和 Redisson 看门狗锁。项目里最推荐的底线写法是：<code>SET key requestId NX PX ttl</code> 加锁，Lua 判断 owner 后释放，业务做好幂等和状态校验。</p>
+<p>锁不是越复杂越安全。真正可靠的方案，通常是“短锁 + 合理 TTL + 原子释放 + 业务幂等 + 监控告警”。只要这几件事到位，大多数后台系统就已经比裸 <code>SETNX</code> 稳很多。</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2017/05/10/redis入门/" data-id="cmq8scy6u000rjsqhna68n0vw" class="article-share-link">Share</a>
+      <a data-url="https://guxingxianyue.github.io/2023/11/23/redis锁有哪些/" data-id="cmq8scy6v000tjsqh5t3hysvb" class="article-share-link">Share</a>
       
       
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/分布式/">分布式</a></li></ul>
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Redis/">Redis</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/分布式锁/">分布式锁</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/并发控制/">并发控制</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/系统设计/">系统设计</a></li></ul>
 
     </footer>
   </div>
@@ -917,10 +508,10 @@ redis 127.0.0.1:6379&gt; zrangebyscore dbs 98 100
 
 
   
-    <article id="post-kafka集群" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-redis的集群模式有哪些" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2017/01/07/kafka集群/" class="article-date">
-  <time datetime="2017-01-07T04:16:17.000Z" itemprop="datePublished">2017-01-07</time>
+    <a href="/2023/07/09/redis的集群模式有哪些/" class="article-date">
+  <time datetime="2023-07-09T02:20:00.000Z" itemprop="datePublished">2023-07-09</time>
 </a>
     
   </div>
@@ -931,7 +522,7 @@ redis 127.0.0.1:6379&gt; zrangebyscore dbs 98 100
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/01/07/kafka集群/">kafka集群</a>
+      <a class="article-title" href="/2023/07/09/redis的集群模式有哪些/">redis的集群模式有哪些</a>
     </h1>
   
 
@@ -939,274 +530,50 @@ redis 127.0.0.1:6379&gt; zrangebyscore dbs 98 100
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="Kafka初识"><a href="#Kafka初识" class="headerlink" title="Kafka初识"></a>Kafka初识</h2><ul>
-<li><p>Kafka使用背景</p>
-<p>  在我们大量使用分布式数据库、分布式计算集群的时候，是否会遇到这样的一些问题：</p>
-<ul>
-<li>我们想分析下用户行为（pageviews），以便我们设计出更好的广告位</li>
-<li>我想对用户的搜索关键词进行统计，分析出当前的流行趋势</li>
-<li>有些数据，存储数据库浪费，直接存储硬盘效率又低</li>
-</ul>
-</li>
-<li><p>Kafka的定义</p>
-<p>  它是一个分布式消息系统,具有高水平扩展和高吞吐量的特点。</p>
-</li>
-</ul>
-<h2 id="Kafka相关概念"><a href="#Kafka相关概念" class="headerlink" title="Kafka相关概念"></a>Kafka相关概念</h2><ul>
-<li><p>AMQP协议：是一个标准开放的应用层的消息中间件（Message Oriented Middleware）协议。AMQP定义了通过网络发送的字节流的数据格式。因此兼容性非常好，任何实现AMQP协议的程序都可以和与AMQP协议兼容的其他程序交互，可以很容易做到跨语言，跨平台。</p>
-</li>
-<li><p>一些基本的概念</p>
-<ul>
-<li>消费者：（Consumer）：从消息队列中请求消息的客户端应用程序</li>
-<li>生产者：（Producer）：向broker发布消息的应用程序</li>
-<li>AMQP服务端（broker）：用来接收生产者发送的消息并将这些消息路由给服务器中的队列，便于fafka将生产者发送的消息，动态的添加到磁盘并给每一条消息一个偏移量，所以对于kafka一个broker就是一个应用程序的实例</li>
-</ul>
-</li>
-</ul>
-<p>kafka支持的客户端语言：Kafka客户端支持当前大部分主流语言，包括：C、C++、Erlang、Java、.net、perl、PHP、Python、Ruby、Go、Javascript<br>可以使用以上任何一种语言和kafka服务器进行通信（即辨析自己的consumer从kafka集群订阅消息也可以自己写producer程序）</p>
-<ul>
-<li><p>Kafka架构</p>
-<p>  生产者生产消息、kafka集群、消费者获取消息这样一种架构，如下图：</p>
-<p>  <img src="https://i.imgur.com/fFh8aZr.png" alt=""></p>
-<p>  kafka集群中的消息，是通过Topic（主题）来进行组织的，如下图：</p>
-<p>  <img src="https://i.imgur.com/yMOoyNJ.png" alt=""></p>
-<p>  一些基本的概念：</p>
-<ul>
-<li>主题（Topic）：一个主题类似新闻中的体育、娱乐、教育等分类概念，在实际工程中通常一个业务一个主题。</li>
-<li><p>分区（Partition）：一个Topic中的消息数据按照多个分区组织，分区是kafka消息队列组织的最小单位，一个分区可以看作是一个FIFO（ First Input First Output的缩写，先入先出队列）的队列。</p>
-<p>kafka分区是提高kafka性能的关键所在，当你发现你的集群性能不高时，常用手段就是增加Topic的分区，分区里面的消息是按照从新到老的顺序进行组织，消费者从队列头订阅消息，生产者从队列尾添加消息。</p>
-<p>工作图：<br><img src="https://i.imgur.com/4eSzo4r.png" alt=""></p>
-<p>备份（Replication）：为了保证分布式可靠性，kafka0.8开始对每个分区的数据进行备份（不同的Broker上），防止其中一个Broker宕机造成分区上的数据不可用。</p>
-</li>
-</ul>
-</li>
-</ul>
-<h2 id="Kafka集群搭建"><a href="#Kafka集群搭建" class="headerlink" title="Kafka集群搭建"></a>Kafka集群搭建</h2><ul>
-<li><p>软件环境</p>
-<ul>
-<li>已经搭建好的zookeeper集群(文章最后另写)</li>
-<li>软件版本kafka_2.11-0.9.0.1.tgz</li>
-<li>软件版本kafka_2.11-0.9.0.1.tgz</li>
-</ul>
-</li>
-<li><p>创建目录并下载安装软件</p>
-<pre><code>#下载软件
-wget https://archive.apache.org/dist/kafka/0.9.0.1/kafka_2.11-0.9.0.1.tgz
-#解压软件
-tar -xvf kafka_2.11-0.9.0.1.tgz
-</code></pre></li>
-<li><p>修改配置文件</p>
-<p>  主要关注config/server.properties     </p>
-<pre><code>broker.id=0  #当前机器在集群中的唯一标识，和zookeeper的myid性质一样
-port=9092 #当前kafka对外提供服务的端口默认是9092
-host.name = 120.76.230.134 #这个参数默认是关闭的，在0.8.1有个bug，DNS解析问题，失败率的问题
-#申明此kafka服务器需要监听的端口号，如果是在本机上跑虚拟机运行可以不用配置本项，默认会使用localhost的地址，如果是在远程服务器上运行则必须配置
-listeners = PLAINTEXT://120.76.230.134:9092 
-advertised.host.name = 120.76.230.134
-advertised.listeners=PLAINTEXT://120.76.230.134:9092
-log.dirs=/data/kafka/kafkalogs  #消息存放的目录
-#在log.retention.hours=168 下面新增下面三项
-message.max.byte=5242880
-default.replication.factor=2
-replica.fetch.max.bytes=5242880
-zookeeper.connect=120.76.230.134:5181,120.76.193.192:5181,120.25.239.155:5181 #zookeeper配置地址
-</code></pre></li>
-</ul>
-<pre><code>每个机子的broker.id、host.name都是不一样的，主要是关注以上几项参数配置。
-</code></pre><ul>
-<li><p>启动Kafka集群并测试</p>
-<p>  启动服务</p>
-<pre><code>#从后台启动Kafka集群（3台都需要启动）
-cd /data/kafka/kafka_2.11-0.11.0.1/bin #进入到kafka的bin目录 
-./kafka-server-start.sh -daemon ../config/server.properties
-</code></pre><p>  检查服务是否启动</p>
-<pre><code>#执行命令jps
-22246 Bootstrap
-26393 Kafka
-</code></pre><p>  创建Topic来验证是否创建成功</p>
-<pre><code>#创建Topic
-./kafka-topics.sh --create --zookeeper 120.76.230.134:5181,120.76.193.192:5181,120.25.239.155:5181 --replication-factor 2 --partitions 1 --topic test
-
-#解释
---replication-factor 2   #复制两份
---partitions 1 #创建1个分区
---topic #主题为test
-
-#在一台服务器上创建一个发布者
-#创建一个broker，发布者
-./kafka-console-producer.sh --broker-list 120.76.230.134:9092 --topic test
-
-#在一台服务器上创建一个订阅者
-./kafka-console-consumer.sh --bootstrap-server 120.76.230.134:9092 --topic test --from-beginning
-</code></pre><p>  测试（在发布者那里发布消息看看订阅者那里是否能正常收到~）：</p>
-</li>
-<li><p>其他命令    </p>
-<p>  大部分命令可以去官方文档查看</p>
-<ul>
-<li><p>查看topic</p>
-<pre><code>./kafka-topics.sh --list --zookeeper 120.76.230.134:5181,120.76.193.192:5181,120.25.239.155:5181
-#就会显示我们创建的所有topic
-</code></pre><p>kafka集群搭建完毕</p>
-</li>
-</ul>
-</li>
-</ul>
-<h2 id="zookeeper集群部署"><a href="#zookeeper集群部署" class="headerlink" title="zookeeper集群部署"></a>zookeeper集群部署</h2><ul>
-<li><p>为什么是基数</p>
-<ul>
-<li>集群必须有一半以上的机器统一才能成为leader</li>
-<li>一半的机器挂掉 整个集群挂掉</li>
-</ul>
-</li>
-<li><p>去官网下载好zookeeper包，解压</p>
-</li>
-<li><p>修改配置/conf/zoo.cfg文件</p>
-<pre><code># 基本事件单元，以毫秒为单位，用来控制心跳和超时
-tickTime=2000
-# 参数设定了允许所有跟随者与领导者进行连接并同步的时间，如果在设定的时间段内，半数以上的跟随者未能完成同步，领导者便会宣布放弃领导地位，进行另一次的领导选举
-# 如果zk集群环境数量确实很大，同步数据的时间会变长，因此这种情况下可以适当调大该参数
-#集群中的follower服务器(F)与leader服务器(L)之间 初始连接 时能容忍的最多心跳数（tickTime的数量）
-initLimit=10
-# 参数设定了允许一个跟随者与一个领导者进行同步的时间，如果在设定的时间段内，跟随者未完成同步，它将会被集群丢弃
-# 所有关联到这个跟随者的客户端将连接到另外一个跟随着
-syncLimit=5
-# 存储持久数据的本地文件系统位置
-dataDir=/data/zookeeper-3.4.9/data
-dataLogDir=/data/zookeeper-3.4.9/logs
-# 监听客户端连接的端口
-clientPort=5181
-
-server.1=120.76.230.134:2888:3888
-server.2=120.76.193.192:2888:3888
-server.3=120.25.239.155:2888:3888
-
-#server.1 这个1是服务器的标识也可以是其他的数字， 表示这个是第几号服务器，用来标识服务器，这个标识要写到快照目录下面myid文件里
-#120.76.230.134为集群里的IP地址，第一个端口是master和slave之间的通信端口，默认是2888，第二个端口是leader选举的端口，集群刚启动的时候选举或者leader挂掉之后进行新的选举的端口默认是3888
-</code></pre><p>  zoo_sample.cfg  这个文件是官方给我们的zookeeper的样板文件，给他复制一份命名为zoo.cfg，zoo.cfg是官方指定的文件命名规则。</p>
-</li>
-<li><p>创建myid文件</p>
-<p>  /data/zookeeper-3.4.9/data目录下要配置myid文件，内容跟server.id相对应，比如:1</p>
-<p>  ./zkServer.sh star启动zookeeper，每台都要启动一遍</p>
-</li>
-<li><p>重要配置说明</p>
-<ul>
-<li><p>myid文件和server.myid  在快照目录下存放的标识本台服务器的文件，他是整个zk集群用来发现彼此的一个重要标识。</p>
-</li>
-<li><p>zoo.cfg 文件是zookeeper配置文件 在conf目录里。</p>
-</li>
-</ul>
-</li>
-</ul>
+        <h2 id="开场个人观察"><a href="#开场个人观察" class="headerlink" title="开场个人观察"></a>开场个人观察</h2><p>Redis 一开始通常是从单机用起的：缓存商品详情、存登录 token、做计数器、做分布式锁。等系统访问量上来以后，问题就来了：单机内存不够怎么办？主节点挂了怎么办？读压力太高怎么办？业务需要更高可用时怎么做？</p>
+<p>这时就要考虑 Redis 的集群模式。这里的“集群”不只是 Redis Cluster 一种，而是一组部署方式：主从复制、哨兵模式、Redis Cluster、代理分片，以及云托管 Redis。每种方式解决的问题不一样，优缺点也不一样。</p>
+<p>项目选型时不要先问“哪种最先进”，而要先问：我的数据量有多大？QPS 有多高？能不能接受短暂不可用？团队有没有 Redis 运维经验？业务是否依赖跨 key 操作？</p>
+<p><img src="/images/tech-flowcharts/redis-cluster-selection-flow.svg" alt="Redis集群模式选型流程"></p>
+<h2 id="核心观点"><a href="#核心观点" class="headerlink" title="核心观点"></a>核心观点</h2><p>Redis 常见部署方式可以按能力逐层理解。</p>
+<p>单机模式最简单，适合开发环境、小系统、低风险缓存。但单点故障明显，内存和吞吐也受单机限制。</p>
+<p>主从复制解决的是读扩展和数据备份。主节点负责写，从节点复制数据，可以承担部分读请求。但主节点挂了以后，是否自动切换取决于外部机制。</p>
+<p>哨兵模式解决的是高可用。Sentinel 会监控主从节点，主节点异常时自动选举新的主节点，并通知客户端切换。它适合数据量还没有大到必须分片，但又需要自动故障转移的系统。</p>
+<p>Redis Cluster 解决的是水平扩展。它把 key 映射到 16384 个 hash slot，再把 slot 分布到多个主节点上。容量和吞吐可以通过增加节点扩展，但客户端、跨 slot 操作和运维复杂度都会提高。</p>
+<p>代理分片和云托管 Redis 解决的是工程复杂度。代理可以屏蔽后端分片，云托管可以减少运维成本。但要关注命令兼容性、网络延迟、成本和故障透明度。</p>
+<h2 id="实践方法"><a href="#实践方法" class="headerlink" title="实践方法"></a>实践方法</h2><p>如果是一个普通后台系统，Redis 只用来缓存字典、商品详情、用户权限，数据量不大，故障后可以短暂回源数据库，那么主从或哨兵模式通常就够了。</p>
+<p>例如 ERP 系统里，商品基础资料、供应商列表、组织架构权限可以放 Redis 缓存。即使 Redis 短暂不可用，也可以降级查数据库，只是慢一点。这种场景不一定要上 Redis Cluster。</p>
+<p>如果系统对可用性要求高，但数据量还在单机内存范围内，可以选择 Sentinel。比如登录 token、会话信息、限流计数这类数据，业务希望节点故障后能自动切换，哨兵模式就比较合适。</p>
+<p>如果数据量和访问量都明显增长，比如电商商品缓存、库存热点、活动库存、推荐结果缓存，单机内存和 QPS 已经吃紧，就要考虑 Redis Cluster。Cluster 的好处是容量可以横向扩展，坏处是开发要注意 hash slot。</p>
+<p>比如下面这种多 key 操作：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">MGET product:1001 product:1002 product:1003</span><br></pre></td></tr></table></figure>
+<p>在 Cluster 下，如果这些 key 落在不同 slot，可能无法像单机那样直接执行。可以通过 hash tag 把相关 key 放到同一个 slot：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">stock:&#123;sku1001&#125;:available</span><br><span class="line">stock:&#123;sku1001&#125;:locked</span><br></pre></td></tr></table></figure>
+<p>但 hash tag 也不能乱用。如果所有 key 都强行放到一个 slot，分片就失去意义。</p>
+<p>如果团队 Redis 运维能力弱，又不想自己处理扩容、备份、故障切换，可以考虑云托管 Redis。云服务能减少大量运维工作，但成本、规格限制、网络链路、版本兼容要提前评估。</p>
+<p>我做选型时一般按这个顺序问：</p>
+<ol>
+<li>Redis 只是缓存，还是承载关键状态？</li>
+<li>单机内存能不能装下未来一年数据？</li>
+<li>读写 QPS 是否需要水平扩展？</li>
+<li>是否大量使用 Lua、多 key、事务、pipeline？</li>
+<li>团队是否有能力处理故障切换和扩容？</li>
+<li>可接受的成本和可用性目标是什么？</li>
+</ol>
+<h2 id="踩坑提醒"><a href="#踩坑提醒" class="headerlink" title="踩坑提醒"></a>踩坑提醒</h2><p>第一个坑，是一上来就上 Cluster。Cluster 能扩容，但复杂度也高。小系统如果只是缓存几万条基础资料，用 Cluster 反而会增加开发和运维负担。</p>
+<p>第二个坑，是把主从当高可用。主从复制不等于自动故障切换。没有哨兵或外部切换机制，主节点挂了仍然需要人工处理。</p>
+<p>第三个坑，是忽略数据一致性。Redis 复制通常是异步的，主节点刚写入还没同步给从节点时发生故障，可能会丢一小段数据。关键业务不能把 Redis 当唯一事实来源。</p>
+<p>第四个坑，是跨 slot 操作太多。Cluster 选型前要盘点代码里是否大量使用 <code>MGET</code>、<code>MSET</code>、Lua、事务和批量删除。否则上线后会发现很多命令不再好用。</p>
+<p>第五个坑，是只看 QPS 不看热点 key。即使是 Cluster，如果大量请求集中在一个超级热点 key 上，也可能打爆单个节点。热点数据要考虑本地缓存、拆 key、限流或预计算。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Redis 集群模式没有绝对最好，只有适合当前阶段。数据量小、风险低，用单机或主从；需要自动故障切换，用 Sentinel；容量和吞吐需要横向扩展，用 Redis Cluster；团队想减少运维，可以考虑云托管。</p>
+<p>选型时最重要的是把 Redis 在系统里的角色想清楚。它是缓存、锁、队列、会话，还是关键状态存储？角色不同，容灾、持久化、扩容和一致性要求也完全不同。</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2017/01/07/kafka集群/" data-id="cmq8scy6t000qjsqhkc8bexbt" class="article-share-link">Share</a>
+      <a data-url="https://guxingxianyue.github.io/2023/07/09/redis的集群模式有哪些/" data-id="cmq8scy6x0010jsqhrxwlm4b0" class="article-share-link">Share</a>
       
       
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/分布式/">分布式</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-快速排序" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2016/06/04/快速排序/" class="article-date">
-  <time datetime="2016-06-04T12:21:10.000Z" itemprop="datePublished">2016-06-04</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2016/06/04/快速排序/">快速排序</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="快速排序"><a href="#快速排序" class="headerlink" title="快速排序"></a>快速排序</h2><h4 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h4><p>在数组中找一个支点(任意),经过一趟排序后，支点左边的数都要比支点小，支点右边的数都要比支点大！</p>
-<p>现在我们有一个数组：int arr[]={1,4,5,67,2,7,8,6,9,44};</p>
-<p>经过一趟排序之后，如果我选择数组中间的数作为支点：7(任意的)，那么第一趟排序后的结果是这样的：{1,4,5,6,2,7,8,67,9,44}</p>
-<p>那么就实现了支点左边的数比支点小，支点右边的数比支点大</p>
-<h4 id="递归分析与代码实现"><a href="#递归分析与代码实现" class="headerlink" title="递归分析与代码实现"></a>递归分析与代码实现</h4><p>现在我们的数组是这样的：{1,4,5,6,2,7,8,67,9,44}，既然我们比7小的在左边，比7大的在右边，那么我们只要将”左边“的排好顺序，又将”右边“的排好序，那整个数组是不是就有序了？</p>
-<p>回顾一下递归：”左边“的排好顺序，”右边“的排好序，跟我们第一趟排序的做法是一样的。</p>
-<p>只不过是参数不一样：第一趟排序是任选了一个支点，比支点小的在左边，比支点大的在右边。那么，我们想要”左边“的排好顺序，只要在”左边“部分找一个支点，比支点小的在左边，比支点大的在右边。</p>
-<p>递归出口也很容易找到：如果数组只有一个元素时，那么就不用排序了</p>
-<p>代码如下：</p>
-<pre><code>public static void main(String[] args) {
-    int[] arr = {1, 4, 5, 67, 2, 7, 8, 6, 9, 44};
-
-    quickSort(arr, 0, 9);
-
-    System.out.println(arr);
-
-
-}
-
-/**
- * 快速排序
- *
- * @param arr
- * @param L   指向数组第一个元素
- * @param R   指向数组最后一个元素
- */
-public static void quickSort(int[] arr, int L, int R) {
-    int i = L;
-    int j = R;
-
-    //支点
-    int pivot = arr[(L + R) / 2];
-
-    //左右两端进行扫描，只要两端还没有交替，就一直扫描
-    while (i &lt;= j) {
-
-        //寻找直到比支点大的数
-        while (pivot &gt; arr[i])
-            i++;
-
-        //寻找直到比支点小的数
-        while (pivot &lt; arr[j])
-            j--;
-
-        //此时已经分别找到了比支点小的数(右边)、比支点大的数(左边)，它们进行交换
-        if (i &lt;= j) {
-            int temp = arr[i];
-            arr[i] = arr[j];
-            arr[j] = temp;
-            i++;
-            j--;
-        }
-    }
-    //上面一个while保证了第一趟排序支点的左边比支点小，支点的右边比支点大了。
-
-
-    //“左边”再做排序，直到左边剩下一个数(递归出口)
-    if (L &lt; j)
-        quickSort(arr, L, j);
-
-    //“右边”再做排序，直到右边剩下一个数(递归出口)
-    if (i &lt; R)
-        quickSort(arr, i, R);
-}
-</code></pre>
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2016/06/04/快速排序/" data-id="cmq8scy710019jsqhuh2yqejs" class="article-share-link">Share</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/数据结构与算法/">数据结构与算法</a></li></ul>
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Redis/">Redis</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/分布式/">分布式</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/架构设计/">架构设计</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/缓存/">缓存</a></li></ul>
 
     </footer>
   </div>
@@ -1217,7 +584,7 @@ public static void quickSort(int[] arr, int L, int R) {
   
   
     <nav id="page-nav">
-      <a class="extend prev" rel="prev" href="/page/3/">&laquo; Prev</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="page-number current">4</span><a class="page-number" href="/page/5/">5</a><a class="page-number" href="/page/6/">6</a><a class="extend next" rel="next" href="/page/5/">Next &raquo;</a>
+      <a class="extend prev" rel="prev" href="/page/3/">&laquo; Prev</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="page-number current">4</span><a class="page-number" href="/page/5/">5</a><a class="page-number" href="/page/6/">6</a><a class="page-number" href="/page/7/">7</a><a class="extend next" rel="next" href="/page/5/">Next &raquo;</a>
     </nav>
   
 </section>
@@ -1230,7 +597,7 @@ public static void quickSort(int[] arr, int L, int R) {
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI/">AI</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Agent/">Agent</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CAP/">CAP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Claude-Code/">Claude Code</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Codex/">Codex</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ERP/">ERP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/">Java</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kafka/">Kafka</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/">MySQL</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Redis/">Redis</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/">SQL</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL优化/">SQL优化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Skill/">Skill</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spring-Cloud/">Spring Cloud</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/事务/">事务</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/供应链系统/">供应链系统</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/分布式/">分布式</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/分布式系统/">分布式系统</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/分布式锁/">分布式锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/命令行/">命令行</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/工程实践/">工程实践</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/并发控制/">并发控制</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/微服务/">微服务</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/技术文章/">技术文章</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/报表统计/">报表统计</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据分析/">数据分析</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据库/">数据库</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据结构与算法/">数据结构与算法</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/架构设计/">架构设计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/消息队列/">消息队列</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/系统优化/">系统优化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/系统设计/">系统设计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/缓存/">缓存</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/编程效率/">编程效率</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/软件工程/">软件工程</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/锁/">锁</a><span class="tag-list-count">1</span></li></ul>
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AGENTS-md/">AGENTS.md</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI/">AI</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Agent/">Agent</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CAP/">CAP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Claude-Code/">Claude Code</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Codex/">Codex</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ERP/">ERP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/">Java</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kafka/">Kafka</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/">MySQL</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Redis/">Redis</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/">SQL</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL优化/">SQL优化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Skill/">Skill</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spec-Coding/">Spec Coding</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spring-Cloud/">Spring Cloud</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/事务/">事务</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/供应链系统/">供应链系统</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/分布式/">分布式</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/分布式系统/">分布式系统</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/分布式锁/">分布式锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/命令行/">命令行</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/工程实践/">工程实践</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/并发控制/">并发控制</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/微服务/">微服务</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/技术文章/">技术文章</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/报表统计/">报表统计</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据分析/">数据分析</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据库/">数据库</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据结构与算法/">数据结构与算法</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/架构设计/">架构设计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/消息队列/">消息队列</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/系统优化/">系统优化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/系统设计/">系统设计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/缓存/">缓存</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/编程效率/">编程效率</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/软件工程/">软件工程</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/锁/">锁</a><span class="tag-list-count">1</span></li></ul>
     </div>
   </div>
 
@@ -1239,7 +606,7 @@ public static void quickSort(int[] arr, int L, int R) {
   <div class="widget-wrap">
     <h3 class="widget-title">Tag Cloud</h3>
     <div class="widget tagcloud">
-      <a href="/tags/AI/" style="font-size: 20px;">AI</a> <a href="/tags/Agent/" style="font-size: 10px;">Agent</a> <a href="/tags/CAP/" style="font-size: 10px;">CAP</a> <a href="/tags/Claude-Code/" style="font-size: 15px;">Claude Code</a> <a href="/tags/Codex/" style="font-size: 13.33px;">Codex</a> <a href="/tags/ERP/" style="font-size: 10px;">ERP</a> <a href="/tags/Java/" style="font-size: 11.67px;">Java</a> <a href="/tags/Kafka/" style="font-size: 10px;">Kafka</a> <a href="/tags/MySQL/" style="font-size: 11.67px;">MySQL</a> <a href="/tags/Redis/" style="font-size: 11.67px;">Redis</a> <a href="/tags/SQL/" style="font-size: 10px;">SQL</a> <a href="/tags/SQL优化/" style="font-size: 10px;">SQL优化</a> <a href="/tags/Skill/" style="font-size: 10px;">Skill</a> <a href="/tags/Spring-Cloud/" style="font-size: 10px;">Spring Cloud</a> <a href="/tags/事务/" style="font-size: 10px;">事务</a> <a href="/tags/供应链系统/" style="font-size: 10px;">供应链系统</a> <a href="/tags/分布式/" style="font-size: 15px;">分布式</a> <a href="/tags/分布式系统/" style="font-size: 11.67px;">分布式系统</a> <a href="/tags/分布式锁/" style="font-size: 10px;">分布式锁</a> <a href="/tags/命令行/" style="font-size: 11.67px;">命令行</a> <a href="/tags/工程实践/" style="font-size: 13.33px;">工程实践</a> <a href="/tags/并发控制/" style="font-size: 10px;">并发控制</a> <a href="/tags/微服务/" style="font-size: 10px;">微服务</a> <a href="/tags/技术文章/" style="font-size: 18.33px;">技术文章</a> <a href="/tags/报表统计/" style="font-size: 10px;">报表统计</a> <a href="/tags/数据分析/" style="font-size: 10px;">数据分析</a> <a href="/tags/数据库/" style="font-size: 11.67px;">数据库</a> <a href="/tags/数据结构与算法/" style="font-size: 13.33px;">数据结构与算法</a> <a href="/tags/架构设计/" style="font-size: 11.67px;">架构设计</a> <a href="/tags/消息队列/" style="font-size: 10px;">消息队列</a> <a href="/tags/系统优化/" style="font-size: 10px;">系统优化</a> <a href="/tags/系统设计/" style="font-size: 11.67px;">系统设计</a> <a href="/tags/缓存/" style="font-size: 10px;">缓存</a> <a href="/tags/编程效率/" style="font-size: 16.67px;">编程效率</a> <a href="/tags/软件工程/" style="font-size: 13.33px;">软件工程</a> <a href="/tags/锁/" style="font-size: 10px;">锁</a>
+      <a href="/tags/AGENTS-md/" style="font-size: 10px;">AGENTS.md</a> <a href="/tags/AI/" style="font-size: 20px;">AI</a> <a href="/tags/Agent/" style="font-size: 10px;">Agent</a> <a href="/tags/CAP/" style="font-size: 10px;">CAP</a> <a href="/tags/Claude-Code/" style="font-size: 14.29px;">Claude Code</a> <a href="/tags/Codex/" style="font-size: 18.57px;">Codex</a> <a href="/tags/ERP/" style="font-size: 10px;">ERP</a> <a href="/tags/Java/" style="font-size: 17.14px;">Java</a> <a href="/tags/Kafka/" style="font-size: 10px;">Kafka</a> <a href="/tags/MySQL/" style="font-size: 11.43px;">MySQL</a> <a href="/tags/Redis/" style="font-size: 11.43px;">Redis</a> <a href="/tags/SQL/" style="font-size: 10px;">SQL</a> <a href="/tags/SQL优化/" style="font-size: 10px;">SQL优化</a> <a href="/tags/Skill/" style="font-size: 10px;">Skill</a> <a href="/tags/Spec-Coding/" style="font-size: 12.86px;">Spec Coding</a> <a href="/tags/Spring-Cloud/" style="font-size: 10px;">Spring Cloud</a> <a href="/tags/事务/" style="font-size: 10px;">事务</a> <a href="/tags/供应链系统/" style="font-size: 10px;">供应链系统</a> <a href="/tags/分布式/" style="font-size: 14.29px;">分布式</a> <a href="/tags/分布式系统/" style="font-size: 11.43px;">分布式系统</a> <a href="/tags/分布式锁/" style="font-size: 10px;">分布式锁</a> <a href="/tags/命令行/" style="font-size: 11.43px;">命令行</a> <a href="/tags/工程实践/" style="font-size: 12.86px;">工程实践</a> <a href="/tags/并发控制/" style="font-size: 10px;">并发控制</a> <a href="/tags/微服务/" style="font-size: 10px;">微服务</a> <a href="/tags/技术文章/" style="font-size: 15.71px;">技术文章</a> <a href="/tags/报表统计/" style="font-size: 10px;">报表统计</a> <a href="/tags/数据分析/" style="font-size: 10px;">数据分析</a> <a href="/tags/数据库/" style="font-size: 11.43px;">数据库</a> <a href="/tags/数据结构与算法/" style="font-size: 12.86px;">数据结构与算法</a> <a href="/tags/架构设计/" style="font-size: 11.43px;">架构设计</a> <a href="/tags/消息队列/" style="font-size: 10px;">消息队列</a> <a href="/tags/系统优化/" style="font-size: 10px;">系统优化</a> <a href="/tags/系统设计/" style="font-size: 11.43px;">系统设计</a> <a href="/tags/缓存/" style="font-size: 10px;">缓存</a> <a href="/tags/编程效率/" style="font-size: 15.71px;">编程效率</a> <a href="/tags/软件工程/" style="font-size: 14.29px;">软件工程</a> <a href="/tags/锁/" style="font-size: 10px;">锁</a>
     </div>
   </div>
 
@@ -1248,7 +615,7 @@ public static void quickSort(int[] arr, int L, int R) {
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/06/">六月 2026</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/05/">五月 2026</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">十一月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">八月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/05/">五月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">二月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">十一月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/07/">七月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">三月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">六月 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">四月 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">三月 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">一月 2016</a><span class="archive-list-count">1</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/06/">六月 2026</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/05/">五月 2026</a><span class="archive-list-count">9</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">十一月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">八月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/05/">五月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">二月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">十一月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/07/">七月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">三月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">六月 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">四月 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">三月 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">一月 2016</a><span class="archive-list-count">1</span></li></ul>
     </div>
   </div>
 

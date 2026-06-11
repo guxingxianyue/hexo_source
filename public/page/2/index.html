@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-<head>
+<head><meta name="generator" content="Hexo 3.9.0">
   <meta charset="utf-8">
   
   <title>陈金星写字的地方</title>
@@ -25,7 +25,7 @@
   <link rel="stylesheet" href="/css/style.css">
   
 
-</head>
+</head></html>
 <body>
   <div id="container">
     <div id="wrap">
@@ -149,6 +149,75 @@
 
 
   
+    <article id="post-openspec加superpowers组合怎么落地大需求" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2026/05/26/openspec加superpowers组合怎么落地大需求/" class="article-date">
+  <time datetime="2026-05-26T05:00:00.000Z" itemprop="datePublished">2026-05-26</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2026/05/26/openspec加superpowers组合怎么落地大需求/">openspec + superpowers这套组合怎么让大需求更好落地</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="开场个人观察"><a href="#开场个人观察" class="headerlink" title="开场个人观察"></a>开场个人观察</h2><p>大需求最怕两种极端：一种是只有一句话，“重构库存中心”；另一种是文档写了几十页，但没人能把它拆成可执行任务。Codex 能提高开发速度，但如果需求本身混乱，它只会更快地把混乱写进代码。</p>
+<p>我现在更喜欢把 <code>/openspec</code> 和 <code>/superpowers</code> 组合起来使用。前者负责把需求规格化，后者负责拆解、审查和推动落地。这里仍然把它们当成团队自定义 skill 来理解，重点是工作流，而不是命令名字本身。</p>
+<p><img src="/images/ai-flowcharts/codex-openspec-superpowers-flow.svg" alt="openspec加superpowers组合落地大需求"></p>
+<h2 id="核心观点"><a href="#核心观点" class="headerlink" title="核心观点"></a>核心观点</h2><p>这套组合的分工很简单。</p>
+<p><code>/openspec</code> 先回答“我们到底要做什么”。它产出业务定义、流程、接口、数据、异常、验收标准。</p>
+<p><code>/superpowers</code> 再回答“怎么安全地做完”。它产出任务拆分、风险清单、测试清单、实现顺序、review 检查点。</p>
+<p>最后 Codex 按切片实现，每完成一片就跑验证、看 diff、对照 spec。大需求不是一口吃掉，而是把规格稳定后分批落地。</p>
+<h2 id="实践方法"><a href="#实践方法" class="headerlink" title="实践方法"></a>实践方法</h2><p>以“供应链系统增加采购到货差异处理”为例。这个需求可能涉及采购单、到货单、质检、库存、财务暂估和报表。如果直接让 Codex 写代码，大概率会乱。</p>
+<p>第一步，用 <code>/openspec</code>：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">/openspec</span><br><span class="line">需求：供应链系统增加采购到货差异处理。</span><br><span class="line">背景：采购单数量和实际到货数量可能不一致，可能少到、多到、质检不合格。</span><br><span class="line">请先生成 spec，不要写代码。</span><br></pre></td></tr></table></figure>
+<p>期望 spec 至少包含：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">- 差异类型：少到、多到、不合格</span><br><span class="line">- 状态流转：待到货、部分到货、已到货、差异待处理、差异关闭</span><br><span class="line">- 接口：登记到货、确认差异、关闭差异</span><br><span class="line">- 数据：到货单、到货明细、差异记录</span><br><span class="line">- 库存：合格入库，不合格进入待处理区</span><br><span class="line">- 财务：影响暂估数量和应付数量</span><br><span class="line">- 验收：各种差异场景都能追踪</span><br></pre></td></tr></table></figure>
+<p>第二步，用 <code>/superpowers</code> 审查 spec：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">/superpowers</span><br><span class="line">请审查上面的 spec，输出任务拆分、风险清单、测试清单和建议实现顺序。</span><br><span class="line">重点关注 Java 后端里的事务、幂等、状态机、并发、报表一致性。</span><br></pre></td></tr></table></figure>
+<p>它应该把需求拆成多个切片：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">切片1：状态机和枚举定义</span><br><span class="line">切片2：到货登记接口</span><br><span class="line">切片3：差异记录和处理接口</span><br><span class="line">切片4：库存入库逻辑</span><br><span class="line">切片5：财务暂估影响</span><br><span class="line">切片6：报表统计口径</span><br><span class="line">切片7：回归测试和数据校验</span><br></pre></td></tr></table></figure>
+<p>第三步，让 Codex 按切片实现：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">先实现切片1，只改状态机和枚举相关代码。</span><br><span class="line">完成后运行相关测试，并总结 diff。</span><br></pre></td></tr></table></figure>
+<p>每个切片结束后，都回到 spec 做对照：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">请对照 spec 检查切片1是否满足验收标准，有没有遗漏或越界。</span><br></pre></td></tr></table></figure>
+<p>这套方式最大的好处，是大需求不会一次性失控。你可以在每个切片后 review，也可以随时停下来调整 spec。</p>
+<h2 id="踩坑提醒"><a href="#踩坑提醒" class="headerlink" title="踩坑提醒"></a>踩坑提醒</h2><p>第一个坑，是 spec 没冻结就开始写核心代码。需求还在变，代码就会被反复推翻。至少要先冻结第一阶段的接口、状态和验收标准。</p>
+<p>第二个坑，是任务切片太大。比如“实现库存逻辑”仍然太大，可以继续拆成库存校验、库存流水、库存更新、异常回滚。</p>
+<p>第三个坑，是没有统一验收清单。大需求做到后面，大家容易忘记最初目标。每个切片都要对照 spec。</p>
+<p>第四个坑，是没有回滚思路。Java 后端涉及数据库字段、消息消费、定时任务时，要考虑灰度、兼容和数据修复。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p><code>openspec + superpowers</code> 的组合，本质是先把需求变准确，再把实现变稳。一个负责规格，一个负责工程化落地。</p>
+<p>对 Java 系统项目来说，这套组合特别适合订单、库存、结算、权限、报表、消息消费这类跨模块大需求。Codex 能写代码，但你要先给它一条清楚的路。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a href="https://developers.openai.com/codex/learn/best-practices" target="_blank" rel="noopener">OpenAI Codex best practices</a></li>
+<li><a href="https://developers.openai.com/codex/config/skills" target="_blank" rel="noopener">OpenAI Codex Skills</a></li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://guxingxianyue.github.io/2026/05/26/openspec加superpowers组合怎么落地大需求/" data-id="cmq9aadk40001m4qhwe24c6g5" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/AI/">AI</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Codex/">Codex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/">Java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Spec-Coding/">Spec Coding</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/软件工程/">软件工程</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-什么是Skill以及如何生成自己的Skill" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2026/05/22/什么是Skill以及如何生成自己的Skill/" class="article-date">
@@ -218,6 +287,72 @@
       
       
   <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/AI/">AI</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Claude-Code/">Claude Code</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Codex/">Codex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Skill/">Skill</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/工程实践/">工程实践</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-利用superpowers让Spec-Coding更准确" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2026/05/19/利用superpowers让Spec-Coding更准确/" class="article-date">
+  <time datetime="2026-05-19T04:00:00.000Z" itemprop="datePublished">2026-05-19</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2026/05/19/利用superpowers让Spec-Coding更准确/">利用superpowers让Spec Coding更准确</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="开场个人观察"><a href="#开场个人观察" class="headerlink" title="开场个人观察"></a>开场个人观察</h2><p>如果说 <code>/openspec</code> 的价值是把需求写清楚，那么 <code>/superpowers</code> 更像是给 Codex 加一层“工程审查能力”。这里我同样把它当成团队自定义 skill 来写：它不是某个环境一定内置的命令，而是一套可以沉淀到 skill 里的工作流。</p>
+<p>Java 系统项目的难点往往不在 CRUD，而在事务、并发、幂等、权限、异常、兼容性、回滚。普通提示词容易让 Codex 只关注“怎么写代码”，而 <code>/superpowers</code> 这类 skill 应该提醒它主动问：这个方案会不会出事故？</p>
+<p><img src="/images/ai-flowcharts/codex-superpowers-spec-flow.svg" alt="superpowers增强Spec Coding"></p>
+<h2 id="核心观点"><a href="#核心观点" class="headerlink" title="核心观点"></a>核心观点</h2><p><code>/superpowers</code> 可以理解为四种能力的组合。</p>
+<p>第一，需求拆解能力。把大需求拆成可独立验证的小任务。</p>
+<p>第二，风险识别能力。主动检查事务、并发、权限、兼容、性能。</p>
+<p>第三，测试设计能力。不是只补 happy path，而是补边界和异常。</p>
+<p>第四，diff 审查能力。每轮改完都看是否越界。</p>
+<p>它和 <code>/openspec</code> 的区别在于：<code>openspec</code> 更偏“把需求定义清楚”，<code>superpowers</code> 更偏“把实现过程管住”。</p>
+<h2 id="实践方法"><a href="#实践方法" class="headerlink" title="实践方法"></a>实践方法</h2><p>以“库存预占接口改造”为例，可以这样使用：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">/superpowers</span><br><span class="line">请以 Java 后端代码审查和实现拆解的方式，分析下面这个 spec：</span><br><span class="line">库存预占接口需要支持批量 SKU，要求同一订单幂等，库存不足时返回明细级失败原因。</span><br><span class="line"></span><br><span class="line">请输出：</span><br><span class="line">1. 任务拆分；</span><br><span class="line">2. 风险清单；</span><br><span class="line">3. 测试用例；</span><br><span class="line">4. 实现顺序；</span><br><span class="line">5. 每一步的验收标准。</span><br></pre></td></tr></table></figure>
+<p>理想输出应该不是“直接改 Controller”，而是类似：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">任务1：定义请求 DTO 和响应 DTO</span><br><span class="line">任务2：补充库存查询和校验逻辑</span><br><span class="line">任务3：增加订单维度幂等记录</span><br><span class="line">任务4：实现库存预占事务</span><br><span class="line">任务5：补充单测和异常用例</span><br><span class="line">任务6：review SQL、事务边界和日志</span><br></pre></td></tr></table></figure>
+<p>风险清单要足够具体：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">- 幂等 key 只用订单号是否足够？</span><br><span class="line">- 批量 SKU 中部分成功部分失败时是否允许？</span><br><span class="line">- 库存扣减是否使用乐观锁或行锁？</span><br><span class="line">- 事务失败后是否会留下幂等记录？</span><br><span class="line">- 日志是否会打印敏感字段？</span><br><span class="line">- 接口响应是否兼容旧前端？</span><br></pre></td></tr></table></figure>
+<p>测试用例也要具体：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">1. 单 SKU 预占成功；</span><br><span class="line">2. 多 SKU 全部成功；</span><br><span class="line">3. 部分 SKU 库存不足；</span><br><span class="line">4. 重复请求不重复扣减；</span><br><span class="line">5. 并发请求同一 SKU 不超卖；</span><br><span class="line">6. 数据库异常时事务回滚；</span><br><span class="line">7. 参数为空或数量为负数返回校验错误。</span><br></pre></td></tr></table></figure>
+<p>这类输出会让 Codex 从“写代码模式”切到“工程落地模式”。</p>
+<h2 id="踩坑提醒"><a href="#踩坑提醒" class="headerlink" title="踩坑提醒"></a>踩坑提醒</h2><p>第一个坑，是把 <code>/superpowers</code> 写成口号。比如“请发挥你的超级能力”。这没用。要明确让它做拆解、审查、测试、验收。</p>
+<p>第二个坑，是只让它审代码，不让它审需求。很多 bug 不是代码写错，而是需求本身没定义清楚。</p>
+<p>第三个坑，是风险清单不落地。风险必须能变成测试、代码检查或人工 review 点。</p>
+<p>第四个坑，是不控制范围。<code>superpowers</code> 适合增强判断，不适合让 Codex 自由发挥到重构整个系统。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p><code>/superpowers</code> 这类 skill 最适合用在 Java 系统高风险任务里：库存、支付、结算、权限、消息消费、批处理。它的目标不是让 Codex 写得更多，而是让 Codex 写得更稳。</p>
+<p>真正好用的 <code>/superpowers</code>，应该输出任务拆分、风险清单、测试清单和验收标准。这样 spec coding 才不只是“按文档写代码”，而是“按工程标准落地”。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a href="https://developers.openai.com/codex/learn/best-practices" target="_blank" rel="noopener">OpenAI Codex best practices</a></li>
+<li><a href="https://developers.openai.com/codex/config/skills" target="_blank" rel="noopener">OpenAI Codex Skills</a></li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://guxingxianyue.github.io/2026/05/19/利用superpowers让Spec-Coding更准确/" data-id="cmq9aadkh000om4qh85mmln96" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/AI/">AI</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Codex/">Codex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/">Java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Spec-Coding/">Spec Coding</a></li></ul>
 
     </footer>
   </div>
@@ -311,228 +446,9 @@
 
 
   
-    <article id="post-Claude-Code使用指南从第一次启动到完成一个任务" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2026/05/08/Claude-Code使用指南从第一次启动到完成一个任务/" class="article-date">
-  <time datetime="2026-05-08T05:00:00.000Z" itemprop="datePublished">2026-05-08</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2026/05/08/Claude-Code使用指南从第一次启动到完成一个任务/">Claude Code使用指南：从第一次启动到完成一个任务</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="开场个人观察"><a href="#开场个人观察" class="headerlink" title="开场个人观察"></a>开场个人观察</h2><p>这两年 AI 编程工具变化很快，从最早的补全、问答，到现在可以进入项目、读文件、改代码、跑命令的 coding agent，开发方式已经明显不一样了。Claude Code 属于这一类工具：它不是单纯的聊天窗口，而是更靠近终端里的协作开发助手。</p>
-<p>我觉得普通开发者第一次用 Claude Code，最容易踩的坑不是“不会安装”，而是上来就把它当成万能实习生：丢一句“帮我优化项目”，然后等它自己理解所有背景。这样做偶尔能有惊喜，但很难稳定。更好的方式，是把它放进一个清楚的工作流里：先让它认识项目，再让它计划，再让它小步修改，最后看 diff 和验证结果。</p>
-<p>下面这篇笔记不追求把所有功能讲完，而是记录一套适合日常开发的入门流程。只要这套流程跑顺了，后面再去学命令、skills、hooks、MCP，都会自然很多。</p>
-<p><img src="/images/ai-flowcharts/claude-code-guide-flow.svg" alt="Claude Code使用流程"></p>
-<h2 id="核心观点"><a href="#核心观点" class="headerlink" title="核心观点"></a>核心观点</h2><p>Claude Code 的价值不在于“一句话生成一堆代码”，而在于把项目上下文、终端命令和代码修改串起来。你给它的任务越像一个可验收的小 issue，它的输出越容易 review。</p>
-<p>我会把一次比较稳的 Claude Code 使用过程分成六步：</p>
-<p>第一，进入正确的项目目录。AI 工具再强，也需要知道自己应该读哪个仓库、改哪个目录。</p>
-<p>第二，先问项目结构，不急着让它改代码。比如让它说明入口文件、构建命令、测试命令、核心模块和风险点。</p>
-<p>第三，把需求写清楚。最好包括目标、范围、验收标准、限制条件。</p>
-<p>第四，让它先计划。复杂任务尤其不要一开始就让它写文件。</p>
-<p>第五，小步执行。一次只做一个焦点，不要把修 bug、重构、加测试、改样式都塞进同一轮。</p>
-<p>第六，看 diff、跑测试、沉淀规则。AI 生成的代码必须被验证，不能只看它的总结。</p>
-<p><img src="/images/ai-flowcharts/claude-code-guide-terminal.svg" alt="Claude Code终端指引"></p>
-<h2 id="实践方法"><a href="#实践方法" class="headerlink" title="实践方法"></a>实践方法</h2><p>第一次进入一个项目，我会先在项目根目录启动：</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /path/to/project</span><br><span class="line">claude</span><br></pre></td></tr></table></figure>
-<p>如果是在 Windows 上，路径可能类似：</p>
-<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">cd E:\workspace\your-project</span><br><span class="line">claude</span><br></pre></td></tr></table></figure>
-<p>进入会话后，不要马上说“帮我改”。我更建议第一句这样写：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">先不要修改文件。请阅读这个项目的目录结构和关键配置，告诉我：</span><br><span class="line">1. 这是一个什么类型的项目；</span><br><span class="line">2. 入口文件和主要模块在哪里；</span><br><span class="line">3. 安装、测试、构建命令可能是什么；</span><br><span class="line">4. 如果后续要修改代码，哪些目录需要谨慎处理。</span><br></pre></td></tr></table></figure>
-<p>这个提示的作用，是先校准 Claude Code 对项目的理解。如果它一开始就找错入口，后面的修改很容易偏。</p>
-<p>当你已经知道要做什么，可以把需求写成一个小任务：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">目标：给登录页增加错误提示。</span><br><span class="line">范围：只修改登录页组件、登录请求处理和必要的测试。</span><br><span class="line">验收：输入错误密码时显示明确错误；网络失败时提示稍后重试；原有成功登录流程不变。</span><br><span class="line">限制：不要重构全局请求库，不要改路由结构。</span><br><span class="line">验证：完成后运行 npm test 和 npm run build；如果失败，请说明原因。</span><br></pre></td></tr></table></figure>
-<p>如果任务涉及多个文件，我会加一句：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">先给计划，不要直接改文件。计划里请列出准备阅读的文件、修改步骤、验证方式和可能风险。</span><br></pre></td></tr></table></figure>
-<p>计划确认后，再让它执行：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">按这个计划实现。每一步尽量保持最小改动，完成后总结改了哪些文件，并给出验证结果。</span><br></pre></td></tr></table></figure>
-<p>这套节奏看起来慢一点，但实际更省时间。因为你把“方向错了以后返工”的成本提前降下来了。</p>
-<h2 id="踩坑提醒"><a href="#踩坑提醒" class="headerlink" title="踩坑提醒"></a>踩坑提醒</h2><p>第一个坑，是让 Claude Code 同时做太多事。比如“顺便优化一下代码风格、顺便补测试、顺便升级依赖”。这些“顺便”很容易把任务边界打散。我的做法是：一个任务只保留一个核心目标，其他想法另开任务。</p>
-<p>第二个坑，是不看 diff。AI 工具会给你很自信的总结，但总结不等于真实改动。尤其是配置文件、权限文件、构建脚本、数据库迁移脚本，一定要逐个看。</p>
-<p>第三个坑，是把测试命令留到最后才想起来。更好的方式是在任务里直接写清楚“完成后要跑哪些命令”。如果项目没有测试，也要写手工验收标准。</p>
-<p>第四个坑，是没有项目记忆。Claude Code 官方文档提到可以用 <code>/init</code> 生成项目说明，也可以用记忆文件沉淀项目规则。我的理解是：只要某条规则你重复说了三次，就应该写进项目说明里。</p>
-<p>第五个坑，是会话太长还硬撑。长会话里上下文会越来越多，模型可能开始抓不住重点。这个时候应该用上下文管理命令压缩、清理或重新开会话，而不是继续堆提示词。</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Claude Code 的入门重点不是背命令，而是建立一个稳定的协作节奏：先读项目，再给计划，小步执行，看 diff，跑验证，沉淀规则。</p>
-<p>如果把它当成“替我写代码的人”，你会经常担心它改错；如果把它当成“可以读项目、执行任务、接受 review 的协作助手”，它的价值会稳定很多。</p>
-<p>我的建议是：先拿一个低风险项目练习，从文档、测试、小 bug 开始，不要一上来就让它改核心链路。等你熟悉它的节奏之后，再逐渐把更复杂的任务交给它。</p>
-<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
-<li><a href="https://code.claude.com/docs/en/cli-reference" target="_blank" rel="noopener">Claude Code CLI reference</a></li>
-<li><a href="https://code.claude.com/docs/en/common-workflows" target="_blank" rel="noopener">Claude Code common workflows</a></li>
-<li><a href="https://code.claude.com/docs/en/interactive-mode" target="_blank" rel="noopener">Claude Code interactive mode</a></li>
-</ul>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2026/05/08/Claude-Code使用指南从第一次启动到完成一个任务/" data-id="cmq8scy6f0000jsqh3coc9g2o" class="article-share-link">Share</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/AI/">AI</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Claude-Code/">Claude Code</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/编程效率/">编程效率</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-erp系统报表统计" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2024/11/06/erp系统报表统计/" class="article-date">
-  <time datetime="2024-11-06T08:45:00.000Z" itemprop="datePublished">2024-11-06</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2024/11/06/erp系统报表统计/">erp系统报表统计</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>ERP 系统里的报表统计看起来只是把数据查出来、汇总一下、展示成表格或图表，但真实项目里，报表往往是最容易拖慢系统、最容易和业务口径争议、也最难长期维护的部分。</p>
-<p>原因很简单：ERP 覆盖采购、销售、库存、生产、财务、人事、仓储等多个业务域。每个业务域都有自己的单据、状态、时间口径和组织权限。报表统计不是一个单纯的 SQL 问题，而是数据模型、业务口径、性能、权限和交付方式的综合问题。</p>
-<p><img src="/images/tech-flowcharts/erp-report-optimization-flow.svg" alt="ERP 报表统计优化流程"></p>
-<h2 id="报表统计为什么难"><a href="#报表统计为什么难" class="headerlink" title="报表统计为什么难"></a>报表统计为什么难</h2><p>第一个难点是数据来源多。</p>
-<p>一个销售毛利报表可能需要销售订单、出库单、发票、成本价、退货单、客户档案、商品档案。一个库存周转报表可能需要期初库存、入库流水、出库流水、调拨单、盘点单、库存成本。数据分散在多个模块，任何一个模块的状态定义不清楚，报表结果就会不准确。</p>
-<p>第二个难点是业务口径复杂。</p>
-<p>同样是“销售额”，财务可能按已开票金额统计，销售部门可能按已审核订单金额统计，仓库可能只关心已出库金额。口径不同，结果就不同。如果系统没有把口径写清楚，用户会认为报表错了。</p>
-<p>第三个难点是数据量增长快。</p>
-<p>ERP 系统上线初期，订单、库存流水、财务凭证数量不大，直接查交易表还能接受。运行一年后，库存流水可能达到几千万甚至上亿行。原来 1 秒的统计 SQL 可能变成 30 秒。</p>
-<p>第四个难点是权限过滤复杂。</p>
-<p>不同用户能看的组织、仓库、客户、供应商、商品类目不同。报表查询不仅要统计数据，还要拼接权限条件。如果权限模型复杂，SQL 会变得非常重。</p>
-<p>第五个难点是实时性要求不一致。</p>
-<p>老板看经营大盘，希望数字尽量实时；财务月结报表更强调准确；仓库作业看板需要分钟级刷新；历史经营分析允许 T+1。不同报表如果都按实时查询设计，系统成本会很高。</p>
-<h2 id="常见问题点"><a href="#常见问题点" class="headerlink" title="常见问题点"></a>常见问题点</h2><p>ERP 报表项目里最常见的问题，是把报表当成页面功能开发，而不是当成数据产品设计。</p>
-<p>典型表现包括：</p>
-<ul>
-<li>每个报表单独写一套复杂 SQL，逻辑重复。</li>
-<li>报表直接查询交易库，和业务写入争抢资源。</li>
-<li>没有统一指标口径，同一个指标在不同页面结果不一致。</li>
-<li>大量使用 <code>SELECT *</code>、多表 JOIN、动态条件拼接。</li>
-<li>明细报表和汇总报表混在一起。</li>
-<li>用户随意选择超大时间范围，导致全表扫描。</li>
-<li>导出功能同步执行，拖垮应用线程。</li>
-<li>报表结果没有版本，月结后历史数据还会变化。</li>
-</ul>
-<p>这些问题短期看只是慢，长期看会变成信任问题。用户一旦认为报表不准，即使系统性能优化了，也很难恢复信任。</p>
-<h2 id="优化思路一：先统一指标口径"><a href="#优化思路一：先统一指标口径" class="headerlink" title="优化思路一：先统一指标口径"></a>优化思路一：先统一指标口径</h2><p>报表优化的第一步不是建索引，而是定义口径。</p>
-<p>每个核心指标都应该回答这些问题：</p>
-<ul>
-<li>指标名称是什么。</li>
-<li>统计对象是什么。</li>
-<li>数据来源表是什么。</li>
-<li>使用哪个时间字段。</li>
-<li>包含哪些状态。</li>
-<li>是否扣除退货、作废、冲红。</li>
-<li>是否含税。</li>
-<li>是否按组织、仓库、客户、供应商过滤。</li>
-<li>数据刷新频率是多少。</li>
-</ul>
-<p>例如“销售额”可以定义为：统计已审核且未作废销售订单的含税金额，按订单审核时间归属日期，退货单按负数冲减。这个定义必须在报表说明、SQL 逻辑和测试用例里保持一致。</p>
-<p>没有口径统一，后面的性能优化意义有限，因为优化得越快，错误传播得越快。</p>
-<h2 id="优化思路二：交易库和统计库分离"><a href="#优化思路二：交易库和统计库分离" class="headerlink" title="优化思路二：交易库和统计库分离"></a>优化思路二：交易库和统计库分离</h2><p>ERP 的交易库主要服务于业务写入和核心查询，比如下单、审核、入库、出库、付款。报表统计通常是宽范围扫描和聚合，负载特征完全不同。</p>
-<p>如果所有报表都直接查交易库，高峰期报表会影响业务操作。更稳妥的方式是把交易数据同步到统计库或数仓，在统计库里做报表查询。</p>
-<p>常见方式包括：</p>
-<ul>
-<li>通过 binlog 或 CDC 同步交易数据。</li>
-<li>通过 MQ 订阅业务事件。</li>
-<li>通过定时任务增量抽取。</li>
-<li>通过离线 ETL 生成 T+1 报表。</li>
-</ul>
-<p>小系统可以先用只读从库承接报表查询。数据量继续增长后，再引入 ClickHouse、Doris、Elasticsearch 或专门的数据仓库。</p>
-<h2 id="优化思路三：建设汇总表和宽表"><a href="#优化思路三：建设汇总表和宽表" class="headerlink" title="优化思路三：建设汇总表和宽表"></a>优化思路三：建设汇总表和宽表</h2><p>复杂报表不能每次都从原始明细重新计算。</p>
-<p>例如销售日报，如果每次都扫描销售订单、退货单、客户表、商品表、组织表，再按日期、区域、客户分组，成本会很高。可以每天或每小时生成汇总表：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">erp_sales_daily_summary</span><br><span class="line">- summary_date</span><br><span class="line">- org_id</span><br><span class="line">- customer_id</span><br><span class="line">- product_category_id</span><br><span class="line">- order_amount</span><br><span class="line">- return_amount</span><br><span class="line">- net_amount</span><br><span class="line">- order_count</span><br><span class="line">- updated_at</span><br></pre></td></tr></table></figure>
-<p>页面查询时直接按汇总表聚合，速度会稳定很多。</p>
-<p>宽表适合解决多表关联问题。比如订单分析宽表可以提前把订单号、客户、业务员、区域、商品类目、金额、状态、审核时间等字段放在同一张表里。报表查询不再频繁 JOIN 多张业务表。</p>
-<p>汇总表和宽表的代价是数据冗余和同步逻辑复杂，但对于高频报表，这个代价通常值得。</p>
-<h2 id="优化思路四：按报表类型选择实时性"><a href="#优化思路四：按报表类型选择实时性" class="headerlink" title="优化思路四：按报表类型选择实时性"></a>优化思路四：按报表类型选择实时性</h2><p>不是所有报表都需要实时。</p>
-<p>可以把 ERP 报表分成几类：</p>
-<ul>
-<li>实时看板：库存预警、待审批、待发货，要求秒级或分钟级。</li>
-<li>经营汇总：销售日报、采购日报、仓库作业日报，允许分钟级或小时级。</li>
-<li>财务报表：应收应付、成本核算、月结报表，强调准确和可追溯。</li>
-<li>历史分析：年度趋势、供应商绩效、客户贡献，允许 T+1。</li>
-</ul>
-<p>实时看板可以用缓存、事件驱动和小范围查询。经营汇总可以用增量任务刷新。财务报表需要快照和版本。历史分析可以走离线数仓。</p>
-<p>这样做的好处是把系统资源花在真正需要实时的地方，而不是让所有报表都背上实时查询的成本。</p>
-<h2 id="优化思路五：限制查询范围和导出方式"><a href="#优化思路五：限制查询范围和导出方式" class="headerlink" title="优化思路五：限制查询范围和导出方式"></a>优化思路五：限制查询范围和导出方式</h2><p>报表页面必须有保护措施。</p>
-<p>常见策略包括：</p>
-<ul>
-<li>默认时间范围不要太大。</li>
-<li>对明细报表限制最大查询跨度。</li>
-<li>大范围查询必须走异步任务。</li>
-<li>导出任务进入队列，完成后生成下载文件。</li>
-<li>对高频用户和重报表做限流。</li>
-<li>对历史数据做分区或归档。</li>
-</ul>
-<p>比如库存流水明细可以允许页面查询最近 31 天。如果用户要导出一年数据，系统创建导出任务，后台慢慢生成 Excel 或 CSV，完成后通知用户下载。这样不会占用 Web 请求线程，也不会让用户长时间等待。</p>
-<h2 id="优化思路六：做好权限预处理"><a href="#优化思路六：做好权限预处理" class="headerlink" title="优化思路六：做好权限预处理"></a>优化思路六：做好权限预处理</h2><p>ERP 报表的权限经常比业务页面更复杂。一个区域经理能看多个组织，一个仓库主管只能看部分仓库，一个采购员只能看自己负责的供应商。</p>
-<p>如果每次查询都动态拼接复杂权限 SQL，性能和维护性都会变差。可以考虑把用户可访问范围预处理成权限表或缓存。</p>
-<p>例如：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">erp_user_data_scope</span><br><span class="line">- user_id</span><br><span class="line">- scope_type</span><br><span class="line">- scope_id</span><br></pre></td></tr></table></figure>
-<p>报表查询时先拿到用户可访问的组织、仓库、供应商，再参与过滤。对于权限范围很大的用户，可以使用角色级缓存或组织树预计算。</p>
-<p>权限必须和报表口径一起测试。报表统计错一部分是数据问题，越权展示则是安全问题。</p>
-<h2 id="优化思路七：让报表可核对"><a href="#优化思路七：让报表可核对" class="headerlink" title="优化思路七：让报表可核对"></a>优化思路七：让报表可核对</h2><p>报表不仅要快，还要能解释。</p>
-<p>用户看到销售额 128 万时，经常会追问：这个数字由哪些单据组成？为什么和昨天看到的不一样？为什么和财务报表不同？</p>
-<p>因此报表系统需要支持从汇总到明细的下钻。汇总表里的数字应该能追溯到明细单据，财务月结类报表还应该有快照版本。月结完成后，历史报表不能因为后续业务数据修改而悄悄变化。</p>
-<p>对于关键报表，可以保留统计任务日志：统计时间、数据范围、处理行数、异常记录、结果版本。这样出现争议时可以快速定位。</p>
-<h2 id="一个供应链-ERP-报表优化例子"><a href="#一个供应链-ERP-报表优化例子" class="headerlink" title="一个供应链 ERP 报表优化例子"></a>一个供应链 ERP 报表优化例子</h2><p>假设系统有一个“供应商履约报表”，统计供应商按时交货率、延期次数、采购金额、退货金额。</p>
-<p>初始实现可能是一个大 SQL，实时关联采购订单、收货单、退货单、供应商表，并按供应商分组。数据量小时可用，数据量大后页面打开要 20 秒。</p>
-<p>优化可以这样做：</p>
-<ol>
-<li>明确口径：按采购订单承诺交货日期和实际收货日期计算是否延期，作废采购单不统计，退货金额单独列示。</li>
-<li>建立采购履约明细宽表，把采购单、供应商、承诺日期、收货日期、金额、退货金额、状态提前整理好。</li>
-<li>每小时增量刷新履约明细宽表。</li>
-<li>每天生成供应商履约汇总表。</li>
-<li>页面默认查汇总表，点击供应商后再下钻明细。</li>
-<li>超过 6 个月范围的导出走异步任务。</li>
-</ol>
-<p>优化后，页面查询从扫描多张交易表变成读取汇总表，响应时间稳定在几百毫秒。更重要的是，指标口径清楚，用户可以下钻核对每一个数字。</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>ERP 报表统计的核心难点不只是 SQL 慢，而是数据来源多、业务口径多、权限复杂、实时性差异大、历史数据需要可追溯。</p>
-<p>优化报表统计的顺序应该是：先统一口径，再分离统计负载，再建设宽表和汇总表，再按实时性分层，再控制查询和导出，最后补上权限、下钻和快照能力。</p>
-<p>报表系统做得好，不只是页面快，而是让业务人员相信数据、理解数据，并且能用数据做决策。</p>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2024/11/06/erp系统报表统计/" data-id="cmq8scy6t000ojsqh8kw7sbki" class="article-share-link">Share</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ERP/">ERP</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/报表统计/">报表统计</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/数据分析/">数据分析</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/系统优化/">系统优化</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
   
     <nav id="page-nav">
-      <a class="extend prev" rel="prev" href="/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><span class="space">&hellip;</span><a class="page-number" href="/page/6/">6</a><a class="extend next" rel="next" href="/page/3/">Next &raquo;</a>
+      <a class="extend prev" rel="prev" href="/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><span class="space">&hellip;</span><a class="page-number" href="/page/7/">7</a><a class="extend next" rel="next" href="/page/3/">Next &raquo;</a>
     </nav>
   
 </section>
@@ -545,7 +461,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI/">AI</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Agent/">Agent</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CAP/">CAP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Claude-Code/">Claude Code</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Codex/">Codex</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ERP/">ERP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/">Java</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kafka/">Kafka</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/">MySQL</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Redis/">Redis</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/">SQL</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL优化/">SQL优化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Skill/">Skill</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spring-Cloud/">Spring Cloud</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/事务/">事务</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/供应链系统/">供应链系统</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/分布式/">分布式</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/分布式系统/">分布式系统</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/分布式锁/">分布式锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/命令行/">命令行</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/工程实践/">工程实践</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/并发控制/">并发控制</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/微服务/">微服务</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/技术文章/">技术文章</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/报表统计/">报表统计</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据分析/">数据分析</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据库/">数据库</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据结构与算法/">数据结构与算法</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/架构设计/">架构设计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/消息队列/">消息队列</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/系统优化/">系统优化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/系统设计/">系统设计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/缓存/">缓存</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/编程效率/">编程效率</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/软件工程/">软件工程</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/锁/">锁</a><span class="tag-list-count">1</span></li></ul>
+      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AGENTS-md/">AGENTS.md</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI/">AI</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Agent/">Agent</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CAP/">CAP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Claude-Code/">Claude Code</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Codex/">Codex</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ERP/">ERP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/">Java</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kafka/">Kafka</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/">MySQL</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Redis/">Redis</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/">SQL</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL优化/">SQL优化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Skill/">Skill</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spec-Coding/">Spec Coding</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spring-Cloud/">Spring Cloud</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/事务/">事务</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/供应链系统/">供应链系统</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/分布式/">分布式</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/分布式系统/">分布式系统</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/分布式锁/">分布式锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/命令行/">命令行</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/工程实践/">工程实践</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/并发控制/">并发控制</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/微服务/">微服务</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/技术文章/">技术文章</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/报表统计/">报表统计</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据分析/">数据分析</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据库/">数据库</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据结构与算法/">数据结构与算法</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/架构设计/">架构设计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/消息队列/">消息队列</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/系统优化/">系统优化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/系统设计/">系统设计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/缓存/">缓存</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/编程效率/">编程效率</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/软件工程/">软件工程</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/锁/">锁</a><span class="tag-list-count">1</span></li></ul>
     </div>
   </div>
 
@@ -554,7 +470,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tag Cloud</h3>
     <div class="widget tagcloud">
-      <a href="/tags/AI/" style="font-size: 20px;">AI</a> <a href="/tags/Agent/" style="font-size: 10px;">Agent</a> <a href="/tags/CAP/" style="font-size: 10px;">CAP</a> <a href="/tags/Claude-Code/" style="font-size: 15px;">Claude Code</a> <a href="/tags/Codex/" style="font-size: 13.33px;">Codex</a> <a href="/tags/ERP/" style="font-size: 10px;">ERP</a> <a href="/tags/Java/" style="font-size: 11.67px;">Java</a> <a href="/tags/Kafka/" style="font-size: 10px;">Kafka</a> <a href="/tags/MySQL/" style="font-size: 11.67px;">MySQL</a> <a href="/tags/Redis/" style="font-size: 11.67px;">Redis</a> <a href="/tags/SQL/" style="font-size: 10px;">SQL</a> <a href="/tags/SQL优化/" style="font-size: 10px;">SQL优化</a> <a href="/tags/Skill/" style="font-size: 10px;">Skill</a> <a href="/tags/Spring-Cloud/" style="font-size: 10px;">Spring Cloud</a> <a href="/tags/事务/" style="font-size: 10px;">事务</a> <a href="/tags/供应链系统/" style="font-size: 10px;">供应链系统</a> <a href="/tags/分布式/" style="font-size: 15px;">分布式</a> <a href="/tags/分布式系统/" style="font-size: 11.67px;">分布式系统</a> <a href="/tags/分布式锁/" style="font-size: 10px;">分布式锁</a> <a href="/tags/命令行/" style="font-size: 11.67px;">命令行</a> <a href="/tags/工程实践/" style="font-size: 13.33px;">工程实践</a> <a href="/tags/并发控制/" style="font-size: 10px;">并发控制</a> <a href="/tags/微服务/" style="font-size: 10px;">微服务</a> <a href="/tags/技术文章/" style="font-size: 18.33px;">技术文章</a> <a href="/tags/报表统计/" style="font-size: 10px;">报表统计</a> <a href="/tags/数据分析/" style="font-size: 10px;">数据分析</a> <a href="/tags/数据库/" style="font-size: 11.67px;">数据库</a> <a href="/tags/数据结构与算法/" style="font-size: 13.33px;">数据结构与算法</a> <a href="/tags/架构设计/" style="font-size: 11.67px;">架构设计</a> <a href="/tags/消息队列/" style="font-size: 10px;">消息队列</a> <a href="/tags/系统优化/" style="font-size: 10px;">系统优化</a> <a href="/tags/系统设计/" style="font-size: 11.67px;">系统设计</a> <a href="/tags/缓存/" style="font-size: 10px;">缓存</a> <a href="/tags/编程效率/" style="font-size: 16.67px;">编程效率</a> <a href="/tags/软件工程/" style="font-size: 13.33px;">软件工程</a> <a href="/tags/锁/" style="font-size: 10px;">锁</a>
+      <a href="/tags/AGENTS-md/" style="font-size: 10px;">AGENTS.md</a> <a href="/tags/AI/" style="font-size: 20px;">AI</a> <a href="/tags/Agent/" style="font-size: 10px;">Agent</a> <a href="/tags/CAP/" style="font-size: 10px;">CAP</a> <a href="/tags/Claude-Code/" style="font-size: 14.29px;">Claude Code</a> <a href="/tags/Codex/" style="font-size: 18.57px;">Codex</a> <a href="/tags/ERP/" style="font-size: 10px;">ERP</a> <a href="/tags/Java/" style="font-size: 17.14px;">Java</a> <a href="/tags/Kafka/" style="font-size: 10px;">Kafka</a> <a href="/tags/MySQL/" style="font-size: 11.43px;">MySQL</a> <a href="/tags/Redis/" style="font-size: 11.43px;">Redis</a> <a href="/tags/SQL/" style="font-size: 10px;">SQL</a> <a href="/tags/SQL优化/" style="font-size: 10px;">SQL优化</a> <a href="/tags/Skill/" style="font-size: 10px;">Skill</a> <a href="/tags/Spec-Coding/" style="font-size: 12.86px;">Spec Coding</a> <a href="/tags/Spring-Cloud/" style="font-size: 10px;">Spring Cloud</a> <a href="/tags/事务/" style="font-size: 10px;">事务</a> <a href="/tags/供应链系统/" style="font-size: 10px;">供应链系统</a> <a href="/tags/分布式/" style="font-size: 14.29px;">分布式</a> <a href="/tags/分布式系统/" style="font-size: 11.43px;">分布式系统</a> <a href="/tags/分布式锁/" style="font-size: 10px;">分布式锁</a> <a href="/tags/命令行/" style="font-size: 11.43px;">命令行</a> <a href="/tags/工程实践/" style="font-size: 12.86px;">工程实践</a> <a href="/tags/并发控制/" style="font-size: 10px;">并发控制</a> <a href="/tags/微服务/" style="font-size: 10px;">微服务</a> <a href="/tags/技术文章/" style="font-size: 15.71px;">技术文章</a> <a href="/tags/报表统计/" style="font-size: 10px;">报表统计</a> <a href="/tags/数据分析/" style="font-size: 10px;">数据分析</a> <a href="/tags/数据库/" style="font-size: 11.43px;">数据库</a> <a href="/tags/数据结构与算法/" style="font-size: 12.86px;">数据结构与算法</a> <a href="/tags/架构设计/" style="font-size: 11.43px;">架构设计</a> <a href="/tags/消息队列/" style="font-size: 10px;">消息队列</a> <a href="/tags/系统优化/" style="font-size: 10px;">系统优化</a> <a href="/tags/系统设计/" style="font-size: 11.43px;">系统设计</a> <a href="/tags/缓存/" style="font-size: 10px;">缓存</a> <a href="/tags/编程效率/" style="font-size: 15.71px;">编程效率</a> <a href="/tags/软件工程/" style="font-size: 14.29px;">软件工程</a> <a href="/tags/锁/" style="font-size: 10px;">锁</a>
     </div>
   </div>
 
@@ -563,7 +479,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/06/">六月 2026</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/05/">五月 2026</a><span class="archive-list-count">4</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">十一月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">八月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/05/">五月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">二月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">十一月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/07/">七月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">三月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">六月 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">四月 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">三月 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">一月 2016</a><span class="archive-list-count">1</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/06/">六月 2026</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/05/">五月 2026</a><span class="archive-list-count">9</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">十一月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">八月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/05/">五月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">二月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">十一月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/07/">七月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">三月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">六月 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">四月 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">三月 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">一月 2016</a><span class="archive-list-count">1</span></li></ul>
     </div>
   </div>
 

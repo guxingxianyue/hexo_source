@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="560" viewBox="0 0 1080 560" role="img" aria-labelledby="title desc">
+  <title id="title">Codex Java 项目提示词结构</title>
+  <desc id="desc">展示 Java 系统项目中给 Codex 写提示词的五段式结构。</desc>
+  <rect width="1080" height="560" fill="#f8fafc"/>
+  <text x="540" y="44" text-anchor="middle" font-family="Arial, 'Microsoft YaHei', sans-serif" font-size="26" font-weight="700" fill="#111827">Java 项目给 Codex 的提示词结构</text>
+  <g font-family="Arial, 'Microsoft YaHei', sans-serif" font-size="15" fill="#111827">
+    <rect x="70" y="105" width="160" height="86" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
+    <text x="150" y="137" text-anchor="middle" font-weight="700">目标</text>
+    <text x="150" y="163" text-anchor="middle">要改什么业务</text>
+    <rect x="280" y="105" width="160" height="86" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
+    <text x="360" y="137" text-anchor="middle" font-weight="700">上下文</text>
+    <text x="360" y="163" text-anchor="middle">模块/接口/表/异常</text>
+    <rect x="490" y="105" width="160" height="86" rx="10" fill="#ffffff" stroke="#7c3aed" stroke-width="2"/>
+    <text x="570" y="137" text-anchor="middle" font-weight="700">约束</text>
+    <text x="570" y="163" text-anchor="middle">架构/事务/兼容</text>
+    <rect x="700" y="105" width="160" height="86" rx="10" fill="#ffffff" stroke="#059669" stroke-width="2"/>
+    <text x="780" y="137" text-anchor="middle" font-weight="700">完成标准</text>
+    <text x="780" y="163" text-anchor="middle">测试/行为/回归</text>
+    <rect x="455" y="305" width="170" height="92" rx="10" fill="#ffffff" stroke="#dc2626" stroke-width="2"/>
+    <text x="540" y="339" text-anchor="middle" font-weight="700">验证命令</text>
+    <text x="540" y="366" text-anchor="middle">mvn test / 构建 / 手测</text>
+    <rect x="282" y="450" width="516" height="52" rx="10" fill="#ecfeff" stroke="#0891b2" stroke-width="2"/>
+    <text x="540" y="482" text-anchor="middle" font-weight="700">结果：Codex 能先计划、小步修改、跑测试、总结 diff</text>
+  </g>
+  <g stroke="#64748b" stroke-width="2" fill="none" marker-end="url(#arrow)">
+    <path d="M230 148H280"/>
+    <path d="M440 148H490"/>
+    <path d="M650 148H700"/>
+    <path d="M780 191C740 250 615 260 540 305"/>
+    <path d="M540 397V450"/>
+  </g>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#64748b"/>
+    </marker>
+  </defs>
+</svg>
