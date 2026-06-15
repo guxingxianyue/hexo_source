@@ -1,32 +1,32 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1080" height="620" viewBox="0 0 1080 620" role="img" aria-labelledby="title desc">
   <title id="title">openspec 与 superpowers 组合落地大需求</title>
-  <desc id="desc">展示 openspec 负责规格化需求，superpowers 负责拆解、审查和落地检查的组合流程。</desc>
+  <desc id="desc">展示 OpenSpec OPSX 负责变更生命周期，Superpowers skills 负责澄清、计划、测试、调试、审查和收尾。</desc>
   <rect width="1080" height="620" fill="#f8fafc"/>
-  <text x="540" y="44" text-anchor="middle" font-family="Arial, 'Microsoft YaHei', sans-serif" font-size="26" font-weight="700" fill="#111827">openspec + superpowers：大需求落地闭环</text>
+  <text x="540" y="44" text-anchor="middle" font-family="Arial, 'Microsoft YaHei', sans-serif" font-size="26" font-weight="700" fill="#111827">OpenSpec OPSX + Superpowers：大需求落地闭环</text>
   <g font-family="Arial, 'Microsoft YaHei', sans-serif" font-size="15" fill="#111827">
     <rect x="60" y="95" width="170" height="86" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
     <text x="145" y="127" text-anchor="middle" font-weight="700">大需求</text>
     <text x="145" y="153" text-anchor="middle">模糊/跨模块</text>
     <rect x="275" y="95" width="170" height="86" rx="10" fill="#ffffff" stroke="#7c3aed" stroke-width="2"/>
-    <text x="360" y="127" text-anchor="middle" font-weight="700">/openspec</text>
-    <text x="360" y="153" text-anchor="middle">需求规格化</text>
+    <text x="360" y="127" text-anchor="middle" font-weight="700">/opsx:propose</text>
+    <text x="360" y="153" text-anchor="middle">生成 change artifacts</text>
     <rect x="490" y="95" width="170" height="86" rx="10" fill="#ffffff" stroke="#7c3aed" stroke-width="2"/>
-    <text x="575" y="127" text-anchor="middle" font-weight="700">Spec Baseline</text>
-    <text x="575" y="153" text-anchor="middle">接口/数据/验收</text>
+    <text x="575" y="127" text-anchor="middle" font-weight="700">brainstorming</text>
+    <text x="575" y="153" text-anchor="middle">澄清目标/边界</text>
     <rect x="705" y="95" width="170" height="86" rx="10" fill="#ffffff" stroke="#059669" stroke-width="2"/>
-    <text x="790" y="127" text-anchor="middle" font-weight="700">/superpowers</text>
-    <text x="790" y="153" text-anchor="middle">拆任务/查风险</text>
+    <text x="790" y="127" text-anchor="middle" font-weight="700">writing-plans</text>
+    <text x="790" y="153" text-anchor="middle">拆小步/定验证</text>
     <rect x="215" y="295" width="190" height="92" rx="10" fill="#ffffff" stroke="#f59e0b" stroke-width="2"/>
-    <text x="310" y="329" text-anchor="middle" font-weight="700">任务切片</text>
-    <text x="310" y="356" text-anchor="middle">API/DB/Job/测试</text>
+    <text x="310" y="329" text-anchor="middle" font-weight="700">/opsx:apply</text>
+    <text x="310" y="356" text-anchor="middle">按 tasks 小步实现</text>
     <rect x="445" y="295" width="190" height="92" rx="10" fill="#ffffff" stroke="#f59e0b" stroke-width="2"/>
-    <text x="540" y="329" text-anchor="middle" font-weight="700">小步实现</text>
-    <text x="540" y="356" text-anchor="middle">一个切片一轮 review</text>
+    <text x="540" y="329" text-anchor="middle" font-weight="700">TDD + debugging</text>
+    <text x="540" y="356" text-anchor="middle">先测/证据修复</text>
     <rect x="675" y="295" width="190" height="92" rx="10" fill="#ffffff" stroke="#dc2626" stroke-width="2"/>
-    <text x="770" y="329" text-anchor="middle" font-weight="700">验收回归</text>
-    <text x="770" y="356" text-anchor="middle">逐条对照 spec</text>
+    <text x="770" y="329" text-anchor="middle" font-weight="700">code review</text>
+    <text x="770" y="356" text-anchor="middle">审 diff/风险/越界</text>
     <rect x="300" y="485" width="480" height="58" rx="10" fill="#ecfeff" stroke="#0891b2" stroke-width="2"/>
-    <text x="540" y="519" text-anchor="middle" font-weight="700">大需求不是一次做完，而是规格稳定后分批落地</text>
+    <text x="540" y="519" text-anchor="middle" font-weight="700">/opsx:verify → /opsx:sync → /opsx:archive，完成后验证、同步、归档</text>
   </g>
   <g stroke="#64748b" stroke-width="2" fill="none" marker-end="url(#arrow)">
     <path d="M230 138H275"/><path d="M445 138H490"/><path d="M660 138H705"/>
