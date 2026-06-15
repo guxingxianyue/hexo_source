@@ -30,7 +30,7 @@ Skill 不是越大越好，而是越清楚越好。一个好的 skill 应该回�
 
 我更喜欢把 skill 做成“小而稳”的工具。比如：
 
-`hexo-blog-writer`：专门指导 AI 写 Hexo 博客文章，包括 front matter、图片路径、生成命令、部署检查。
+`supply-chain-inventory-review`：专门审查供应链系统里的库存预占、释放、扣减和流水一致性。
 
 `api-review`：专门审查接口改动，包括鉴权、错误码、兼容性、日志、测试。
 
@@ -53,28 +53,29 @@ my-skill/
 
 ```markdown
 ---
-name: hexo-blog-writer
-description: Use when writing or updating Hexo blog posts with Markdown front matter, images, local generation, and GitHub Pages deployment checks.
+name: supply-chain-inventory-review
+description: Use when reviewing inventory reservation, release, deduction, or stock ledger changes in a Java supply chain system.
 ---
 
-# Hexo Blog Writer
+# Supply Chain Inventory Review
 
-Use this skill when the user asks to write, update, generate, or deploy posts in this Hexo blog.
+Use this skill when a change touches inventory reservation, inventory release, stock deduction, stock ledger, purchase receipt, shipment, or order fulfillment logic.
 
 ## Workflow
 
-1. Check existing posts under source/_posts.
-2. Create UTF-8 Markdown with title, date, and tags.
-3. Put images under source/images.
-4. Generate the static site.
-5. Verify archives and article pages.
-6. Deploy only after generation succeeds.
+1. Read the related Controller, Service, Mapper, DTO, database scripts, and tests.
+2. Identify the business scenario: order reservation, payment confirmation, timeout release, shipment deduction, purchase receipt, or adjustment.
+3. Check whether idempotency, transaction boundaries, concurrency control, and stock ledger records are defined.
+4. List risks before suggesting code changes.
+5. Require tests for success, duplicate requests, insufficient stock, concurrent requests, and rollback.
+6. Review the final diff against the risk list.
 
 ## Rules
 
-- Do not edit old posts unless requested.
-- Do not hand-edit public files unless this project's Hexo version requires a workaround.
-- Always verify the generated archive page contains the new article.
+- Do not introduce a new lock mechanism unless the existing project pattern cannot satisfy the scenario.
+- Do not change stock quantity without a matching stock ledger record.
+- Do not treat idempotency as only a frontend concern.
+- Any change to stock quantity must explain transaction and rollback behavior.
 ```
 
 这里的 `description` 很关键。它不是给人看的简介，而是帮助 AI 判断什么时候应该加载这个 skill。写得太窄，可能触发不了；写得太宽，又会到处乱触发。
@@ -102,6 +103,96 @@ my-skill/
 5. 如果触发太频繁，就收窄 description。
 6. 如果经常忘步骤，就把规则写得更明确。
 ```
+
+## 把重复工作流沉淀成 skill
+
+真正值得沉淀成 skill 的，不是一次性任务，而是反复出现、容易漏步骤、出错代价高的工作流。Java 供应链系统里最典型的例子，就是库存相关需求。
+
+比如系统里经常会有这些需求：
+
+```text
+下单时预占库存。
+支付成功后确认扣减。
+支付超时后释放库存。
+取消订单后释放库存。
+采购到货后增加库存。
+发货出库后扣减库存。
+盘点差异后调整库存。
+```
+
+这些需求看起来场景不同，但底层检查点很相似：库存数量不能错，流水必须完整，重复请求不能重复扣减，并发不能超卖，异常时不能留下半条数据。
+
+第一次遇到这类需求时，可以先写普通提示词：
+
+```text
+请先审查这个库存预占需求，不要写代码。
+重点检查：
+1. 库存数量字段如何变化；
+2. 是否需要库存流水；
+3. 是否有幂等 key；
+4. 并发请求是否会超卖；
+5. 事务失败是否会回滚；
+6. 需要哪些测试用例。
+```
+
+如果第二次、第三次还在复制同样的话，就说明它适合沉淀成 skill。沉淀时不要急着写成很大的“供应链系统全能助手”，而是先做一个边界清楚的 skill，比如 `supply-chain-inventory-review`。
+
+这个 skill 可以这样设计：
+
+```markdown
+---
+name: supply-chain-inventory-review
+description: Use when reviewing Java supply chain changes that modify inventory reservation, release, deduction, receipt, adjustment, or stock ledger records.
+---
+
+# Supply Chain Inventory Review
+
+## When to use
+
+Use this skill when a change touches inventory quantity, stock ledger, reservation records, purchase receipt, shipment deduction, or inventory adjustment.
+
+## Steps
+
+1. Identify the business action: reserve, release, deduct, receive, adjust, or reverse.
+2. Find the existing inventory tables, ledger tables, Mapper/XML, Service, and tests.
+3. Check idempotency: request key, order number, message key, or business unique index.
+4. Check concurrency: optimistic lock, conditional update, row lock, Redis lock, or message serialization.
+5. Check transaction boundary: which records must commit or roll back together.
+6. Check ledger consistency: every quantity change must have a matching ledger reason.
+7. Check tests: success, insufficient stock, duplicate request, concurrent request, rollback, and invalid state.
+8. Review diff and report any unrelated refactor.
+
+## Output
+
+Return:
+- business scenario summary
+- affected files and tables
+- risk list
+- required tests
+- review conclusion
+```
+
+这个例子里，skill 保存的不是某个需求的答案，而是“审查库存变更时必须走的流程”。以后不管是预占库存、释放库存，还是采购到货入库，都可以复用这套检查方式。
+
+更进一步，还可以把它拆成多个小 skill：
+
+```text
+supply-chain-inventory-review：审库存数量、流水、幂等、并发。
+supply-chain-report-review：审报表口径、SQL 性能、导出权限。
+supply-chain-order-state-review：审订单状态机、允许操作、异常流转。
+```
+
+这样做的好处是，每个 skill 都很清楚，触发条件也更准确。AI 不需要一次加载一大堆供应链知识，只在相关场景加载对应流程。
+
+我判断一个重复流程能不能变成 skill，通常看三个问题：
+
+```text
+这件事是否每次都要重复说？
+这件事漏掉以后是否容易出事故？
+这件事是否能写成稳定步骤和检查清单？
+```
+
+如果三个答案都是“是”，就值得沉淀。
 
 ## 踩坑提醒
 
