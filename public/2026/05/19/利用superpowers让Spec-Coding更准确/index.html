@@ -14,7 +14,7 @@
 <meta property="og:description" content="开场个人观察前面写 OpenSpec/OPSX 的时候，我把重点放在“先把需求写成规格，再让 AI 按规格实现”。但真实项目里还有另一类问题：spec 写得差不多了，AI 也开始改代码了，可过程还是容易跑偏。比如一次性改太多文件、没有先写测试、遇到失败就绕过、没有复盘 diff、没有把经验沉淀下来。 这就是我重新理解 superpowers 的原因。它不是一句“请发挥超级能力”的提示词，而是一套更">
 <meta property="og:locale" content="zh-CN">
 <meta property="og:image" content="https://guxingxianyue.github.io/images/ai-flowcharts/codex-superpowers-spec-flow.svg">
-<meta property="og:updated_time" content="2026-06-15T06:29:36.543Z">
+<meta property="og:updated_time" content="2026-06-15T06:36:47.165Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="利用superpowers让Spec Coding更准确">
 <meta name="twitter:description" content="开场个人观察前面写 OpenSpec/OPSX 的时候，我把重点放在“先把需求写成规格，再让 AI 按规格实现”。但真实项目里还有另一类问题：spec 写得差不多了，AI 也开始改代码了，可过程还是容易跑偏。比如一次性改太多文件、没有先写测试、遇到失败就绕过、没有复盘 diff、没有把经验沉淀下来。 这就是我重新理解 superpowers 的原因。它不是一句“请发挥超级能力”的提示词，而是一套更">
@@ -104,6 +104,43 @@
 <p>第五层是审查。每轮改完都看 diff，检查是否越界、是否引入不必要重构、是否破坏兼容。</p>
 <p>第六层是沉淀。做完后把决策、坑点、可复用经验记录下来，下次不从零开始。</p>
 <p>这几层能力组合起来，才是 Superpowers 真正有价值的地方。</p>
+<h2 id="Superpowers-技能指令速查"><a href="#Superpowers-技能指令速查" class="headerlink" title="Superpowers 技能指令速查"></a>Superpowers 技能指令速查</h2><p>Superpowers 安装以后，通常不是靠一个 <code>/superpowers</code> 命令来完成所有事情，而是让 agent 在合适场景自动触发对应 skill。实际使用时，也可以直接点名 skill，让 Codex 或 Claude Code 按这个 skill 的流程工作。</p>
+<p>我会把它理解成这些“技能指令”：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">using-superpowers</span><br></pre></td></tr></table></figure>
+<p>用途：让 agent 先说明 Superpowers 的技能系统怎么工作，适合刚安装完验证是否生效。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">brainstorming</span><br></pre></td></tr></table></figure>
+<p>用途：需求还很粗时使用。它会先问问题、澄清目标、探索方案，而不是马上写代码。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">writing-plans</span><br></pre></td></tr></table></figure>
+<p>用途：设计确认后生成实现计划。计划要拆成小任务，写清楚文件路径、修改点和验证步骤。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">executing-plans</span><br></pre></td></tr></table></figure>
+<p>用途：按已经写好的计划执行。适合一个人机协作的节奏：做一批任务，停下来检查，再继续。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">subagent-driven-development</span><br></pre></td></tr></table></figure>
+<p>用途：让子 agent 按任务并行或分阶段推进，并进行两段式检查：先看是否符合 spec，再看代码质量。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">test-driven-development</span><br></pre></td></tr></table></figure>
+<p>用途：强制 RED-GREEN-REFACTOR。先写失败测试，看它真的失败，再写最小代码让测试通过，最后重构。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">systematic-debugging</span><br></pre></td></tr></table></figure>
+<p>用途：遇到 bug 或测试失败时使用。要求先收集证据、定位根因，再做最小修复，避免靠猜。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">verification-before-completion</span><br></pre></td></tr></table></figure>
+<p>用途：完成前确认“真的修好了”。不能只说看起来可以，要跑测试、看输出、验证关键路径。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">requesting-code-review</span><br></pre></td></tr></table></figure>
+<p>用途：改完一轮后请求代码审查。重点看计划符合度、边界场景、测试缺口、是否有越界修改。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">receiving-code-review</span><br></pre></td></tr></table></figure>
+<p>用途：收到 review 反馈后使用。它会帮助逐条处理问题，而不是只挑简单的改。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">using-git-worktrees</span><br></pre></td></tr></table></figure>
+<p>用途：为一个较大任务创建隔离工作区，避免污染主工作区，适合多任务并行或风险较高的改动。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">finishing-a-development-branch</span><br></pre></td></tr></table></figure>
+<p>用途：任务完成后收尾。检查测试、整理变更、决定合并、开 PR、保留或清理 worktree。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">dispatching-parallel-agents</span><br></pre></td></tr></table></figure>
+<p>用途：把独立任务分给多个 agent 并行做，比如一个查接口影响，一个查数据库影响，一个补测试。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">writing-skills</span><br></pre></td></tr></table></figure>
+<p>用途：把你自己的流程沉淀成新 skill。比如把“Java 库存接口审查清单”写成团队 skill。</p>
+<p>实际对话时，可以这样点名：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">请使用 brainstorming skill，先澄清这个库存预占需求，不要写代码。</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">请使用 writing-plans skill，基于已经确认的设计生成实现计划。</span><br><span class="line">每个任务要包含文件路径、修改内容、验证命令。</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">请使用 test-driven-development skill，实现批量库存预占。</span><br><span class="line">必须先写失败测试，再写最小实现。</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">请使用 systematic-debugging skill 分析这个失败测试。</span><br><span class="line">先给证据和根因假设，不要直接改代码。</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">请使用 requesting-code-review skill 审查当前 diff。</span><br><span class="line">按严重程度列出问题，重点看事务、幂等、并发、兼容性和测试缺口。</span><br></pre></td></tr></table></figure>
+<p>如果你的客户端支持 slash command，具体触发形式可能会包装成斜杠命令；如果不支持，直接在提示词里写“请使用 xxx skill”也能表达同样意图。关键是点名具体 skill，而不是只说“用 superpowers”。</p>
 <h2 id="Superpowers-和-OpenSpec-的关系"><a href="#Superpowers-和-OpenSpec-的关系" class="headerlink" title="Superpowers 和 OpenSpec 的关系"></a>Superpowers 和 OpenSpec 的关系</h2><p>OpenSpec/OPSX 更偏规格管理。比如：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">/opsx:propose add-inventory-reservation</span><br><span class="line">/opsx:apply add-inventory-reservation</span><br><span class="line">/opsx:sync add-inventory-reservation</span><br><span class="line">/opsx:archive add-inventory-reservation</span><br></pre></td></tr></table></figure>
 <p>这条链路解决的是“变更如何被定义、实现、同步、归档”。它适合让需求有结构、有历史、有验收。</p>
@@ -113,26 +150,26 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">OpenSpec 负责定义变更。</span><br><span class="line">Superpowers 负责约束执行过程。</span><br></pre></td></tr></table></figure>
 <p>在 Java 项目里，这个组合尤其有用。因为 Java 后端的麻烦经常不在代码语法，而在业务边界、数据库一致性、并发、事务、历史数据和系统间调用。</p>
 <h2 id="一个可落地的-7-步流程"><a href="#一个可落地的-7-步流程" class="headerlink" title="一个可落地的 7 步流程"></a>一个可落地的 7 步流程</h2><p>参考 Superpowers 的实践思路，我会把一次 AI 辅助开发拆成 7 步。</p>
-<p>第一步，理解任务。</p>
+<p>第一步，理解任务，对应 <code>brainstorming</code>。</p>
 <p>让 AI 先读需求、读项目规则、读同类代码。对 Java 项目来说，至少要看 <code>AGENTS.md</code>、<code>README.md</code>、<code>pom.xml</code>、同类 Controller、Service、Mapper、测试用例。不要让它一上来就改文件。</p>
 <p>可以这样提示：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">请先理解任务，不要改代码。</span><br><span class="line">读取 AGENTS.md、README.md、pom.xml，以及订单模块已有的 Controller、Service、Mapper、测试。</span><br><span class="line">请总结：</span><br><span class="line">1. 这个需求涉及哪些模块；</span><br><span class="line">2. 现有代码风格是什么；</span><br><span class="line">3. 可能影响哪些接口、表、状态机；</span><br><span class="line">4. 还有哪些问题需要确认。</span><br></pre></td></tr></table></figure>
-<p>第二步，提出计划。</p>
+<p>第二步，提出计划，对应 <code>writing-plans</code>。</p>
 <p>计划要小步、可验证。不要只写“实现业务逻辑”，而要写到具体层次：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">请生成执行计划，不要改代码。</span><br><span class="line">要求：</span><br><span class="line">1. 每一步只改一类文件；</span><br><span class="line">2. 每一步说明验证方式；</span><br><span class="line">3. 标出事务、幂等、并发、兼容性风险；</span><br><span class="line">4. 不做和需求无关的重构。</span><br></pre></td></tr></table></figure>
-<p>第三步，先写测试或测试清单。</p>
+<p>第三步，先写测试或测试清单，对应 <code>test-driven-development</code>。</p>
 <p>很多 Java 项目历史包袱重，不一定能完全 TDD，但至少要先列出测试清单。比如库存预占，不应该只测成功：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">测试清单：</span><br><span class="line">1. 单 SKU 预占成功；</span><br><span class="line">2. 多 SKU 全部预占成功；</span><br><span class="line">3. 部分 SKU 库存不足；</span><br><span class="line">4. 同一订单重复请求不重复扣减；</span><br><span class="line">5. 并发请求同一 SKU 不超卖；</span><br><span class="line">6. 数据库异常时事务回滚；</span><br><span class="line">7. 参数为空、数量为负数、SKU 不存在时返回校验错误；</span><br><span class="line">8. 旧接口字段保持兼容。</span><br></pre></td></tr></table></figure>
-<p>第四步，小步实现。</p>
+<p>第四步，小步实现，对应 <code>executing-plans</code> 或 <code>subagent-driven-development</code>。</p>
 <p>每次只让 AI 做一个小任务。比如先改 DTO，再改 Service，再改 Mapper，再补测试。不要一句“全部实现”，否则它很容易跨模块乱改。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">现在只做第一步：新增请求 DTO 和响应 DTO。</span><br><span class="line">不要修改 Service、Mapper、数据库脚本。</span><br><span class="line">完成后展示 diff，并说明是否符合计划。</span><br></pre></td></tr></table></figure>
-<p>第五步，基于证据调试。</p>
+<p>第五步，基于证据调试，对应 <code>systematic-debugging</code>。</p>
 <p>测试失败时，不要让 AI 直接猜。要让它先读错误日志、定位失败断言、说明假设，再做最小修复。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">测试失败了。请先分析失败日志，不要马上改代码。</span><br><span class="line">输出：</span><br><span class="line">1. 失败测试名称；</span><br><span class="line">2. 期望值和实际值；</span><br><span class="line">3. 最可能的原因；</span><br><span class="line">4. 需要查看的文件；</span><br><span class="line">5. 最小修复方案。</span><br></pre></td></tr></table></figure>
-<p>第六步，审查 diff。</p>
+<p>第六步，审查 diff，对应 <code>requesting-code-review</code>。</p>
 <p>这一点非常关键。AI 很容易顺手改命名、调格式、移动代码、引入新依赖。审查 diff 要看三件事：有没有完成需求，有没有越界，有没有留下风险。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">请审查当前 diff。</span><br><span class="line">重点检查：</span><br><span class="line">1. 是否只修改了计划内文件；</span><br><span class="line">2. 是否引入新依赖或新框架；</span><br><span class="line">3. 事务边界是否正确；</span><br><span class="line">4. 幂等和并发是否覆盖；</span><br><span class="line">5. 是否有兼容性风险；</span><br><span class="line">6. 测试是否覆盖异常场景。</span><br></pre></td></tr></table></figure>
-<p>第七步，总结和沉淀。</p>
+<p>第七步，总结和沉淀，对应 <code>verification-before-completion</code> 和 <code>finishing-a-development-branch</code>。</p>
 <p>做完以后，不只是提交代码。应该把这次的决策、坑点、命令、测试经验沉淀下来。对长期项目来说，这一步会让 AI 后续越来越贴合项目。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">请总结这次变更：</span><br><span class="line">1. 业务决策；</span><br><span class="line">2. 技术决策；</span><br><span class="line">3. 关键风险；</span><br><span class="line">4. 测试覆盖；</span><br><span class="line">5. 后续维护注意事项；</span><br><span class="line">6. 哪些内容适合补充到 AGENTS.md 或项目文档。</span><br></pre></td></tr></table></figure>
 <h2 id="我常用的技能组合"><a href="#我常用的技能组合" class="headerlink" title="我常用的技能组合"></a>我常用的技能组合</h2><p>Superpowers 的价值在于把“好习惯”变成可以重复调用的技能。我在 Java 项目里会重点用这些能力。</p>
@@ -147,12 +184,12 @@
 <h2 id="Java-项目里的具体用法"><a href="#Java-项目里的具体用法" class="headerlink" title="Java 项目里的具体用法"></a>Java 项目里的具体用法</h2><p>以“库存预占接口支持批量 SKU”为例，我会这样组合 OpenSpec 和 Superpowers。</p>
 <p>第一轮，先用 OpenSpec 定义变更：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">/opsx:propose batch-inventory-reservation</span><br><span class="line"></span><br><span class="line">需求：</span><br><span class="line">库存预占接口支持批量 SKU。</span><br><span class="line">同一订单请求必须幂等。</span><br><span class="line">库存不足时返回明细级失败原因。</span><br><span class="line"></span><br><span class="line">项目匹配要求：</span><br><span class="line">- 读取库存模块现有扣减、释放、流水表和库存锁实现；</span><br><span class="line">- 找出项目使用数据库乐观锁、Redis 锁还是 MQ 异步扣减；</span><br><span class="line">- 参考已有异常码、日志格式、事务注解和测试写法；</span><br><span class="line">- 只生成 proposal/design/tasks/specs，不写业务代码。</span><br></pre></td></tr></table></figure>
-<p>第二轮，用 Superpowers 审这个变更：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">请使用 Superpowers 的方式审查 openspec/changes/batch-inventory-reservation。</span><br><span class="line">重点输出：</span><br><span class="line">1. 需求是否清楚；</span><br><span class="line">2. 是否遗漏异常流程；</span><br><span class="line">3. 是否遗漏幂等、并发、事务、回滚；</span><br><span class="line">4. tasks 是否能小步执行；</span><br><span class="line">5. 测试是否覆盖成功、失败、重复、并发、回滚；</span><br><span class="line">6. 哪些问题必须在 apply 前确认。</span><br></pre></td></tr></table></figure>
+<p>第二轮，用具体 skill 审这个变更：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">请使用 requesting-code-review skill 审查 openspec/changes/batch-inventory-reservation。</span><br><span class="line">重点输出：</span><br><span class="line">1. 需求是否清楚；</span><br><span class="line">2. 是否遗漏异常流程；</span><br><span class="line">3. 是否遗漏幂等、并发、事务、回滚；</span><br><span class="line">4. tasks 是否能小步执行；</span><br><span class="line">5. 测试是否覆盖成功、失败、重复、并发、回滚；</span><br><span class="line">6. 哪些问题必须在 apply 前确认。</span><br></pre></td></tr></table></figure>
 <p>第三轮，再进入实现：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">/opsx:apply batch-inventory-reservation</span><br><span class="line"></span><br><span class="line">执行要求：</span><br><span class="line">- 严格按照 tasks.md 小步实现；</span><br><span class="line">- 每完成一个步骤先展示 diff；</span><br><span class="line">- 测试失败时先分析日志，不要猜；</span><br><span class="line">- 不做无关重构；</span><br><span class="line">- 不引入项目没有使用的新框架。</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">/opsx:apply batch-inventory-reservation</span><br><span class="line"></span><br><span class="line">请结合 executing-plans skill 执行。</span><br><span class="line">执行要求：</span><br><span class="line">- 严格按照 tasks.md 小步实现；</span><br><span class="line">- 每完成一个步骤先展示 diff；</span><br><span class="line">- 测试失败时先分析日志，不要猜；</span><br><span class="line">- 不做无关重构；</span><br><span class="line">- 不引入项目没有使用的新框架。</span><br></pre></td></tr></table></figure>
 <p>第四轮，改完后做 diff 审查：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">请用 Superpowers 的代码审查方式检查当前 diff。</span><br><span class="line">重点看：</span><br><span class="line">1. 是否符合 proposal/design/tasks/specs；</span><br><span class="line">2. 是否有超卖风险；</span><br><span class="line">3. 幂等记录是否和库存事务一致；</span><br><span class="line">4. 异常时是否会留下脏数据；</span><br><span class="line">5. 是否兼容旧接口；</span><br><span class="line">6. 测试是否覆盖明细级失败原因。</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">请使用 requesting-code-review skill 检查当前 diff。</span><br><span class="line">重点看：</span><br><span class="line">1. 是否符合 proposal/design/tasks/specs；</span><br><span class="line">2. 是否有超卖风险；</span><br><span class="line">3. 幂等记录是否和库存事务一致；</span><br><span class="line">4. 异常时是否会留下脏数据；</span><br><span class="line">5. 是否兼容旧接口；</span><br><span class="line">6. 测试是否覆盖明细级失败原因。</span><br></pre></td></tr></table></figure>
 <p>第五轮，验证通过后同步归档：</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">/opsx:sync batch-inventory-reservation</span><br><span class="line">/opsx:archive batch-inventory-reservation</span><br></pre></td></tr></table></figure>
 <p>这样一套下来，AI 不再只是“帮我写个接口”，而是在规格、计划、实现、测试、审查、沉淀之间形成闭环。</p>
