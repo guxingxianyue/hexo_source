@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="720" viewBox="0 0 1120 720" role="img" aria-labelledby="title desc">
+  <title id="title">Loop engineering 供应链实践流程</title>
+  <desc id="desc">展示 Loop engineering 如何在供应链系统中通过目标、规格、计划、实现、验证和反馈形成闭环。</desc>
+  <rect width="1120" height="720" fill="#f8fafc"/>
+  <text x="560" y="48" text-anchor="middle" font-family="Arial, 'Microsoft YaHei', sans-serif" font-size="28" font-weight="700" fill="#111827">Loop engineering：让 AI 在可验证闭环里工作</text>
+  <text x="560" y="82" text-anchor="middle" font-family="Arial, 'Microsoft YaHei', sans-serif" font-size="15" fill="#475569">以供应链采购到货差异处理为例：目标清楚、小步执行、测试反馈、达标停止</text>
+
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#2563eb"/>
+    </marker>
+    <style>
+      .box { fill: #ffffff; stroke: #cbd5e1; stroke-width: 2; rx: 14; }
+      .accent { fill: #eff6ff; stroke: #93c5fd; stroke-width: 2; rx: 14; }
+      .main { font-family: Arial, 'Microsoft YaHei', sans-serif; font-size: 18px; font-weight: 700; fill: #0f172a; }
+      .sub { font-family: Arial, 'Microsoft YaHei', sans-serif; font-size: 14px; fill: #475569; }
+      .small { font-family: Arial, 'Microsoft YaHei', sans-serif; font-size: 13px; fill: #64748b; }
+      .arrow { stroke: #2563eb; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <rect class="box" x="70" y="130" width="250" height="110"/>
+  <text class="main" x="195" y="164" text-anchor="middle">1. 目标</text>
+  <text class="sub" x="195" y="194" text-anchor="middle">采购到货差异可记录</text>
+  <text class="small" x="195" y="218" text-anchor="middle">定义完成条件和停止条件</text>
+
+  <rect class="box" x="435" y="130" width="250" height="110"/>
+  <text class="main" x="560" y="164" text-anchor="middle">2. 规格</text>
+  <text class="sub" x="560" y="194" text-anchor="middle">/opsx:propose</text>
+  <text class="small" x="560" y="218" text-anchor="middle">proposal / design / tasks / specs</text>
+
+  <rect class="box" x="800" y="130" width="250" height="110"/>
+  <text class="main" x="925" y="164" text-anchor="middle">3. 计划</text>
+  <text class="sub" x="925" y="194" text-anchor="middle">writing-plans skill</text>
+  <text class="small" x="925" y="218" text-anchor="middle">拆成 2 到 5 分钟小任务</text>
+
+  <path class="arrow" d="M320 185 H426"/>
+  <path class="arrow" d="M685 185 H791"/>
+
+  <rect class="box" x="800" y="330" width="250" height="118"/>
+  <text class="main" x="925" y="364" text-anchor="middle">4. 执行</text>
+  <text class="sub" x="925" y="394" text-anchor="middle">/opsx:apply + TDD</text>
+  <text class="small" x="925" y="420" text-anchor="middle">一次只实现一个业务切片</text>
+
+  <rect class="box" x="435" y="330" width="250" height="118"/>
+  <text class="main" x="560" y="364" text-anchor="middle">5. 观察</text>
+  <text class="sub" x="560" y="394" text-anchor="middle">测试 / 日志 / diff</text>
+  <text class="small" x="560" y="420" text-anchor="middle">把真实结果反馈给 AI</text>
+
+  <rect class="box" x="70" y="330" width="250" height="118"/>
+  <text class="main" x="195" y="364" text-anchor="middle">6. 修正</text>
+  <text class="sub" x="195" y="394" text-anchor="middle">systematic-debugging</text>
+  <text class="small" x="195" y="420" text-anchor="middle">按证据定位根因，最小修复</text>
+
+  <path class="arrow" d="M925 240 V321"/>
+  <path class="arrow" d="M800 389 H694"/>
+  <path class="arrow" d="M435 389 H329"/>
+
+  <path class="arrow" d="M195 330 C170 285 175 258 210 244"/>
+  <path class="arrow" d="M195 448 C250 545 865 545 925 448"/>
+
+  <rect class="accent" x="265" y="575" width="590" height="84"/>
+  <text class="main" x="560" y="610" text-anchor="middle">停止条件</text>
+  <text class="sub" x="560" y="640" text-anchor="middle">测试通过 + diff 受控 + review 无高危问题 + /opsx:verify 通过</text>
+</svg>
