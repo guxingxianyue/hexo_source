@@ -1,29 +1,29 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1080" height="600" viewBox="0 0 1080 600" role="img" aria-labelledby="title desc">
   <title id="title">superpowers 增强 Spec Coding</title>
-  <desc id="desc">展示 superpowers skill 如何增强审查、拆解、测试和风险识别。</desc>
+  <desc id="desc">展示 Superpowers 如何用澄清、计划、测试、实现、调试、审查和沉淀增强 Spec Coding。</desc>
   <rect width="1080" height="600" fill="#f8fafc"/>
-  <text x="540" y="44" text-anchor="middle" font-family="Arial, 'Microsoft YaHei', sans-serif" font-size="26" font-weight="700" fill="#111827">/superpowers：给 Spec Coding 加上检查能力</text>
+  <text x="540" y="44" text-anchor="middle" font-family="Arial, 'Microsoft YaHei', sans-serif" font-size="26" font-weight="700" fill="#111827">Superpowers：把成熟开发流程装进 AI 协作</text>
   <g font-family="Arial, 'Microsoft YaHei', sans-serif" font-size="15" fill="#111827">
     <rect x="95" y="95" width="190" height="92" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
-    <text x="190" y="128" text-anchor="middle" font-weight="700">复杂需求</text>
-    <text x="190" y="155" text-anchor="middle">跨模块/高风险</text>
+    <text x="190" y="128" text-anchor="middle" font-weight="700">1. 澄清需求</text>
+    <text x="190" y="155" text-anchor="middle">目标/非目标/验收</text>
     <rect x="360" y="95" width="190" height="92" rx="10" fill="#ffffff" stroke="#7c3aed" stroke-width="2"/>
-    <text x="455" y="128" text-anchor="middle" font-weight="700">能力选择</text>
-    <text x="455" y="155" text-anchor="middle">拆解/审查/测试</text>
+    <text x="455" y="128" text-anchor="middle" font-weight="700">2. 分步计划</text>
+    <text x="455" y="155" text-anchor="middle">小步/可验证/可回滚</text>
     <rect x="625" y="95" width="190" height="92" rx="10" fill="#ffffff" stroke="#059669" stroke-width="2"/>
-    <text x="720" y="128" text-anchor="middle" font-weight="700">执行清单</text>
-    <text x="720" y="155" text-anchor="middle">步骤 + 检查点</text>
+    <text x="720" y="128" text-anchor="middle" font-weight="700">3. 测试先行</text>
+    <text x="720" y="155" text-anchor="middle">成功/异常/并发</text>
     <rect x="180" y="295" width="190" height="92" rx="10" fill="#ffffff" stroke="#f59e0b" stroke-width="2"/>
-    <text x="275" y="329" text-anchor="middle" font-weight="700">风险审查</text>
-    <text x="275" y="356" text-anchor="middle">事务/并发/兼容</text>
+    <text x="275" y="329" text-anchor="middle" font-weight="700">4. 小步实现</text>
+    <text x="275" y="356" text-anchor="middle">按计划逐步改动</text>
     <rect x="445" y="295" width="190" height="92" rx="10" fill="#ffffff" stroke="#f59e0b" stroke-width="2"/>
-    <text x="540" y="329" text-anchor="middle" font-weight="700">测试补强</text>
-    <text x="540" y="356" text-anchor="middle">单测/集成/回归</text>
+    <text x="540" y="329" text-anchor="middle" font-weight="700">5. 证据调试</text>
+    <text x="540" y="356" text-anchor="middle">日志/断言/最小修复</text>
     <rect x="710" y="295" width="190" height="92" rx="10" fill="#ffffff" stroke="#dc2626" stroke-width="2"/>
-    <text x="805" y="329" text-anchor="middle" font-weight="700">Diff 复盘</text>
-    <text x="805" y="356" text-anchor="middle">是否越界/遗漏</text>
+    <text x="805" y="329" text-anchor="middle" font-weight="700">6. Diff 审查</text>
+    <text x="805" y="356" text-anchor="middle">越界/兼容/风险</text>
     <rect x="310" y="475" width="460" height="56" rx="10" fill="#ecfeff" stroke="#0891b2" stroke-width="2"/>
-    <text x="540" y="508" text-anchor="middle" font-weight="700">让 Codex 不只会写代码，还会主动质疑和验收</text>
+    <text x="540" y="508" text-anchor="middle" font-weight="700">7. 沉淀经验：把决策、坑点、测试和项目规则写回文档</text>
   </g>
   <g stroke="#64748b" stroke-width="2" fill="none" marker-end="url(#arrow)">
     <path d="M285 141H360"/><path d="M550 141H625"/>
