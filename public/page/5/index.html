@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-<head><meta name="generator" content="Hexo 3.9.0">
+<head>
   <meta charset="utf-8">
   
   <title>陈金星写字的地方</title>
@@ -11,10 +11,9 @@
 <meta property="og:url" content="https://guxingxianyue.github.io/page/5/index.html">
 <meta property="og:site_name" content="陈金星写字的地方">
 <meta property="og:description" content="less is more">
-<meta property="og:locale" content="zh-CN">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:author" content="Jinxing Chen">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="陈金星写字的地方">
-<meta name="twitter:description" content="less is more">
   
     <link rel="alternative" href="/atom.xml" title="陈金星写字的地方" type="application/atom+xml">
   
@@ -22,10 +21,12 @@
     <link rel="icon" href="/favicon.png">
   
   <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
-  <link rel="stylesheet" href="/css/style.css">
+  
+<link rel="stylesheet" href="/css/style.css">
+
   
 
-</head></html>
+<meta name="generator" content="Hexo 8.1.2"></head>
 <body>
   <div id="container">
     <div id="wrap">
@@ -36,10 +37,6 @@
       <h1 id="logo-wrap">
         <a href="/" id="logo">陈金星写字的地方</a>
       </h1>
-      
-        <h2 id="subtitle-wrap">
-          <a href="/" id="subtitle">less is more</a>
-        </h2>
       
     </div>
     <div id="header-inner" class="inner">
@@ -68,10 +65,10 @@
       <div class="outer">
         <section id="main">
   
-    <article id="post-redis的集群模式有哪些" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Java volatile与JMM：库存同步任务的可见性问题" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2023/07/09/redis的集群模式有哪些/" class="article-date">
-  <time datetime="2023-07-09T02:20:00.000Z" itemprop="datePublished">2023-07-09</time>
+    <a href="/2025/04/29/Java%20volatile%E4%B8%8EJMM%EF%BC%9A%E5%BA%93%E5%AD%98%E5%90%8C%E6%AD%A5%E4%BB%BB%E5%8A%A1%E7%9A%84%E5%8F%AF%E8%A7%81%E6%80%A7%E9%97%AE%E9%A2%98/" class="article-date">
+  <time datetime="2025-04-29T02:10:00.000Z" itemprop="datePublished">2025-04-29</time>
 </a>
     
   </div>
@@ -82,7 +79,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2023/07/09/redis的集群模式有哪些/">redis的集群模式有哪些</a>
+      <a class="article-title" href="/2025/04/29/Java%20volatile%E4%B8%8EJMM%EF%BC%9A%E5%BA%93%E5%AD%98%E5%90%8C%E6%AD%A5%E4%BB%BB%E5%8A%A1%E7%9A%84%E5%8F%AF%E8%A7%81%E6%80%A7%E9%97%AE%E9%A2%98/">Java volatile与JMM：库存同步任务的可见性问题</a>
     </h1>
   
 
@@ -90,1095 +87,398 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="开场个人观察"><a href="#开场个人观察" class="headerlink" title="开场个人观察"></a>开场个人观察</h2><p>Redis 一开始通常是从单机用起的：缓存商品详情、存登录 token、做计数器、做分布式锁。等系统访问量上来以后，问题就来了：单机内存不够怎么办？主节点挂了怎么办？读压力太高怎么办？业务需要更高可用时怎么做？</p>
-<p>这时就要考虑 Redis 的集群模式。这里的“集群”不只是 Redis Cluster 一种，而是一组部署方式：主从复制、哨兵模式、Redis Cluster、代理分片，以及云托管 Redis。每种方式解决的问题不一样，优缺点也不一样。</p>
-<p>项目选型时不要先问“哪种最先进”，而要先问：我的数据量有多大？QPS 有多高？能不能接受短暂不可用？团队有没有 Redis 运维经验？业务是否依赖跨 key 操作？</p>
-<p><img src="/images/tech-flowcharts/redis-cluster-selection-flow.svg" alt="Redis集群模式选型流程"></p>
-<h2 id="核心观点"><a href="#核心观点" class="headerlink" title="核心观点"></a>核心观点</h2><p>Redis 常见部署方式可以按能力逐层理解。</p>
-<p>单机模式最简单，适合开发环境、小系统、低风险缓存。但单点故障明显，内存和吞吐也受单机限制。</p>
-<p>主从复制解决的是读扩展和数据备份。主节点负责写，从节点复制数据，可以承担部分读请求。但主节点挂了以后，是否自动切换取决于外部机制。</p>
-<p>哨兵模式解决的是高可用。Sentinel 会监控主从节点，主节点异常时自动选举新的主节点，并通知客户端切换。它适合数据量还没有大到必须分片，但又需要自动故障转移的系统。</p>
-<p>Redis Cluster 解决的是水平扩展。它把 key 映射到 16384 个 hash slot，再把 slot 分布到多个主节点上。容量和吞吐可以通过增加节点扩展，但客户端、跨 slot 操作和运维复杂度都会提高。</p>
-<p>代理分片和云托管 Redis 解决的是工程复杂度。代理可以屏蔽后端分片，云托管可以减少运维成本。但要关注命令兼容性、网络延迟、成本和故障透明度。</p>
-<h2 id="实践方法"><a href="#实践方法" class="headerlink" title="实践方法"></a>实践方法</h2><p>如果是一个普通后台系统，Redis 只用来缓存字典、商品详情、用户权限，数据量不大，故障后可以短暂回源数据库，那么主从或哨兵模式通常就够了。</p>
-<p>例如 ERP 系统里，商品基础资料、供应商列表、组织架构权限可以放 Redis 缓存。即使 Redis 短暂不可用，也可以降级查数据库，只是慢一点。这种场景不一定要上 Redis Cluster。</p>
-<p>如果系统对可用性要求高，但数据量还在单机内存范围内，可以选择 Sentinel。比如登录 token、会话信息、限流计数这类数据，业务希望节点故障后能自动切换，哨兵模式就比较合适。</p>
-<p>如果数据量和访问量都明显增长，比如电商商品缓存、库存热点、活动库存、推荐结果缓存，单机内存和 QPS 已经吃紧，就要考虑 Redis Cluster。Cluster 的好处是容量可以横向扩展，坏处是开发要注意 hash slot。</p>
-<p>比如下面这种多 key 操作：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">MGET product:1001 product:1002 product:1003</span><br></pre></td></tr></table></figure>
-<p>在 Cluster 下，如果这些 key 落在不同 slot，可能无法像单机那样直接执行。可以通过 hash tag 把相关 key 放到同一个 slot：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">stock:&#123;sku1001&#125;:available</span><br><span class="line">stock:&#123;sku1001&#125;:locked</span><br></pre></td></tr></table></figure>
-<p>但 hash tag 也不能乱用。如果所有 key 都强行放到一个 slot，分片就失去意义。</p>
-<p>如果团队 Redis 运维能力弱，又不想自己处理扩容、备份、故障切换，可以考虑云托管 Redis。云服务能减少大量运维工作，但成本、规格限制、网络链路、版本兼容要提前评估。</p>
-<p>我做选型时一般按这个顺序问：</p>
-<ol>
-<li>Redis 只是缓存，还是承载关键状态？</li>
-<li>单机内存能不能装下未来一年数据？</li>
-<li>读写 QPS 是否需要水平扩展？</li>
-<li>是否大量使用 Lua、多 key、事务、pipeline？</li>
-<li>团队是否有能力处理故障切换和扩容？</li>
-<li>可接受的成本和可用性目标是什么？</li>
-</ol>
-<h2 id="踩坑提醒"><a href="#踩坑提醒" class="headerlink" title="踩坑提醒"></a>踩坑提醒</h2><p>第一个坑，是一上来就上 Cluster。Cluster 能扩容，但复杂度也高。小系统如果只是缓存几万条基础资料，用 Cluster 反而会增加开发和运维负担。</p>
-<p>第二个坑，是把主从当高可用。主从复制不等于自动故障切换。没有哨兵或外部切换机制，主节点挂了仍然需要人工处理。</p>
-<p>第三个坑，是忽略数据一致性。Redis 复制通常是异步的，主节点刚写入还没同步给从节点时发生故障，可能会丢一小段数据。关键业务不能把 Redis 当唯一事实来源。</p>
-<p>第四个坑，是跨 slot 操作太多。Cluster 选型前要盘点代码里是否大量使用 <code>MGET</code>、<code>MSET</code>、Lua、事务和批量删除。否则上线后会发现很多命令不再好用。</p>
-<p>第五个坑，是只看 QPS 不看热点 key。即使是 Cluster，如果大量请求集中在一个超级热点 key 上，也可能打爆单个节点。热点数据要考虑本地缓存、拆 key、限流或预计算。</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Redis 集群模式没有绝对最好，只有适合当前阶段。数据量小、风险低，用单机或主从；需要自动故障切换，用 Sentinel；容量和吞吐需要横向扩展，用 Redis Cluster；团队想减少运维，可以考虑云托管。</p>
-<p>选型时最重要的是把 Redis 在系统里的角色想清楚。它是缓存、锁、队列、会话，还是关键状态存储？角色不同，容灾、持久化、扩容和一致性要求也完全不同。</p>
+        <p><code>volatile</code> 是 Java 并发里经常被误用的关键字。它能保证变量修改对其他线程可见，并禁止相关指令重排，但它不是互斥锁，也不能保证复合操作的原子性。</p>
+<p>供应链系统中，<code>volatile</code> 最适合的场景是任务开关、配置引用、状态标记。比如库存同步任务需要能被后台管理页面停止，或者定时任务需要感知配置已刷新。</p>
+<h2 id="JMM-要解决什么"><a href="#JMM-要解决什么" class="headerlink" title="JMM 要解决什么"></a>JMM 要解决什么</h2><p>Java 内存模型规定了线程如何从主内存读取变量、如何把修改写回主内存，以及什么情况下一个线程的写入对另一个线程可见。</p>
+<p>如果没有同步手段，一个线程修改变量，另一个线程不一定马上看到。CPU 缓存、编译器优化、指令重排都会让多线程程序表现得不符合直觉。</p>
+<p>库存同步任务的停止标志是典型例子：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">InventorySyncTask</span> <span class="keyword">implements</span> <span class="title class_">Runnable</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="type">boolean</span> <span class="variable">running</span> <span class="operator">=</span> <span class="literal">true</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">stop</span><span class="params">()</span> &#123;</span><br><span class="line">        running = <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">run</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">while</span> (running) &#123;</span><br><span class="line">            syncOnce();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2023/07/09/redis的集群模式有哪些/" data-id="cmq8scy6x0010jsqhrxwlm4b0" class="article-share-link">Share</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Redis/">Redis</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/分布式/">分布式</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/架构设计/">架构设计</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/缓存/">缓存</a></li></ul>
+<p>管理线程调用 <code>stop()</code> 后，工作线程可能仍然看不到 <code>running = false</code>，导致任务停不下来。</p>
+<h2 id="使用-volatile-修复可见性"><a href="#使用-volatile-修复可见性" class="headerlink" title="使用 volatile 修复可见性"></a>使用 volatile 修复可见性</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">InventorySyncTask</span> <span class="keyword">implements</span> <span class="title class_">Runnable</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">volatile</span> <span class="type">boolean</span> <span class="variable">running</span> <span class="operator">=</span> <span class="literal">true</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">stop</span><span class="params">()</span> &#123;</span><br><span class="line">        running = <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">run</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">while</span> (running) &#123;</span><br><span class="line">            syncOnce();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-    </footer>
-  </div>
-  
-</article>
+<p><code>volatile</code> 写入会把修改刷新出去，<code>volatile</code> 读取会从可见位置重新读取。这样管理线程修改停止标志后，工作线程能及时观察到。</p>
+<p>这类代码在供应链系统中很常见：库存同步、价格同步、承运商轨迹拉取、供应商主数据刷新，都可能需要停止标志。</p>
+<h2 id="volatile-不保证-count-安全"><a href="#volatile-不保证-count-安全" class="headerlink" title="volatile 不保证 count++ 安全"></a>volatile 不保证 count++ 安全</h2><p>错误示例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SyncMetrics</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">volatile</span> <span class="type">int</span> <span class="variable">successCount</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">incrementSuccess</span><span class="params">()</span> &#123;</span><br><span class="line">        successCount++;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
+<p><code>successCount++</code> 不是一个原子操作，它包含读取、加一、写回。多个线程同时执行时会丢失更新。</p>
+<p>正确写法可以用 <code>AtomicInteger</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SyncMetrics</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">AtomicInteger</span> <span class="variable">successCount</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">AtomicInteger</span>();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">incrementSuccess</span><span class="params">()</span> &#123;</span><br><span class="line">        successCount.incrementAndGet();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-  
-    <article id="post-kafka组件里面生产者和消费者的原理" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2023/03/18/kafka组件里面生产者和消费者的原理/" class="article-date">
-  <time datetime="2023-03-18T01:30:00.000Z" itemprop="datePublished">2023-03-18</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2023/03/18/kafka组件里面生产者和消费者的原理/">kafka组件里面生产者和消费者的原理</a>
-    </h1>
-  
+<p>如果是高并发统计，比如每秒记录库存同步成功数，用 <code>LongAdder</code> 更合适：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SyncMetrics</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">LongAdder</span> <span class="variable">successCount</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">LongAdder</span>();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">incrementSuccess</span><span class="params">()</span> &#123;</span><br><span class="line">        successCount.increment();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="type">long</span> <span class="title function_">successCount</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> successCount.sum();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="开场个人观察"><a href="#开场个人观察" class="headerlink" title="开场个人观察"></a>开场个人观察</h2><p>Kafka 这种组件，刚开始学的时候很容易记成几个名词：Producer、Consumer、Topic、Partition、Broker、Offset。真正用到项目里以后才会发现，Kafka 的难点不在于“会不会发消息”，而在于吞吐量、顺序性、可靠性和消费进度之间的取舍。</p>
-<p>在供应链、订单、库存、ERP 同步这类系统里，Kafka 很常见。比如订单创建后通知库存系统预占库存，采购单状态变化后通知财务系统生成应付记录，仓库出库后通知报表系统刷新数据。这些业务都有一个共同点：消息量可能很大，但业务又不能随便丢。</p>
-<p>所以理解 Kafka，不能只看 API，要看完整链路：生产者怎么把消息写进去，Broker 怎么存，消费者怎么拉取，offset 怎么提交，失败时怎么恢复。</p>
-<p><img src="/images/tech-flowcharts/kafka-producer-consumer-flow.svg" alt="Kafka生产者消费者工作流程"></p>
-<h2 id="核心观点"><a href="#核心观点" class="headerlink" title="核心观点"></a>核心观点</h2><p>Kafka 的核心设计可以概括成三句话。</p>
-<p>第一，生产者不是一条一条傻发，而是会把消息按 topic 和 partition 组织起来，经过序列化、分区选择、批量缓存后再发送给 Broker。</p>
-<p>第二，Broker 不是把消息存在一个普通队列里，而是把消息追加到分区日志中。分区是 Kafka 并行能力的基础，日志追加是它高吞吐的基础。</p>
-<p>第三，消费者不是等 Broker 推消息，而是主动 poll 拉取。消费者属于某个 consumer group，同一个 group 里一个分区同一时刻通常只会分给一个消费者处理，处理进度通过 offset 记录。</p>
-<p>Kafka 的吞吐量来自批量、顺序写、分区并行和零拷贝等机制；可靠性来自副本、ack、幂等、事务和 offset 提交策略。项目里真正要做的，是根据业务重要性选择合适参数，而不是一味追求“最快”。</p>
-<h2 id="实践方法"><a href="#实践方法" class="headerlink" title="实践方法"></a>实践方法</h2><p>先看生产者。生产者发送一条消息时，大致会经历这些步骤：</p>
-<ol>
-<li>业务代码构造消息，比如订单号、业务类型、变更时间。</li>
-<li>序列化，把对象转成字节。</li>
-<li>选择分区，如果指定 key，通常会根据 key hash 到固定 partition。</li>
-<li>放入本地缓冲区，按 batch 组织。</li>
-<li>Sender 线程把 batch 发给对应 Broker。</li>
-<li>Broker 追加日志并根据 ack 策略返回结果。</li>
-</ol>
-<p>如果要增大生产吞吐量，常见方向有几个。</p>
-<p><code>batch.size</code> 可以调大，让更多消息合并成一个批次。批量越充分，网络请求次数越少。</p>
-<p><code>linger.ms</code> 可以适当增加，让生产者多等几毫秒凑批次。它会牺牲一点延迟，换更高吞吐。</p>
-<p><code>compression.type</code> 可以使用 <code>lz4</code>、<code>snappy</code> 或 <code>zstd</code>，减少网络传输和磁盘占用。消息体较大时效果明显。</p>
-<p>分区数要足够。一个 topic 如果只有一个 partition，再多消费者也无法在同一个 consumer group 内并行消费这个 topic。</p>
-<p>生产者可以设置 <code>acks=all</code>、开启幂等 <code>enable.idempotence=true</code>，并合理配置重试。这样可以在 Broker 短暂失败时自动恢复，同时避免重试造成重复写入。</p>
-<p>再看消费者。消费者是通过 poll 拉取消息，处理后提交 offset。这里最关键的是 offset 提交时机。</p>
-<p>如果先提交 offset 再处理业务，消费者宕机后这批消息可能永远不会再处理，容易丢消息。</p>
-<p>如果先处理业务再提交 offset，宕机后可能重复消费，但至少消息不会丢。大多数核心业务更接受“重复但可幂等”，而不是“直接丢”。</p>
-<p>所以在订单、库存这类场景里，我更倾向于手动提交 offset：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">poll 消息</span><br><span class="line">执行业务处理</span><br><span class="line">写入业务库或幂等表</span><br><span class="line">处理成功后 commit offset</span><br></pre></td></tr></table></figure>
-<p>为了防止重复消费，业务侧要做幂等。比如用消息唯一 ID 建一张消费记录表，或者让订单状态流转本身具备幂等判断：已经处理过的状态不再重复扣减库存。</p>
-<h2 id="踩坑提醒"><a href="#踩坑提醒" class="headerlink" title="踩坑提醒"></a>踩坑提醒</h2><p>第一个坑，是只调大分区数，不看消费者处理能力。分区数增加能提高并行度，但也会带来更多文件句柄、更多 leader 选举和更复杂的再均衡。分区不是越多越好。</p>
-<p>第二个坑，是为了吞吐把 <code>acks</code> 调成 0。这样生产者发出去就不管了，速度很快，但 Broker 是否收到并不确定。日志、埋点可以这么考虑，订单状态、库存变更就不应该这么随意。</p>
-<p>第三个坑，是自动提交 offset。自动提交很方便，但它提交的是消费进度，不是业务成功。只要业务处理和 offset 提交之间没有绑定，就要接受消息丢失或重复的风险。</p>
-<p>第四个坑，是忽略 rebalance。消费者数量变化、心跳超时、poll 时间过长，都可能触发再均衡。处理单条消息耗时很长时，要注意 <code>max.poll.interval.ms</code> 和批量大小，避免消费者被踢出 group。</p>
-<p>第五个坑，是把 Kafka 当数据库。Kafka 适合做日志流和消息流，不适合承担复杂查询。业务状态仍然要落到数据库、缓存或搜索系统中。</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Kafka 的生产者负责高效、可靠地把消息写入分区日志；消费者负责按分区拉取消息、处理业务并提交 offset。吞吐量靠批量、压缩、分区和顺序写；可靠性靠副本、ack、幂等、事务和手动提交。</p>
-<p>在真实项目里，我会按业务重要性分层：日志类消息可以优先吞吐，核心业务消息优先可靠；允许重复，但不能无声丢失。只要这条原则清楚，Kafka 参数就不会乱调。</p>
+<h2 id="配置引用的安全发布"><a href="#配置引用的安全发布" class="headerlink" title="配置引用的安全发布"></a>配置引用的安全发布</h2><p><code>volatile</code> 还适合发布不可变配置对象。比如供应链系统里有库存分配策略：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">AllocationPolicyHolder</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">volatile</span> <span class="type">AllocationPolicy</span> <span class="variable">policy</span> <span class="operator">=</span> AllocationPolicy.defaultPolicy();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> AllocationPolicy <span class="title function_">current</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> policy;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">refresh</span><span class="params">(AllocationPolicy newPolicy)</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.policy = newPolicy;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2023/03/18/kafka组件里面生产者和消费者的原理/" data-id="cmq8scy6r000ljsqhmtpvuhot" class="article-share-link">Share</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Kafka/">Kafka</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/分布式/">分布式</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/消息队列/">消息队列</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/系统设计/">系统设计</a></li></ul>
+<p>只要 <code>AllocationPolicy</code> 本身是不可变对象，刷新时整体替换引用，读线程就能看到完整的新配置。</p>
+<p>不要这样做：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">policy.getRules().add(newRule);</span><br></pre></td></tr></table></figure>
 
-    </footer>
-  </div>
-  
-</article>
+<p>如果对象内部可变，即使引用是 <code>volatile</code>，内部集合的并发修改仍然不安全。配置对象应设计成不可变：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">AllocationPolicy</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> List&lt;Rule&gt; rules;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">AllocationPolicy</span><span class="params">(List&lt;Rule&gt; rules)</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.rules = List.copyOf(rules);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> List&lt;Rule&gt; <span class="title function_">rules</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> rules;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-
-  
-    <article id="post-SQL里面各种锁的原理" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2022/09/17/SQL里面各种锁的原理/" class="article-date">
-  <time datetime="2022-09-17T03:25:00.000Z" itemprop="datePublished">2022-09-17</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2022/09/17/SQL里面各种锁的原理/">SQL里面各种锁的原理</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>SQL 里面的锁，表面上看是数据库为了防止并发冲突做的限制，实际本质是数据库在并发读写之间做秩序管理。只要系统里存在多个事务同时读写同一批数据，就一定会遇到锁。锁设计得好，系统可以同时保证数据正确和较高吞吐；锁用得不好，轻则接口变慢，重则死锁、阻塞、库存扣错、订单状态错乱。</p>
-<p>很多开发者第一次接触锁，是因为线上出现了 <code>Lock wait timeout exceeded</code> 或 <code>Deadlock found</code>。但真正理解锁，不能只背“共享锁、排他锁、行锁、表锁”这些名称，而要看清楚三个问题：锁保护的对象是什么、锁之间是否兼容、锁在事务什么时候加上和释放。</p>
-<p><img src="/images/tech-flowcharts/sql-locks-principle-flow.svg" alt="SQL 锁类型和事务执行流程"></p>
-<h2 id="为什么数据库需要锁"><a href="#为什么数据库需要锁" class="headerlink" title="为什么数据库需要锁"></a>为什么数据库需要锁</h2><p>数据库锁要解决的核心问题是并发一致性。</p>
-<p>假设供应链系统里有一条库存记录：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sku_id = 1001</span><br><span class="line">warehouse_id = 8</span><br><span class="line">available_qty = 10</span><br></pre></td></tr></table></figure>
-<p>现在两个订单同时提交，每个订单都要锁定 8 件库存。如果两个事务都先读到 <code>available_qty = 10</code>，然后都认为库存足够，再分别把库存更新为 2，就会出现超卖。数据库必须让这两个更新按某种顺序执行，或者让其中一个事务发现条件已经不满足。</p>
-<p>锁就是这个顺序的基础。它告诉数据库：某个事务正在读或写某个资源，其他事务能不能同时读、能不能同时写、要不要等待。</p>
-<h2 id="共享锁和排他锁"><a href="#共享锁和排他锁" class="headerlink" title="共享锁和排他锁"></a>共享锁和排他锁</h2><p>共享锁也叫 S 锁，英文是 Shared Lock。它表示当前事务要读取数据，并且希望读取期间数据不要被别人修改。</p>
-<p>排他锁也叫 X 锁，英文是 Exclusive Lock。它表示当前事务要修改数据，其他事务不能同时修改，也通常不能再加共享锁读取同一行。</p>
-<p>它们的兼容关系可以简单理解为：</p>
-<table>
-<thead>
-<tr>
-<th>已有锁</th>
-<th>新申请共享锁</th>
-<th>新申请排他锁</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>共享锁</td>
-<td>兼容</td>
-<td>不兼容</td>
-</tr>
-<tr>
-<td>排他锁</td>
-<td>不兼容</td>
-<td>不兼容</td>
-</tr>
-</tbody>
-</table>
-<p>共享锁之间兼容，是因为多个事务同时读同一行数据不会破坏数据。排他锁和任何锁都不兼容，是因为写操作必须独占资源。</p>
-<p>在 MySQL InnoDB 中，可以通过下面的方式显式加锁：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span> inventory</span><br><span class="line"><span class="keyword">WHERE</span> sku_id = <span class="number">1001</span></span><br><span class="line"><span class="keyword">LOCK</span> <span class="keyword">IN</span> <span class="keyword">SHARE</span> <span class="keyword">MODE</span>;</span><br></pre></td></tr></table></figure>
-<p>或者：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span> inventory</span><br><span class="line"><span class="keyword">WHERE</span> sku_id = <span class="number">1001</span></span><br><span class="line"><span class="keyword">FOR</span> <span class="keyword">UPDATE</span>;</span><br></pre></td></tr></table></figure>
-<p><code>LOCK IN SHARE MODE</code> 倾向于加共享锁，<code>FOR UPDATE</code> 会对命中的记录加排他锁。业务里更常见的是更新语句自动加排他锁：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span> inventory</span><br><span class="line"><span class="keyword">SET</span> available_qty = available_qty - <span class="number">8</span></span><br><span class="line"><span class="keyword">WHERE</span> sku_id = <span class="number">1001</span></span><br><span class="line">  <span class="keyword">AND</span> available_qty &gt;= <span class="number">8</span>;</span><br></pre></td></tr></table></figure>
-<p>这条 SQL 在更新命中的记录时，会自动对相关记录加排他锁。</p>
-<h2 id="表锁和行锁"><a href="#表锁和行锁" class="headerlink" title="表锁和行锁"></a>表锁和行锁</h2><p>表锁保护的是整张表。一个事务锁住表以后，其他事务对这张表的读写可能都会受到影响。表锁粒度大，管理简单，但并发能力弱。</p>
-<p>行锁保护的是某一行或某个索引范围。行锁粒度小，并发能力强，但实现复杂，也更容易出现死锁。</p>
-<p>举个例子，ERP 系统里有一张 <code>order</code> 表。如果系统对整张订单表加表锁，那么一个用户修改订单时，其他用户可能连其他订单也无法修改。这对高并发系统非常不友好。</p>
-<p>如果使用行锁，一个用户修改订单 <code>A001</code>，另一个用户修改订单 <code>A002</code>，两者互不影响。只有两个事务同时修改同一张订单时，才需要等待。</p>
-<p>InnoDB 支持行级锁，但有一个非常重要的前提：行锁通常是加在索引上的。如果查询条件没有命中索引，数据库可能扫描大量记录，锁范围也会扩大，甚至表现得像锁了很多行。</p>
+<h2 id="happens-before-关系"><a href="#happens-before-关系" class="headerlink" title="happens-before 关系"></a>happens-before 关系</h2><p><code>volatile</code> 写 happens-before 后续对同一变量的读。简单理解：线程 A 在写 volatile 变量之前做的普通写入，线程 B 读到这个 volatile 变量后，也能看到这些普通写入。</p>
 <p>例如：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span> order_info</span><br><span class="line"><span class="keyword">SET</span> <span class="keyword">status</span> = <span class="string">'CLOSED'</span></span><br><span class="line"><span class="keyword">WHERE</span> order_no = <span class="string">'SO20220917001'</span>;</span><br></pre></td></tr></table></figure>
-<p>如果 <code>order_no</code> 有唯一索引，InnoDB 可以精准锁住这一行。如果 <code>order_no</code> 没有索引，数据库需要扫描全表判断哪些行满足条件，锁冲突风险就会明显增加。</p>
-<h2 id="意向锁"><a href="#意向锁" class="headerlink" title="意向锁"></a>意向锁</h2><p>意向锁是很多人容易忽略的一类锁。它不是直接锁某一行业务数据，而是用来协调表锁和行锁。</p>
-<p>假设事务 A 已经对订单表中的某一行加了排他行锁。此时事务 B 想对整张订单表加表级排他锁。数据库必须知道表里是否已经有行锁，否则就要扫描整张表逐行检查，成本很高。</p>
-<p>意向锁就是一个提示：某个事务打算在这张表里的某些行上加锁。</p>
-<p>常见意向锁有：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> Map&lt;String, Integer&gt; latestStock;</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">volatile</span> <span class="type">boolean</span> ready;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">load</span><span class="params">()</span> &#123;</span><br><span class="line">    latestStock = loadFromDatabase();</span><br><span class="line">    ready = <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="type">int</span> <span class="title function_">query</span><span class="params">(String sku)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (!ready) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> latestStock.getOrDefault(sku, <span class="number">0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>当查询线程读到 <code>ready = true</code> 后，可以看到 <code>latestStock</code> 的赋值。但这个写法仍要求 <code>latestStock</code> 后续不被并发修改。更稳的做法是用不可变 Map 或整体替换引用。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p><code>volatile</code> 适合表达“状态变化要被其他线程看到”。它不适合保护多个变量的一致性，也不适合做计数器自增。供应链系统里，任务停止标志、配置引用、只写一次的发布状态可以使用 <code>volatile</code>；库存扣减、单据状态变更、计数统计要用锁、原子类或数据库条件更新。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://guxingxianyue.github.io/2025/04/29/Java%20volatile%E4%B8%8EJMM%EF%BC%9A%E5%BA%93%E5%AD%98%E5%90%8C%E6%AD%A5%E4%BB%BB%E5%8A%A1%E7%9A%84%E5%8F%AF%E8%A7%81%E6%80%A7%E9%97%AE%E9%A2%98/" data-id="cuidiukUMWc1EItOBxkmXURXs" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JMM/" rel="tag">JMM</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/volatile/" rel="tag">volatile</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" rel="tag">可见性</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%BA%93%E5%AD%98%E7%B3%BB%E7%BB%9F/" rel="tag">库存系统</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-Java synchronized与Monitor：仓库作业状态机的互斥控制" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2025/04/24/Java%20synchronized%E4%B8%8EMonitor%EF%BC%9A%E4%BB%93%E5%BA%93%E4%BD%9C%E4%B8%9A%E7%8A%B6%E6%80%81%E6%9C%BA%E7%9A%84%E4%BA%92%E6%96%A5%E6%8E%A7%E5%88%B6/" class="article-date">
+  <time datetime="2025-04-24T02:00:00.000Z" itemprop="datePublished">2025-04-24</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2025/04/24/Java%20synchronized%E4%B8%8EMonitor%EF%BC%9A%E4%BB%93%E5%BA%93%E4%BD%9C%E4%B8%9A%E7%8A%B6%E6%80%81%E6%9C%BA%E7%9A%84%E4%BA%92%E6%96%A5%E6%8E%A7%E5%88%B6/">Java synchronized与Monitor：仓库作业状态机的互斥控制</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p><code>synchronized</code> 是 Java 最基础的互斥机制。它的语义直接：进入同步代码前获取对象监视器，退出时释放监视器。对供应链系统来说，它适合保护 JVM 内部的小范围共享状态，比如本地缓存、状态机对象、批处理任务上下文。</p>
+<p>需要先明确边界：<code>synchronized</code> 只在当前 JVM 内有效。如果系统部署了多个实例，它不能保护数据库里的订单或库存。跨实例一致性仍然要依赖数据库锁、唯一约束、分布式锁或消息幂等。</p>
+<h2 id="仓库作业状态机例子"><a href="#仓库作业状态机例子" class="headerlink" title="仓库作业状态机例子"></a>仓库作业状态机例子</h2><p>仓库作业单可能有这些状态：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">CREATED -&gt; PICKING -&gt; PACKED -&gt; SHIPPED</span><br></pre></td></tr></table></figure>
+
+<p>如果状态机对象在内存里被多个线程访问，就要保证状态转换互斥：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">WarehouseTaskStateMachine</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="type">String</span> <span class="variable">status</span> <span class="operator">=</span> <span class="string">&quot;CREATED&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title function_">startPicking</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (!<span class="string">&quot;CREATED&quot;</span>.equals(status)) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalStateException</span>(<span class="string">&quot;只有已创建任务才能开始拣货&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        status = <span class="string">&quot;PICKING&quot;</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title function_">pack</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (!<span class="string">&quot;PICKING&quot;</span>.equals(status)) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalStateException</span>(<span class="string">&quot;只有拣货中任务才能打包&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        status = <span class="string">&quot;PACKED&quot;</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">synchronized</span> String <span class="title function_">currentStatus</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> status;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里锁对象是 <code>this</code>。同一个状态机实例的三个同步方法互斥，避免一个线程正在从 <code>CREATED</code> 改为 <code>PICKING</code> 时，另一个线程同时执行 <code>pack()</code>。</p>
+<h2 id="synchronized-锁住的到底是谁"><a href="#synchronized-锁住的到底是谁" class="headerlink" title="synchronized 锁住的到底是谁"></a>synchronized 锁住的到底是谁</h2><p>实例方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title function_">method</span><span class="params">()</span> &#123;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>等价于：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">method</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="keyword">synchronized</span> (<span class="built_in">this</span>) &#123;</span><br><span class="line">        <span class="comment">// ...</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>静态方法锁住的是 Class 对象：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title function_">reloadGlobalConfig</span><span class="params">()</span> &#123;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>等价于：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">synchronized</span> (ConfigCenter.class) &#123;</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>代码块可以指定任意锁对象：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> <span class="type">Object</span> <span class="variable">lock</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Object</span>();</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">changeStatus</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="keyword">synchronized</span> (lock) &#123;</span><br><span class="line">        <span class="comment">// 修改共享状态</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>工程上更推荐使用私有 final 锁对象，避免外部代码拿到 <code>this</code> 后参与锁竞争。</p>
+<h2 id="可重入性"><a href="#可重入性" class="headerlink" title="可重入性"></a>可重入性</h2><p><code>synchronized</code> 是可重入锁。同一个线程已经持有某对象锁时，可以再次进入同一把锁保护的代码。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title function_">finishPicking</span><span class="params">()</span> &#123;</span><br><span class="line">    validatePicking();</span><br><span class="line">    status = <span class="string">&quot;PACKED&quot;</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title function_">validatePicking</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (!<span class="string">&quot;PICKING&quot;</span>.equals(status)) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalStateException</span>(<span class="string">&quot;状态错误&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>finishPicking()</code> 调用 <code>validatePicking()</code> 不会死锁，因为持锁线程可以重入。可重入性让同步方法之间的组合更自然，但也要避免同步方法调用链过深，导致锁持有时间不可控。</p>
+<h2 id="wait-和-notify-的条件协作"><a href="#wait-和-notify-的条件协作" class="headerlink" title="wait 和 notify 的条件协作"></a>wait 和 notify 的条件协作</h2><p>如果仓库打包线程要等拣货完成，可以使用 <code>wait/notify</code>，但要严格放在同步块里，并用 while 判断条件：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">PackingGate</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="type">boolean</span> <span class="variable">pickingFinished</span> <span class="operator">=</span> <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title function_">finishPicking</span><span class="params">()</span> &#123;</span><br><span class="line">        pickingFinished = <span class="literal">true</span>;</span><br><span class="line">        notifyAll();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title function_">waitForPicking</span><span class="params">()</span> <span class="keyword">throws</span> InterruptedException &#123;</span><br><span class="line">        <span class="keyword">while</span> (!pickingFinished) &#123;</span><br><span class="line">            wait();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>使用 <code>while</code> 而不是 <code>if</code>，是为了防止虚假唤醒或被唤醒后条件已经被其他线程改变。实际项目中，如果等待条件复杂，更建议使用 <code>BlockingQueue</code>、<code>CountDownLatch</code>、<code>Condition</code> 等工具。</p>
+<h2 id="不要锁住慢操作"><a href="#不要锁住慢操作" class="headerlink" title="不要锁住慢操作"></a>不要锁住慢操作</h2><p>下面是错误示例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title function_">ship</span><span class="params">(<span class="type">long</span> taskId)</span> &#123;</span><br><span class="line">    updateLocalStatus(taskId, <span class="string">&quot;SHIPPING&quot;</span>);</span><br><span class="line">    wmsClient.notifyShipment(taskId);</span><br><span class="line">    updateLocalStatus(taskId, <span class="string">&quot;SHIPPED&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>远程调用 <code>wmsClient.notifyShipment</code> 可能耗时几百毫秒甚至超时。它在同步方法里执行，会导致其他线程长时间无法进入同一对象的同步方法。</p>
+<p>更合理的做法是缩小锁范围：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">ship</span><span class="params">(<span class="type">long</span> taskId)</span> &#123;</span><br><span class="line">    <span class="keyword">synchronized</span> (lock) &#123;</span><br><span class="line">        updateLocalStatus(taskId, <span class="string">&quot;SHIPPING&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    wmsClient.notifyShipment(taskId);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">synchronized</span> (lock) &#123;</span><br><span class="line">        updateLocalStatus(taskId, <span class="string">&quot;SHIPPED&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果本地状态必须和远程调用严格一致，就不应该靠一个 JVM 锁解决，而应该用数据库状态机、消息表和补偿任务。</p>
+<h2 id="和数据库锁的边界"><a href="#和数据库锁的边界" class="headerlink" title="和数据库锁的边界"></a>和数据库锁的边界</h2><p>如果状态存在数据库里，Java 本地锁不能防止另一个应用实例修改同一记录。供应链系统通常是多实例部署，所以最终状态变更应落到数据库条件更新：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span> scm_warehouse_task</span><br><span class="line"><span class="keyword">SET</span> status <span class="operator">=</span> <span class="string">&#x27;PICKING&#x27;</span></span><br><span class="line"><span class="keyword">WHERE</span> id <span class="operator">=</span> #&#123;taskId&#125;</span><br><span class="line">  <span class="keyword">AND</span> status <span class="operator">=</span> <span class="string">&#x27;CREATED&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>Java 的 <code>synchronized</code> 只适合保护当前实例内的辅助状态，比如本地缓存、批处理内存队列、状态机对象。核心业务一致性必须由数据库约束兜底。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p><code>synchronized</code> 的优点是简单、语义清晰、异常退出自动释放锁。它适合小范围、短时间、单 JVM 内的互斥。供应链系统使用它时，必须控制锁对象、缩小锁范围、避免锁住远程调用，并明确它不能替代数据库并发控制。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://guxingxianyue.github.io/2025/04/24/Java%20synchronized%E4%B8%8EMonitor%EF%BC%9A%E4%BB%93%E5%BA%93%E4%BD%9C%E4%B8%9A%E7%8A%B6%E6%80%81%E6%9C%BA%E7%9A%84%E4%BA%92%E6%96%A5%E6%8E%A7%E5%88%B6/" data-id="cuidllYexojqwxoqJj9ZNvBmf" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Monitor/" rel="tag">Monitor</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/synchronized/" rel="tag">synchronized</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%BB%93%E5%82%A8%E7%B3%BB%E7%BB%9F/" rel="tag">仓储系统</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" rel="tag">并发编程</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-MySQL事务隔离级别和MVCC：订单可见性怎么保证" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2025/04/17/MySQL%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB%E5%92%8CMVCC%EF%BC%9A%E8%AE%A2%E5%8D%95%E5%8F%AF%E8%A7%81%E6%80%A7%E6%80%8E%E4%B9%88%E4%BF%9D%E8%AF%81/" class="article-date">
+  <time datetime="2025-04-17T01:50:00.000Z" itemprop="datePublished">2025-04-17</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2025/04/17/MySQL%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB%E5%92%8CMVCC%EF%BC%9A%E8%AE%A2%E5%8D%95%E5%8F%AF%E8%A7%81%E6%80%A7%E6%80%8E%E4%B9%88%E4%BF%9D%E8%AF%81/">MySQL事务隔离级别和MVCC：订单可见性怎么保证</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>事务隔离级别决定了一个事务能看到哪些数据。MVCC 则是 InnoDB 在不阻塞普通读的情况下实现一致性读的重要机制。供应链系统里，订单、库存、采购、结算这些流程都依赖事务隔离：用户不能看到半提交的数据，后台任务不能基于不一致快照生成错误计划。</p>
+<p>理解 MVCC 的关键是区分快照读和当前读。普通 <code>SELECT</code> 多数情况下是快照读，<code>SELECT FOR UPDATE</code>、<code>UPDATE</code>、<code>DELETE</code> 是当前读。很多锁问题来自把这两类读混在一起理解。</p>
+<h2 id="隔离级别解决什么问题"><a href="#隔离级别解决什么问题" class="headerlink" title="隔离级别解决什么问题"></a>隔离级别解决什么问题</h2><p>常见并发异常包括：</p>
 <ul>
-<li>IS，意向共享锁，表示事务准备在某些行上加共享锁。</li>
-<li>IX，意向排他锁，表示事务准备在某些行上加排他锁。</li>
+<li>脏读：读到其他事务尚未提交的数据。</li>
+<li>不可重复读：同一事务内两次读取同一行，结果不同。</li>
+<li>幻读：同一事务内两次范围查询，出现新增或消失的记录。</li>
 </ul>
-<p>当事务要给某行加共享锁时，会先在表上加 IS 锁。当事务要给某行加排他锁时，会先在表上加 IX 锁。</p>
-<p>意向锁的价值是让表级锁判断冲突更快。它像是在表门口挂了一个牌子：里面已经有人在某些行上操作，整表加锁前先看看是否兼容。</p>
-<h2 id="记录锁"><a href="#记录锁" class="headerlink" title="记录锁"></a>记录锁</h2><p>记录锁是 InnoDB 最容易理解的行锁，它锁住的是索引上的一条记录。</p>
-<p>例如库存表有唯一索引：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">UNIQUE KEY uk_sku_warehouse (sku_id, warehouse_id)</span><br></pre></td></tr></table></figure>
-<p>执行：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> *</span><br><span class="line"><span class="keyword">FROM</span> inventory</span><br><span class="line"><span class="keyword">WHERE</span> sku_id = <span class="number">1001</span></span><br><span class="line">  <span class="keyword">AND</span> warehouse_id = <span class="number">8</span></span><br><span class="line"><span class="keyword">FOR</span> <span class="keyword">UPDATE</span>;</span><br></pre></td></tr></table></figure>
-<p>如果命中一条记录，InnoDB 会对这条索引记录加排他记录锁。其他事务再想更新同一条库存记录，就必须等待当前事务提交或回滚。</p>
-<p>记录锁适合解决“同一行业务数据不能被并发修改”的问题，例如订单状态流转、库存数量变更、账户余额扣减。</p>
-<h2 id="间隙锁"><a href="#间隙锁" class="headerlink" title="间隙锁"></a>间隙锁</h2><p>间隙锁锁住的不是已经存在的记录，而是索引记录之间的空隙。它的目的主要是防止幻读。</p>
-<p>假设库存预警表里已有预警阈值：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">threshold: 10, 20, 50</span><br></pre></td></tr></table></figure>
-<p>一个事务执行范围查询：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> *</span><br><span class="line"><span class="keyword">FROM</span> stock_warning_rule</span><br><span class="line"><span class="keyword">WHERE</span> threshold <span class="keyword">BETWEEN</span> <span class="number">10</span> <span class="keyword">AND</span> <span class="number">50</span></span><br><span class="line"><span class="keyword">FOR</span> <span class="keyword">UPDATE</span>;</span><br></pre></td></tr></table></figure>
-<p>如果数据库只锁住 10、20、50 这几条已经存在的记录，另一个事务仍然可以插入 <code>threshold = 30</code> 的新记录。第一个事务再次查询时，就会发现多了一条之前不存在的数据，这就是幻读。</p>
-<p>间隙锁会锁住索引范围中的空隙，让其他事务不能在这个范围里插入新记录。它牺牲了一部分并发能力，换取范围查询的一致性。</p>
-<p>需要注意，间隙锁依赖索引范围。如果 SQL 没有合适索引，锁范围可能比预期大很多。</p>
-<h2 id="Next-Key-Lock"><a href="#Next-Key-Lock" class="headerlink" title="Next-Key Lock"></a>Next-Key Lock</h2><p>Next-Key Lock 可以理解为记录锁加间隙锁。它既锁住已经存在的索引记录，也锁住记录前后的范围。</p>
-<p>在 InnoDB 的可重复读隔离级别下，范围查询加锁时经常会使用 Next-Key Lock 来防止幻读。</p>
+<p>供应链例子：计划系统正在生成某仓库的补货建议，它先读取库存，再读取未完成订单。如果读取过程中其他事务提交了大量订单，计划结果就可能基于前后不一致的数据。</p>
+<p>MySQL InnoDB 常用隔离级别是 <code>READ COMMITTED</code> 和 <code>REPEATABLE READ</code>。很多项目默认使用 <code>REPEATABLE READ</code>。</p>
+<h2 id="MVCC-的核心概念"><a href="#MVCC-的核心概念" class="headerlink" title="MVCC 的核心概念"></a>MVCC 的核心概念</h2><p>MVCC 可以理解为多版本并发控制。每行数据背后有事务版本信息，历史版本保存在 undo log 里。事务执行快照读时，会根据 ReadView 判断哪个版本对当前事务可见。</p>
+<p>普通查询：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> available_qty</span><br><span class="line"><span class="keyword">FROM</span> scm_inventory</span><br><span class="line"><span class="keyword">WHERE</span> warehouse_id <span class="operator">=</span> <span class="number">8</span> <span class="keyword">AND</span> sku_id <span class="operator">=</span> <span class="number">1001</span>;</span><br></pre></td></tr></table></figure>
+
+<p>通常不会加行锁，而是读取一个对当前事务可见的版本。这就是为什么大量查询不会互相阻塞更新。</p>
+<p>当前读：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> available_qty</span><br><span class="line"><span class="keyword">FROM</span> scm_inventory</span><br><span class="line"><span class="keyword">WHERE</span> warehouse_id <span class="operator">=</span> <span class="number">8</span> <span class="keyword">AND</span> sku_id <span class="operator">=</span> <span class="number">1001</span></span><br><span class="line"><span class="keyword">FOR</span> <span class="keyword">UPDATE</span>;</span><br></pre></td></tr></table></figure>
+
+<p>它读取最新已提交版本，并尝试加排他锁。当前读要参与并发修改，所以必须面对锁等待。</p>
+<h2 id="READ-COMMITTED-和-REPEATABLE-READ-的差异"><a href="#READ-COMMITTED-和-REPEATABLE-READ-的差异" class="headerlink" title="READ COMMITTED 和 REPEATABLE READ 的差异"></a>READ COMMITTED 和 REPEATABLE READ 的差异</h2><p>在 <code>READ COMMITTED</code> 下，每条语句都会生成新的 ReadView。一个事务内两次普通查询，可能看到其他事务刚提交的新结果。</p>
+<p>在 <code>REPEATABLE READ</code> 下，事务第一次快照读时生成 ReadView，后续普通查询沿用这个 ReadView。因此同一事务内多次查询结果更稳定。</p>
+<p>供应链报表生成适合使用快照一致性。比如生成某一天的库存余额报表，如果事务内多次查询库存和流水，希望读到同一个时间点的视图。</p>
+<p>但订单审核、库存扣减不能只依赖快照读。它们要修改最新状态，应该使用当前读或条件更新。</p>
+<h2 id="Demo：订单审核不能只用快照读"><a href="#Demo：订单审核不能只用快照读" class="headerlink" title="Demo：订单审核不能只用快照读"></a>Demo：订单审核不能只用快照读</h2><p>错误示例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Transactional</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">approveOrder</span><span class="params">(<span class="type">long</span> orderId)</span> &#123;</span><br><span class="line">    <span class="type">Order</span> <span class="variable">order</span> <span class="operator">=</span> orderMapper.selectById(orderId); <span class="comment">// 普通快照读</span></span><br><span class="line">    <span class="keyword">if</span> (!<span class="string">&quot;WAIT_APPROVE&quot;</span>.equals(order.getStatus())) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">BizException</span>(<span class="string">&quot;状态不允许审核&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    orderMapper.updateStatus(orderId, <span class="string">&quot;APPROVED&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果两个审核线程同时进入，都可能读到 <code>WAIT_APPROVE</code>。虽然最终数据库更新有锁，但如果 <code>updateStatus</code> 没有带状态条件，就可能出现重复审核日志、重复发消息。</p>
+<p>改进方式：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Transactional</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">approveOrder</span><span class="params">(<span class="type">long</span> orderId, <span class="type">long</span> userId)</span> &#123;</span><br><span class="line">    <span class="type">int</span> <span class="variable">affected</span> <span class="operator">=</span> orderMapper.approve(orderId, userId);</span><br><span class="line">    <span class="keyword">if</span> (affected != <span class="number">1</span>) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">BizException</span>(<span class="string">&quot;订单状态已变化，不能重复审核&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    auditLogMapper.insert(orderId, userId, <span class="string">&quot;APPROVE&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>SQL：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span> scm_sales_order</span><br><span class="line"><span class="keyword">SET</span> status <span class="operator">=</span> <span class="string">&#x27;APPROVED&#x27;</span>,</span><br><span class="line">    approved_by <span class="operator">=</span> #&#123;userId&#125;,</span><br><span class="line">    approved_at <span class="operator">=</span> NOW()</span><br><span class="line"><span class="keyword">WHERE</span> id <span class="operator">=</span> #&#123;orderId&#125;</span><br><span class="line">  <span class="keyword">AND</span> status <span class="operator">=</span> <span class="string">&#x27;WAIT_APPROVE&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>这里用当前读的更新语义和状态条件一起保证并发安全。即使两个事务同时执行，也只有一个事务能更新成功。</p>
+<h2 id="MVCC-和锁的关系"><a href="#MVCC-和锁的关系" class="headerlink" title="MVCC 和锁的关系"></a>MVCC 和锁的关系</h2><p>MVCC 让普通读不阻塞写，写也不阻塞普通读。但它不意味着没有锁。更新、删除、当前读仍然需要加锁。</p>
+<p>库存扣减：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span> scm_inventory</span><br><span class="line"><span class="keyword">SET</span> available_qty <span class="operator">=</span> available_qty <span class="operator">-</span> <span class="number">3</span></span><br><span class="line"><span class="keyword">WHERE</span> warehouse_id <span class="operator">=</span> <span class="number">8</span></span><br><span class="line">  <span class="keyword">AND</span> sku_id <span class="operator">=</span> <span class="number">1001</span></span><br><span class="line">  <span class="keyword">AND</span> available_qty <span class="operator">&gt;=</span> <span class="number">3</span>;</span><br></pre></td></tr></table></figure>
+
+<p>这不是快照读。InnoDB 要读取最新可更新版本并加排他锁。如果另一个事务正在修改同一库存记录，当前事务会等待。</p>
+<h2 id="供应链系统的使用建议"><a href="#供应链系统的使用建议" class="headerlink" title="供应链系统的使用建议"></a>供应链系统的使用建议</h2><p>报表、看板、查询列表主要依赖快照读。它们要求读性能和一致视图，不应该随便加 <code>FOR UPDATE</code>。</p>
+<p>审核、扣减、占用、释放、结算过账属于状态变更，要用条件更新或当前读。业务状态必须放在 SQL 条件里。</p>
+<p>跨多张表的一致性流程要控制事务边界。比如创建出库单并扣库存，应该在一个事务里完成核心数据修改，但不要把 WMS 远程通知放进事务。</p>
+<p>对于长报表，不要长时间开启事务读取大量数据，否则会影响 undo log 清理。可以用离线快照表、分批读取或数据仓库承接。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>MVCC 解决的是读写并发下的一致性读，不是所有并发修改的万能保护。供应链系统要区分快照读和当前读：查询列表依赖 MVCC，状态变更依赖锁和条件更新。把业务状态写进 SQL 条件，是比单纯依赖 Java 判断更可靠的并发控制方式。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://guxingxianyue.github.io/2025/04/17/MySQL%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB%E5%92%8CMVCC%EF%BC%9A%E8%AE%A2%E5%8D%95%E5%8F%AF%E8%A7%81%E6%80%A7%E6%80%8E%E4%B9%88%E4%BF%9D%E8%AF%81/" data-id="cuidGdlYUXyZv0KENU4IsM4Tf" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/InnoDB/" rel="tag">InnoDB</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MVCC/" rel="tag">MVCC</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/" rel="tag">事务隔离级别</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E8%AE%A2%E5%8D%95%E7%B3%BB%E7%BB%9F/" rel="tag">订单系统</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-MySQL间隙锁和Next-Key Lock：采购单号防重与幻读" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2025/04/10/MySQL%E9%97%B4%E9%9A%99%E9%94%81%E5%92%8CNext-Key%20Lock%EF%BC%9A%E9%87%87%E8%B4%AD%E5%8D%95%E5%8F%B7%E9%98%B2%E9%87%8D%E4%B8%8E%E5%B9%BB%E8%AF%BB/" class="article-date">
+  <time datetime="2025-04-10T01:45:00.000Z" itemprop="datePublished">2025-04-10</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2025/04/10/MySQL%E9%97%B4%E9%9A%99%E9%94%81%E5%92%8CNext-Key%20Lock%EF%BC%9A%E9%87%87%E8%B4%AD%E5%8D%95%E5%8F%B7%E9%98%B2%E9%87%8D%E4%B8%8E%E5%B9%BB%E8%AF%BB/">MySQL间隙锁和Next-Key Lock：采购单号防重与幻读</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>间隙锁是 MySQL 锁体系里最容易让人困惑的一类锁。它锁的不是已经存在的记录，而是索引记录之间的“空隙”。在 InnoDB 的可重复读隔离级别下，间隙锁和 Next-Key Lock 用来阻止其他事务在某个范围内插入新记录，从而避免当前读场景下的幻读。</p>
+<p>供应链系统里，采购单号、入库批次号、结算期间号这类数据经常要求“范围内唯一”或“按规则递增”。如果只检查已有记录，不理解间隙锁，就很容易在高并发下出现重复单号或范围判断不一致。</p>
+<h2 id="什么是幻读"><a href="#什么是幻读" class="headerlink" title="什么是幻读"></a>什么是幻读</h2><p>假设采购系统要求同一个供应商在同一天不能创建重复外部单号：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE TABLE</span> scm_purchase_order (</span><br><span class="line">  id <span class="type">BIGINT</span> <span class="keyword">PRIMARY KEY</span> AUTO_INCREMENT,</span><br><span class="line">  supplier_id <span class="type">BIGINT</span> <span class="keyword">NOT NULL</span>,</span><br><span class="line">  external_no <span class="type">VARCHAR</span>(<span class="number">64</span>) <span class="keyword">NOT NULL</span>,</span><br><span class="line">  order_date <span class="type">DATE</span> <span class="keyword">NOT NULL</span>,</span><br><span class="line">  status <span class="type">VARCHAR</span>(<span class="number">32</span>) <span class="keyword">NOT NULL</span>,</span><br><span class="line">  KEY idx_supplier_date_no (supplier_id, order_date, external_no)</span><br><span class="line">) ENGINE<span class="operator">=</span>InnoDB;</span><br></pre></td></tr></table></figure>
+
+<p>事务 A 先检查不存在：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">START</span> TRANSACTION;</span><br><span class="line"></span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span></span><br><span class="line"><span class="keyword">FROM</span> scm_purchase_order</span><br><span class="line"><span class="keyword">WHERE</span> supplier_id <span class="operator">=</span> <span class="number">2001</span></span><br><span class="line">  <span class="keyword">AND</span> order_date <span class="operator">=</span> <span class="string">&#x27;2025-04-10&#x27;</span></span><br><span class="line">  <span class="keyword">AND</span> external_no <span class="operator">=</span> <span class="string">&#x27;PO-7788&#x27;</span></span><br><span class="line"><span class="keyword">FOR</span> <span class="keyword">UPDATE</span>;</span><br></pre></td></tr></table></figure>
+
+<p>如果此时没有记录，事务 A 准备插入。事务 B 如果也执行同样检查，也可能看到不存在。两边都插入，就会重复。这就是典型的“先查再插”竞态。</p>
+<h2 id="用唯一约束解决第一层问题"><a href="#用唯一约束解决第一层问题" class="headerlink" title="用唯一约束解决第一层问题"></a>用唯一约束解决第一层问题</h2><p>防重复的第一选择不是依赖锁，而是唯一约束：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">ALTER TABLE</span> scm_purchase_order</span><br><span class="line"><span class="keyword">ADD</span> <span class="keyword">UNIQUE</span> KEY uk_supplier_date_no (supplier_id, order_date, external_no);</span><br></pre></td></tr></table></figure>
+
+<p>然后直接插入：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">INSERT INTO</span> scm_purchase_order (</span><br><span class="line">  supplier_id, order_date, external_no, status</span><br><span class="line">) <span class="keyword">VALUES</span> (</span><br><span class="line">  <span class="number">2001</span>, <span class="string">&#x27;2025-04-10&#x27;</span>, <span class="string">&#x27;PO-7788&#x27;</span>, <span class="string">&#x27;DRAFT&#x27;</span></span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+<p>如果并发重复插入，数据库会让一个成功，另一个失败。业务层捕获唯一键冲突，返回“采购单已存在”。这是最可靠、最容易维护的防重方案。</p>
+<h2 id="间隙锁适合什么场景"><a href="#间隙锁适合什么场景" class="headerlink" title="间隙锁适合什么场景"></a>间隙锁适合什么场景</h2><p>有些规则不是单点唯一，而是范围约束。比如一个供应商每天最多只能有 1000 张待审核采购单。检查时需要锁住某个范围，避免检查后别人插入新记录导致数量超过限制：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">START</span> TRANSACTION;</span><br><span class="line"></span><br><span class="line"><span class="keyword">SELECT</span> <span class="built_in">COUNT</span>(<span class="operator">*</span>)</span><br><span class="line"><span class="keyword">FROM</span> scm_purchase_order</span><br><span class="line"><span class="keyword">WHERE</span> supplier_id <span class="operator">=</span> <span class="number">2001</span></span><br><span class="line">  <span class="keyword">AND</span> order_date <span class="operator">=</span> <span class="string">&#x27;2025-04-10&#x27;</span></span><br><span class="line">  <span class="keyword">AND</span> status <span class="operator">=</span> <span class="string">&#x27;WAIT_APPROVE&#x27;</span></span><br><span class="line"><span class="keyword">FOR</span> <span class="keyword">UPDATE</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 如果数量小于 1000，再插入</span></span><br><span class="line"><span class="keyword">INSERT INTO</span> scm_purchase_order (...);</span><br><span class="line"></span><br><span class="line"><span class="keyword">COMMIT</span>;</span><br></pre></td></tr></table></figure>
+
+<p>但这里有一个现实问题：<code>COUNT(*) FOR UPDATE</code> 在不同 MySQL 版本和执行计划下不一定按你想象的方式锁住范围。更稳的做法是把“当天供应商配额”抽成一条独立记录：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE TABLE</span> scm_supplier_daily_quota (</span><br><span class="line">  supplier_id <span class="type">BIGINT</span> <span class="keyword">NOT NULL</span>,</span><br><span class="line">  biz_date <span class="type">DATE</span> <span class="keyword">NOT NULL</span>,</span><br><span class="line">  used_count <span class="type">INT</span> <span class="keyword">NOT NULL</span>,</span><br><span class="line">  limit_count <span class="type">INT</span> <span class="keyword">NOT NULL</span>,</span><br><span class="line">  <span class="keyword">PRIMARY KEY</span> (supplier_id, biz_date)</span><br><span class="line">) ENGINE<span class="operator">=</span>InnoDB;</span><br></pre></td></tr></table></figure>
+
+<p>然后更新这一行：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span> scm_supplier_daily_quota</span><br><span class="line"><span class="keyword">SET</span> used_count <span class="operator">=</span> used_count <span class="operator">+</span> <span class="number">1</span></span><br><span class="line"><span class="keyword">WHERE</span> supplier_id <span class="operator">=</span> <span class="number">2001</span></span><br><span class="line">  <span class="keyword">AND</span> biz_date <span class="operator">=</span> <span class="string">&#x27;2025-04-10&#x27;</span></span><br><span class="line">  <span class="keyword">AND</span> used_count <span class="operator">&lt;</span> limit_count;</span><br></pre></td></tr></table></figure>
+
+<p>影响行数为 1 才允许创建采购单。这个模型比依赖复杂范围锁更清晰。</p>
+<h2 id="Next-Key-Lock-是什么"><a href="#Next-Key-Lock-是什么" class="headerlink" title="Next-Key Lock 是什么"></a>Next-Key Lock 是什么</h2><p>Next-Key Lock 可以理解为记录锁加间隙锁。它既锁住已有索引记录，也锁住记录前面的间隙。范围查询当前读时，InnoDB 可能使用 Next-Key Lock 防止其他事务在范围内插入新记录。</p>
 <p>例如：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> *</span><br><span class="line"><span class="keyword">FROM</span> purchase_order</span><br><span class="line"><span class="keyword">WHERE</span> supplier_id = <span class="number">88</span></span><br><span class="line">  <span class="keyword">AND</span> amount <span class="keyword">BETWEEN</span> <span class="number">10000</span> <span class="keyword">AND</span> <span class="number">50000</span></span><br><span class="line"><span class="keyword">FOR</span> <span class="keyword">UPDATE</span>;</span><br></pre></td></tr></table></figure>
-<p>如果 <code>supplier_id, amount</code> 上有联合索引，InnoDB 会锁定这个索引范围内的记录和间隙。其他事务不能随便插入符合这个范围的新采购单。</p>
-<p>Next-Key Lock 的好处是一致性强，坏处是容易让范围更新、范围查询变得更容易互相阻塞。因此业务 SQL 要尽量让范围条件走合适索引，避免锁住过大的范围。</p>
-<h2 id="乐观锁"><a href="#乐观锁" class="headerlink" title="乐观锁"></a>乐观锁</h2><p>乐观锁不是数据库引擎内部固定的一种锁，而是一种并发控制思想。它假设冲突不常发生，所以不提前阻塞别人，而是在提交更新时检查数据有没有被别人改过。</p>
-<p>最常见实现是版本号字段：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span> inventory</span><br><span class="line"><span class="keyword">SET</span> available_qty = available_qty - <span class="number">8</span>,</span><br><span class="line">    <span class="keyword">version</span> = <span class="keyword">version</span> + <span class="number">1</span></span><br><span class="line"><span class="keyword">WHERE</span> sku_id = <span class="number">1001</span></span><br><span class="line">  <span class="keyword">AND</span> warehouse_id = <span class="number">8</span></span><br><span class="line">  <span class="keyword">AND</span> available_qty &gt;= <span class="number">8</span></span><br><span class="line">  <span class="keyword">AND</span> <span class="keyword">version</span> = <span class="number">12</span>;</span><br></pre></td></tr></table></figure>
-<p>如果更新影响行数为 1，说明版本没变，扣减成功。如果影响行数为 0，说明数据已经被别人改过，当前事务需要重试或提示失败。</p>
-<p>乐观锁适合读多写少、冲突概率低的场景。例如商品资料编辑、客户档案修改、配置项更新。它的优点是不会长时间阻塞，缺点是冲突发生时需要业务处理重试和失败提示。</p>
-<h2 id="悲观锁"><a href="#悲观锁" class="headerlink" title="悲观锁"></a>悲观锁</h2><p>悲观锁也是一种思想。它假设冲突很可能发生，所以在操作前先把数据锁住。</p>
-<p>典型写法是：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> *</span><br><span class="line"><span class="keyword">FROM</span> inventory</span><br><span class="line"><span class="keyword">WHERE</span> sku_id = <span class="number">1001</span></span><br><span class="line">  <span class="keyword">AND</span> warehouse_id = <span class="number">8</span></span><br><span class="line"><span class="keyword">FOR</span> <span class="keyword">UPDATE</span>;</span><br></pre></td></tr></table></figure>
-<p>当前事务拿到锁以后，再计算库存、写入订单、更新库存。其他事务想修改同一条库存记录，就必须等待。</p>
-<p>悲观锁适合写冲突高、数据不能错的场景，例如库存扣减、余额扣减、核心单据状态流转。缺点也明显：事务时间越长，等待越多，吞吐越低。</p>
-<p>所以悲观锁一定要控制事务范围。不要在持有锁期间调用外部接口、发送 MQ、请求第三方系统，也不要在事务里做复杂计算。</p>
-<h2 id="元数据锁"><a href="#元数据锁" class="headerlink" title="元数据锁"></a>元数据锁</h2><p>元数据锁也叫 MDL，Metadata Lock。它保护的是表结构，而不是具体业务行。</p>
-<p>当一个事务正在查询或修改某张表时，数据库会持有这张表的元数据锁，防止另一个会话同时修改表结构。否则就可能出现一个事务读表读到一半，另一个事务把字段删了。</p>
-<p>常见问题是：一个长事务一直不提交，导致 <code>ALTER TABLE</code> 等 DDL 操作被阻塞；DDL 又反过来阻塞后续普通查询，最后形成一串等待。</p>
-<p>例如：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">BEGIN</span>;</span><br><span class="line"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span> order_info <span class="keyword">WHERE</span> <span class="keyword">id</span> = <span class="number">1</span>;</span><br><span class="line"><span class="comment">-- 长时间不提交</span></span><br></pre></td></tr></table></figure>
-<p>此时另一个会话执行：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">ALTER</span> <span class="keyword">TABLE</span> order_info <span class="keyword">ADD</span> <span class="keyword">COLUMN</span> source_type <span class="built_in">varchar</span>(<span class="number">32</span>);</span><br></pre></td></tr></table></figure>
-<p>DDL 可能会等待前面的事务释放 MDL。后续新的查询又可能排在 DDL 后面，导致业务接口突然大面积变慢。</p>
-<p>线上做 DDL 时，必须关注长事务和元数据锁等待。大表变更最好使用在线 DDL 工具或低峰期执行。</p>
-<h2 id="自增锁"><a href="#自增锁" class="headerlink" title="自增锁"></a>自增锁</h2><p>自增锁用于处理自增主键分配。多个事务同时插入数据时，数据库要保证自增 ID 不重复。</p>
-<p>InnoDB 对自增锁做过很多优化，不同配置下表现不同。简单理解，普通插入通常可以较快分配自增值；批量插入、<code>INSERT ... SELECT</code> 这类语句可能持有自增相关锁更久。</p>
-<p>业务上不建议依赖自增 ID 的连续性。事务回滚、插入失败、并发插入都可能造成 ID 跳号。自增 ID 的目标是唯一和大体递增，不是绝对连续。</p>
-<h2 id="死锁是怎么发生的"><a href="#死锁是怎么发生的" class="headerlink" title="死锁是怎么发生的"></a>死锁是怎么发生的</h2><p>死锁是两个或多个事务互相等待对方释放锁。</p>
-<p>例如供应链系统里同时更新订单和库存：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span></span><br><span class="line"><span class="keyword">FROM</span> scm_purchase_order</span><br><span class="line"><span class="keyword">WHERE</span> supplier_id <span class="operator">=</span> <span class="number">2001</span></span><br><span class="line">  <span class="keyword">AND</span> order_date <span class="operator">&gt;=</span> <span class="string">&#x27;2025-04-01&#x27;</span></span><br><span class="line">  <span class="keyword">AND</span> order_date <span class="operator">&lt;</span> <span class="string">&#x27;2025-05-01&#x27;</span></span><br><span class="line"><span class="keyword">FOR</span> <span class="keyword">UPDATE</span>;</span><br></pre></td></tr></table></figure>
+
+<p>在可重复读隔离级别下，这类范围当前读可能锁住 4 月份相关索引范围，阻止其他事务插入该范围内的新采购单。锁范围取决于索引设计和执行计划。</p>
+<p>如果索引是：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">KEY idx_supplier_date (supplier_id, order_date)</span><br></pre></td></tr></table></figure>
+
+<p>锁范围会比没有该索引时更可控。没有合适索引时，范围锁可能扩大，甚至影响无关供应商。</p>
+<h2 id="供应链业务里的实践建议"><a href="#供应链业务里的实践建议" class="headerlink" title="供应链业务里的实践建议"></a>供应链业务里的实践建议</h2><p>第一，唯一性问题优先用唯一索引。比如采购外部单号、入库批次号、销售订单号。</p>
+<p>第二，配额和计数问题优先抽象成计数行，用条件更新控制并发。不要用大范围 <code>COUNT FOR UPDATE</code> 扛高并发。</p>
+<p>第三，必须范围锁时，必须设计和范围条件一致的联合索引。范围条件没有索引，间隙锁会变成线上阻塞源。</p>
+<p>第四，不要把用户交互放在事务里。比如创建采购单时弹窗确认、调用供应商接口、远程校验合同，不能在持有范围锁期间执行。</p>
+<h2 id="Demo：安全生成供应商日序号"><a href="#Demo：安全生成供应商日序号" class="headerlink" title="Demo：安全生成供应商日序号"></a>Demo：安全生成供应商日序号</h2><p>如果采购单号规则是 <code>供应商 + 日期 + 序号</code>，可以用序号表控制：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE TABLE</span> scm_doc_sequence (</span><br><span class="line">  doc_type <span class="type">VARCHAR</span>(<span class="number">32</span>) <span class="keyword">NOT NULL</span>,</span><br><span class="line">  biz_key <span class="type">VARCHAR</span>(<span class="number">64</span>) <span class="keyword">NOT NULL</span>,</span><br><span class="line">  current_value <span class="type">INT</span> <span class="keyword">NOT NULL</span>,</span><br><span class="line">  <span class="keyword">PRIMARY KEY</span> (doc_type, biz_key)</span><br><span class="line">) ENGINE<span class="operator">=</span>InnoDB;</span><br></pre></td></tr></table></figure>
+
+<p>Java 代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Transactional</span></span><br><span class="line"><span class="keyword">public</span> String <span class="title function_">nextPurchaseNo</span><span class="params">(<span class="type">long</span> supplierId, LocalDate date)</span> &#123;</span><br><span class="line">    <span class="type">String</span> <span class="variable">bizKey</span> <span class="operator">=</span> supplierId + <span class="string">&quot;:&quot;</span> + date;</span><br><span class="line">    <span class="type">int</span> <span class="variable">affected</span> <span class="operator">=</span> sequenceMapper.increase(<span class="string">&quot;PURCHASE_ORDER&quot;</span>, bizKey);</span><br><span class="line">    <span class="keyword">if</span> (affected == <span class="number">0</span>) &#123;</span><br><span class="line">        sequenceMapper.insert(<span class="string">&quot;PURCHASE_ORDER&quot;</span>, bizKey, <span class="number">1</span>);</span><br><span class="line">        <span class="keyword">return</span> formatNo(supplierId, date, <span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="type">int</span> <span class="variable">value</span> <span class="operator">=</span> sequenceMapper.current(<span class="string">&quot;PURCHASE_ORDER&quot;</span>, bizKey);</span><br><span class="line">    <span class="keyword">return</span> formatNo(supplierId, date, value);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>对应 SQL：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span> scm_doc_sequence</span><br><span class="line"><span class="keyword">SET</span> current_value <span class="operator">=</span> current_value <span class="operator">+</span> <span class="number">1</span></span><br><span class="line"><span class="keyword">WHERE</span> doc_type <span class="operator">=</span> #&#123;docType&#125;</span><br><span class="line">  <span class="keyword">AND</span> biz_key <span class="operator">=</span> #&#123;bizKey&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>真实项目里要处理并发首次插入的唯一键冲突。也可以先插入初始行，再统一更新。核心思想是把复杂范围竞争收敛到一条序号记录上。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>间隙锁和 Next-Key Lock 是 InnoDB 为范围一致性提供的机制，但业务系统不应该把所有防重和计数规则都寄托在隐式范围锁上。供应链系统更稳的建模是：唯一性用唯一索引，额度用计数行，序号用序号表，范围当前读必须配合明确索引。这样锁行为才可解释、可压测、可排查。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://guxingxianyue.github.io/2025/04/10/MySQL%E9%97%B4%E9%9A%99%E9%94%81%E5%92%8CNext-Key%20Lock%EF%BC%9A%E9%87%87%E8%B4%AD%E5%8D%95%E5%8F%B7%E9%98%B2%E9%87%8D%E4%B8%8E%E5%B9%BB%E8%AF%BB/" data-id="cuid7H5f-GgA98n21gPRWTFtM" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Next-Key-Lock/" rel="tag">Next-Key Lock</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%B9%BB%E8%AF%BB/" rel="tag">幻读</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%87%87%E8%B4%AD%E7%B3%BB%E7%BB%9F/" rel="tag">采购系统</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%97%B4%E9%9A%99%E9%94%81/" rel="tag">间隙锁</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-MySQL行锁与索引：库存预占为什么必须命中索引" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2025/04/03/MySQL%E8%A1%8C%E9%94%81%E4%B8%8E%E7%B4%A2%E5%BC%95%EF%BC%9A%E5%BA%93%E5%AD%98%E9%A2%84%E5%8D%A0%E4%B8%BA%E4%BB%80%E4%B9%88%E5%BF%85%E9%A1%BB%E5%91%BD%E4%B8%AD%E7%B4%A2%E5%BC%95/" class="article-date">
+  <time datetime="2025-04-03T01:40:00.000Z" itemprop="datePublished">2025-04-03</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2025/04/03/MySQL%E8%A1%8C%E9%94%81%E4%B8%8E%E7%B4%A2%E5%BC%95%EF%BC%9A%E5%BA%93%E5%AD%98%E9%A2%84%E5%8D%A0%E4%B8%BA%E4%BB%80%E4%B9%88%E5%BF%85%E9%A1%BB%E5%91%BD%E4%B8%AD%E7%B4%A2%E5%BC%95/">MySQL行锁与索引：库存预占为什么必须命中索引</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>InnoDB 的行锁不是直接锁住“表里那一行数据”的抽象概念，而是锁住索引记录。这个细节决定了很多线上锁问题的根因：SQL 看起来只改一条业务数据，但因为没有命中合适索引，实际扫描和加锁范围远大于预期。</p>
+<p>供应链系统里最容易踩坑的是库存预占。库存表通常按仓库、SKU、批次、库位维度管理，如果查询条件和索引设计不一致，一个订单扣库存可能阻塞另一批无关 SKU 的入库、移库或盘点。</p>
+<h2 id="库存表的索引设计"><a href="#库存表的索引设计" class="headerlink" title="库存表的索引设计"></a>库存表的索引设计</h2><p>假设库存按仓库和 SKU 汇总：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE TABLE</span> scm_inventory (</span><br><span class="line">  id <span class="type">BIGINT</span> <span class="keyword">PRIMARY KEY</span> AUTO_INCREMENT,</span><br><span class="line">  warehouse_id <span class="type">BIGINT</span> <span class="keyword">NOT NULL</span>,</span><br><span class="line">  sku_id <span class="type">BIGINT</span> <span class="keyword">NOT NULL</span>,</span><br><span class="line">  available_qty <span class="type">INT</span> <span class="keyword">NOT NULL</span>,</span><br><span class="line">  locked_qty <span class="type">INT</span> <span class="keyword">NOT NULL</span>,</span><br><span class="line">  updated_at DATETIME <span class="keyword">NOT NULL</span>,</span><br><span class="line">  <span class="keyword">UNIQUE</span> KEY uk_wh_sku (warehouse_id, sku_id),</span><br><span class="line">  KEY idx_sku (sku_id)</span><br><span class="line">) ENGINE<span class="operator">=</span>InnoDB;</span><br></pre></td></tr></table></figure>
+
+<p>订单预占库存时，最理想的 SQL 是：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span> scm_inventory</span><br><span class="line"><span class="keyword">SET</span> available_qty <span class="operator">=</span> available_qty <span class="operator">-</span> <span class="number">5</span>,</span><br><span class="line">    locked_qty <span class="operator">=</span> locked_qty <span class="operator">+</span> <span class="number">5</span>,</span><br><span class="line">    updated_at <span class="operator">=</span> NOW()</span><br><span class="line"><span class="keyword">WHERE</span> warehouse_id <span class="operator">=</span> <span class="number">8</span></span><br><span class="line">  <span class="keyword">AND</span> sku_id <span class="operator">=</span> <span class="number">1001</span></span><br><span class="line">  <span class="keyword">AND</span> available_qty <span class="operator">&gt;=</span> <span class="number">5</span>;</span><br></pre></td></tr></table></figure>
+
+<p>这里能命中唯一索引 <code>uk_wh_sku</code>。InnoDB 可以快速定位到一条索引记录，然后对这条记录加排他锁。其他事务更新同仓不同 SKU，或者不同仓同 SKU，通常不会被它阻塞。</p>
+<h2 id="没有命中索引会发生什么"><a href="#没有命中索引会发生什么" class="headerlink" title="没有命中索引会发生什么"></a>没有命中索引会发生什么</h2><p>如果业务代码写成这样：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span> scm_inventory</span><br><span class="line"><span class="keyword">SET</span> available_qty <span class="operator">=</span> available_qty <span class="operator">-</span> <span class="number">5</span>,</span><br><span class="line">    locked_qty <span class="operator">=</span> locked_qty <span class="operator">+</span> <span class="number">5</span></span><br><span class="line"><span class="keyword">WHERE</span> sku_id <span class="operator">=</span> <span class="number">1001</span></span><br><span class="line">  <span class="keyword">AND</span> available_qty <span class="operator">&gt;=</span> <span class="number">5</span>;</span><br></pre></td></tr></table></figure>
+
+<p>这条 SQL 少了 <code>warehouse_id</code>。如果只命中 <code>idx_sku</code>，它可能扫描所有仓库里 SKU 1001 的库存记录。对于全国仓、多渠道库存系统，这个范围可能很大。</p>
+<p>更差的是用函数或隐式转换破坏索引：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span></span><br><span class="line"><span class="keyword">FROM</span> scm_inventory</span><br><span class="line"><span class="keyword">WHERE</span> <span class="built_in">CAST</span>(sku_id <span class="keyword">AS</span> <span class="type">CHAR</span>) <span class="operator">=</span> <span class="string">&#x27;1001&#x27;</span></span><br><span class="line"><span class="keyword">FOR</span> <span class="keyword">UPDATE</span>;</span><br></pre></td></tr></table></figure>
+
+<p>当索引失效时，数据库需要扫描更多记录。扫描过程中，当前读和更新语句可能对更多索引记录加锁，导致锁等待范围扩大。线上表现通常是：明明两个订单不是同一个仓库，却互相等待。</p>
+<h2 id="用-EXPLAIN-验证锁范围的前提"><a href="#用-EXPLAIN-验证锁范围的前提" class="headerlink" title="用 EXPLAIN 验证锁范围的前提"></a>用 EXPLAIN 验证锁范围的前提</h2><p>锁问题先看 SQL 是否按预期走索引：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">EXPLAIN</span><br><span class="line"><span class="keyword">UPDATE</span> scm_inventory</span><br><span class="line"><span class="keyword">SET</span> available_qty <span class="operator">=</span> available_qty <span class="operator">-</span> <span class="number">5</span>,</span><br><span class="line">    locked_qty <span class="operator">=</span> locked_qty <span class="operator">+</span> <span class="number">5</span></span><br><span class="line"><span class="keyword">WHERE</span> warehouse_id <span class="operator">=</span> <span class="number">8</span></span><br><span class="line">  <span class="keyword">AND</span> sku_id <span class="operator">=</span> <span class="number">1001</span></span><br><span class="line">  <span class="keyword">AND</span> available_qty <span class="operator">&gt;=</span> <span class="number">5</span>;</span><br></pre></td></tr></table></figure>
+
+<p>重点看：</p>
+<ul>
+<li><code>key</code> 是否是预期索引。</li>
+<li><code>type</code> 是否是 <code>const</code>、<code>ref</code> 或 <code>range</code>。</li>
+<li><code>rows</code> 是否接近业务预期。</li>
+</ul>
+<p>如果 <code>rows</code> 远大于 1，就要警惕锁范围已经被放大。</p>
+<h2 id="Java-侧的正确调用方式"><a href="#Java-侧的正确调用方式" class="headerlink" title="Java 侧的正确调用方式"></a>Java 侧的正确调用方式</h2><p>库存预占接口不要先查库存再在 Java 里判断。推荐直接执行条件更新：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Transactional</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">reserveStock</span><span class="params">(<span class="type">long</span> warehouseId, <span class="type">long</span> skuId, <span class="type">int</span> qty)</span> &#123;</span><br><span class="line">    <span class="type">int</span> <span class="variable">affected</span> <span class="operator">=</span> inventoryMapper.reserve(warehouseId, skuId, qty);</span><br><span class="line">    <span class="keyword">if</span> (affected != <span class="number">1</span>) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">BizException</span>(<span class="string">&quot;库存不足，无法预占&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    inventoryLogMapper.insertReserveLog(warehouseId, skuId, qty);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>对应 Mapper SQL：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span> scm_inventory</span><br><span class="line"><span class="keyword">SET</span> available_qty <span class="operator">=</span> available_qty <span class="operator">-</span> #&#123;qty&#125;,</span><br><span class="line">    locked_qty <span class="operator">=</span> locked_qty <span class="operator">+</span> #&#123;qty&#125;,</span><br><span class="line">    updated_at <span class="operator">=</span> NOW()</span><br><span class="line"><span class="keyword">WHERE</span> warehouse_id <span class="operator">=</span> #&#123;warehouseId&#125;</span><br><span class="line">  <span class="keyword">AND</span> sku_id <span class="operator">=</span> #&#123;skuId&#125;</span><br><span class="line">  <span class="keyword">AND</span> available_qty <span class="operator">&gt;=</span> #&#123;qty&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个写法有两个优点。第一，库存判断和扣减是一个原子更新。第二，锁范围由唯一索引控制，容易解释和排查。</p>
+<h2 id="批量库存预占的加锁顺序"><a href="#批量库存预占的加锁顺序" class="headerlink" title="批量库存预占的加锁顺序"></a>批量库存预占的加锁顺序</h2><p>一个订单可能包含多个 SKU。批量扣减时，如果两个事务以不同顺序锁 SKU，就容易死锁。</p>
 <p>事务 A：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">1. 锁订单 O1001</span><br><span class="line">2. 再锁库存 S1001</span><br></pre></td></tr></table></figure>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">先锁 SKU 1001</span><br><span class="line">再锁 SKU 1002</span><br></pre></td></tr></table></figure>
+
 <p>事务 B：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">1. 锁库存 S1001</span><br><span class="line">2. 再锁订单 O1001</span><br></pre></td></tr></table></figure>
-<p>事务 A 拿到了订单锁，等待库存锁。事务 B 拿到了库存锁，等待订单锁。双方都不释放，就形成死锁。</p>
-<p>数据库通常会检测死锁，并主动回滚其中一个事务。业务系统看到的就是死锁异常。</p>
-<p>减少死锁的关键方法是：</p>
-<ul>
-<li>多表更新保持固定顺序。</li>
-<li>批量更新时按主键排序。</li>
-<li>事务尽量短。</li>
-<li>查询条件命中索引，减少锁范围。</li>
-<li>避免在事务中做远程调用。</li>
-<li>捕获死锁异常，对幂等操作做有限重试。</li>
-</ul>
-<h2 id="怎么排查锁等待"><a href="#怎么排查锁等待" class="headerlink" title="怎么排查锁等待"></a>怎么排查锁等待</h2><p>线上出现锁等待时，不要只盯着慢 SQL。要看谁在等锁，谁持有锁，事务已经执行了多久。</p>
-<p>MySQL 里常用的排查方向包括：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> <span class="keyword">PROCESSLIST</span>;</span><br></pre></td></tr></table></figure>
-<p>查看当前连接状态。</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> <span class="keyword">ENGINE</span> <span class="keyword">INNODB</span> <span class="keyword">STATUS</span>;</span><br></pre></td></tr></table></figure>
-<p>查看最近死锁、锁等待、事务信息。</p>
-<p>在 MySQL 8 中，也可以通过 <code>performance_schema</code> 和 <code>sys</code> 库查看锁等待关系。</p>
-<p>排查时重点看：</p>
-<ul>
-<li>哪个事务持有锁。</li>
-<li>持锁事务执行了多久。</li>
-<li>等待的 SQL 是什么。</li>
-<li>是否存在未提交长事务。</li>
-<li>SQL 是否走了索引。</li>
-<li>是否有 DDL 和普通业务 SQL 互相阻塞。</li>
-</ul>
-<h2 id="实际开发里的用锁建议"><a href="#实际开发里的用锁建议" class="headerlink" title="实际开发里的用锁建议"></a>实际开发里的用锁建议</h2><p>第一，能用一条原子 SQL 解决的，不要拆成先查再改。</p>
-<p>库存扣减推荐写成：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span> inventory</span><br><span class="line"><span class="keyword">SET</span> available_qty = available_qty - <span class="number">8</span>,</span><br><span class="line">    locked_qty = locked_qty + <span class="number">8</span></span><br><span class="line"><span class="keyword">WHERE</span> sku_id = <span class="number">1001</span></span><br><span class="line">  <span class="keyword">AND</span> warehouse_id = <span class="number">8</span></span><br><span class="line">  <span class="keyword">AND</span> available_qty &gt;= <span class="number">8</span>;</span><br></pre></td></tr></table></figure>
-<p>然后根据影响行数判断是否成功。</p>
-<p>第二，加锁查询必须有合适索引。</p>
-<p><code>FOR UPDATE</code> 不是魔法。如果条件没有索引，锁范围会扩大，性能和并发都会出问题。</p>
-<p>第三，事务里只放必须保持一致的操作。</p>
-<p>订单创建、库存锁定、订单主表写入可以放在事务里；短信通知、日志上报、消息推送应该放到事务提交后。</p>
-<p>第四，统一更新顺序。</p>
-<p>如果业务规定先锁订单，再锁库存，再锁财务单据，那么所有代码都要遵守这个顺序。不要一个接口先锁订单，另一个接口先锁库存。</p>
-<p>第五，锁冲突高的热点数据要做业务拆分。</p>
-<p>例如某个爆款 SKU 的库存行成为热点，可以按仓库、批次、库存桶拆分，降低单行竞争。</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>SQL 里的锁不是孤立概念，而是一套并发控制体系。共享锁和排他锁决定读写是否兼容，表锁和行锁决定锁粒度，意向锁协调表级和行级锁，记录锁保护已有记录，间隙锁和 Next-Key Lock 保护索引范围，乐观锁和悲观锁是两种业务并发控制思想，元数据锁保护表结构，自增锁保证自增值分配。</p>
-<p>真正写业务代码时，最重要的不是记住所有锁名，而是控制三个东西：索引、事务范围、更新顺序。索引决定锁得准不准，事务范围决定锁持有多久，更新顺序决定是否容易死锁。把这三点做好，绝大多数 SQL 锁问题都会少很多。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">先锁 SKU 1002</span><br><span class="line">再锁 SKU 1001</span><br></pre></td></tr></table></figure>
+
+<p>两个事务互相等待，就会死锁。解决办法是固定加锁顺序，比如按 <code>sku_id</code> 升序处理：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">items.stream()</span><br><span class="line">     .sorted(Comparator.comparing(OrderItem::getSkuId))</span><br><span class="line">     .forEach(item -&gt; reserveStock(order.getWarehouseId(), item.getSkuId(), item.getQty()));</span><br></pre></td></tr></table></figure>
+
+<p>数据库仍然可能检测到死锁并回滚其中一个事务，所以业务层还要对死锁异常做有限重试。但固定顺序能显著降低死锁概率。</p>
+<h2 id="索引设计原则"><a href="#索引设计原则" class="headerlink" title="索引设计原则"></a>索引设计原则</h2><p>库存锁相关 SQL 的索引设计应该从业务唯一性出发。</p>
+<p>如果库存粒度是仓库 + SKU：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UNIQUE</span> KEY uk_wh_sku (warehouse_id, sku_id)</span><br></pre></td></tr></table></figure>
+
+<p>如果库存粒度是仓库 + SKU + 批次 + 库位：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UNIQUE</span> KEY uk_wh_sku_batch_bin (warehouse_id, sku_id, batch_no, bin_code)</span><br></pre></td></tr></table></figure>
+
+<p>业务 SQL 必须尽量带齐唯一维度。缺一个维度，锁范围和业务语义都会变模糊。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>InnoDB 行锁的关键是索引。供应链系统里，库存、批次、库位、单据明细这些表的数据量大、并发高，锁范围稍微变大就会影响吞吐。写库存类 SQL 时，必须用业务唯一索引定位记录，用条件更新完成判断和修改，并在批量处理时固定加锁顺序。</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2022/09/17/SQL里面各种锁的原理/" data-id="cmq8scy6r000jjsqhmuckrd9v" class="article-share-link">Share</a>
+      <a data-url="https://guxingxianyue.github.io/2025/04/03/MySQL%E8%A1%8C%E9%94%81%E4%B8%8E%E7%B4%A2%E5%BC%95%EF%BC%9A%E5%BA%93%E5%AD%98%E9%A2%84%E5%8D%A0%E4%B8%BA%E4%BB%80%E4%B9%88%E5%BF%85%E9%A1%BB%E5%91%BD%E4%B8%AD%E7%B4%A2%E5%BC%95/" data-id="cuidmlf9me-IGpLkaAhOVAZ0N" class="article-share-link">Share</a>
       
       
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/">MySQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SQL/">SQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/事务/">事务</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/数据库/">数据库</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/锁/">锁</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-redis入门" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2017/05/10/redis入门/" class="article-date">
-  <time datetime="2017-05-10T11:06:07.000Z" itemprop="datePublished">2017-05-10</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/05/10/redis入门/">redis入门</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="安装gcc"><a href="#安装gcc" class="headerlink" title="安装gcc"></a>安装gcc</h2><ul>
-<li><p>Redis在linux上的安装首先必须先安装gcc，这个是用来编译redis的源文件的。首先需要先切换的到root用户：</p>
-<pre><code>[chenjx@localhost ~]$ su
-Password: 
-[root@localhost chenjx]#
-</code></pre></li>
-<li><p>然后开始安装gcc:</p>
-<pre><code>//这个命令是在线安装的，所以在这之前你的PC必须能够上网
-[root@localhost /]# yum install gcc-c++
-</code></pre></li>
-</ul>
-<h2 id="解压redis的源文件"><a href="#解压redis的源文件" class="headerlink" title="解压redis的源文件"></a>解压redis的源文件</h2><pre><code>[root@localhost chenjx]# cd Desktop/
-[root@localhost Desktop]# ls
-redis-4.0.1.tar.gz
-[root@localhost Desktop]# tar zxvf redis-4.0.1.tar.gz 
-redis-4.0.1/
-redis-4.0.1/.gitignore
-redis-4.0.1/00-RELEASENOTES
-redis-4.0.1/BUGS
-redis-4.0.1/CONTRIBUTING
-</code></pre><h2 id="进入redis的解压目录"><a href="#进入redis的解压目录" class="headerlink" title="进入redis的解压目录"></a>进入redis的解压目录</h2><pre><code>[root@localhost Desktop]# ls
-redis-4.0.1  redis-4.0.1.tar.gz
-[root@localhost Desktop]# cd redis-4.0.1/
-</code></pre><h2 id="使用make命令编译"><a href="#使用make命令编译" class="headerlink" title="使用make命令编译"></a>使用make命令编译</h2><pre><code>[root@localhost redis-4.0.1]# make
-
-//出现以下信息即是编译成功
-CC notify.o
-CC setproctitle.o
-CC blocked.o
-CC hyperloglog.o
-CC latency.o
-CC sparkline.o
-CC redis-check-rdb.o
-CC redis-check-aof.o
-CC geo.o
-CC lazyfree.o
-CC module.o
-CC evict.o
-CC expire.o
-CC geohash.o
-CC geohash_helper.o
-CC childinfo.o
-CC defrag.o
-CC siphash.o
-CC rax.o
-LINK redis-server
-INSTALL redis-sentinel
-CC redis-cli.o
-LINK redis-cli
-CC redis-benchmark.o
-LINK redis-benchmark
-INSTALL redis-check-rdb
-INSTALL redis-check-aof
-</code></pre><p>进入解压的src目录下</p>
-<pre><code>[root@localhost redis-4.0.1]# cd src
-</code></pre><p>运行make test测试是否可以安装,检查的一大堆，都是绿色的ok。这就可以了</p>
-<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><pre><code>[root@localhost src]# make PREFIX=/usr/local/redis install 
-</code></pre><p>安装成功后，去/usr/local/redis/bin目录看，会发现如下文件：</p>
-<p><img src="https://i.imgur.com/esFeEOX.png" alt=""></p>
-<p>都是一个个工具命令</p>
-<p>然后把解压的redis路径下的redis.conf文件拷贝到安装路径/usr/local/redis下面</p>
-<pre><code>[root@localhost redis-4.0.1]# cp redis.conf /usr/local/redis
-[root@localhost redis-4.0.1]# cd /usr/local/redis
-[root@localhost redis]# ls
-bin  redis.conf
-</code></pre><p>到这里redis已经安装成功了。</p>
-<h2 id="启动redis"><a href="#启动redis" class="headerlink" title="启动redis"></a>启动redis</h2><h4 id="第一种方法：进入安装路径下的bin"><a href="#第一种方法：进入安装路径下的bin" class="headerlink" title="第一种方法：进入安装路径下的bin"></a>第一种方法：进入安装路径下的bin</h4><pre><code>[root@localhost redis]# cd bin
-[root@localhost bin]# ./redis-server
-</code></pre><p>但是这属于前端启动，启动redis之后，我们的控制台就不能进行任何操作了。只能ctrl+c停止启动。</p>
-<h4 id="第二种方法：后端启动"><a href="#第二种方法：后端启动" class="headerlink" title="第二种方法：后端启动"></a>第二种方法：后端启动</h4><ul>
-<li><p>首先编辑redis.conf</p>
-<p>  [root@localhost redis]# vim redis.conf</p>
-</li>
-<li><p>找到daemonize no将其改为yes</p>
-</li>
-<li><p>再次启动 </p>
-<pre><code>[root@localhost redis]# ls
-bin  redis.conf
-[root@localhost redis]# ./bin/redis-server ./redis.conf
-//这里加载配置文件
-
-80167:C 30 Jul 16:01:58.145 # oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
-80167:C 30 Jul 16:01:58.145 # Redis version=4.0.1, bits=64, commit=00000000, modified=0, pid=80167, just started
-80167:C 30 Jul 16:01:58.145 # Configuration loaded
-</code></pre></li>
-</ul>
-<p>这样redis就启动了</p>
-<pre><code>可以通过
-ps -ef|grep redis
-来查看是否启动
-</code></pre><p>关闭redis</p>
-<pre><code>[root@localhost redis]# ./bin/redis-cli shutdown
-</code></pre><h2 id="简单的使用"><a href="#简单的使用" class="headerlink" title="简单的使用"></a>简单的使用</h2><pre><code>//首先链接客户端
-[root@localhost redis]# ./bin/redis-cli
-//检查网络是否可以
-127.0.0.1:6379&gt; ping
-PONG
-//设置一个键值对
-127.0.0.1:6379&gt; set name chenjx
-OK
-//获取刚刚设置的键值对
-127.0.0.1:6379&gt; get name
-&quot;chenjx&quot;
-//查看所有的键
-127.0.0.1:6379&gt; keys *
-1) &quot;name&quot;
-//删除name这个键
-127.0.0.1:6379&gt; del name
-(integer) 1
-127.0.0.1:6379&gt; keys *
-(empty list or set)
-127.0.0.1:6379&gt;
-</code></pre><h2 id="设置登录密码"><a href="#设置登录密码" class="headerlink" title="设置登录密码"></a>设置登录密码</h2><p>redis在生产环境中通常都会设置密码以保证一定的安全性</p>
-<h4 id="首先修改redis-conf"><a href="#首先修改redis-conf" class="headerlink" title="首先修改redis.conf"></a>首先修改redis.conf</h4><p>打开redis.conf文件，搜索requirepass关键字</p>
-<pre><code>################################## SECURITY ###################################
-
-# Require clients to issue AUTH &lt;PASSWORD&gt; before processing any other
-# commands.  This might be useful in environments in which you do not trust
-# others with access to the host running redis-server.
-#
-# This should stay commented out for backward compatibility and because most
-# people do not need auth (e.g. they run their own servers).
-#
-# Warning: since Redis is pretty fast an outside user can try up to
-# 150k passwords per second against a good box. This means that you should
-# use a very strong password otherwise it will be very easy to break.
-#
-# requirepass foobared
-</code></pre><p>关注标记的那一行，#requirepass foobared。设置密码的方法就是去掉注释的#，把foobared替换成自己的密码即可，例如将密码设置为123456： </p>
-<pre><code>################################## SECURITY ###################################
-
-# Require clients to issue AUTH &lt;PASSWORD&gt; before processing any other
-# commands.  This might be useful in environments in which you do not trust
-# others with access to the host running redis-server.
-#
-# This should stay commented out for backward compatibility and because most
-# people do not need auth (e.g. they run their own servers).
-#
-# Warning: since Redis is pretty fast an outside user can try up to
-# 150k passwords per second against a good box. This means that you should
-# use a very strong password otherwise it will be very easy to break.
-#
-requirepass 123456
-</code></pre><p>修改完成后重启redis，再次通过redis客户端redis-cli登录并操作可以发现会报一个身份认证错误：</p>
-<p><img src="https://i.imgur.com/sR9PtPZ.png" alt=""></p>
-<p>这就说明我们已经成功的设置了密码，所以通过客户端连接的话必须加上密码参数才能正常连接： </p>
-<p><img src="https://i.imgur.com/EpEgFQr.png" alt=""></p>
-<p>如上图所示，加了-a参数之后即可正常连接并操作redis。</p>
-<h2 id="jedis连接设置密码"><a href="#jedis连接设置密码" class="headerlink" title="jedis连接设置密码"></a>jedis连接设置密码</h2><p>当我们用Java客户端连接redis时会遇到同样的问题，下面看一段简单的jedis连接redis的测试代码：</p>
-<pre><code>@Test
-public void testTwo() {
-    Jedis jedis = new Jedis(&quot;192.168.145.10&quot;);
-    System.out.println(&quot;Connection to server sucessfully&quot;);
-    // 查看服务是否运行
-    System.out.println(&quot;Server is running: &quot; + jedis.ping());
-}
-</code></pre><p>运行junit后我们发现报异常了：</p>
-<pre><code>redis.clients.jedis.exceptions.JedisDataException: NOAUTH Authentication required.
-at redis.clients.jedis.Protocol.processError(Protocol.java:117)
-at redis.clients.jedis.Protocol.process(Protocol.java:142)
-at redis.clients.jedis.Protocol.read(Protocol.java:196)
-</code></pre><p>由于我们设置了密码但在这里又没有指定密码，所以报了和刚才相同的错误,Jedis的父类BinaryJedis提供了这样一样方法：</p>
-<pre><code>public String auth(final String password) {
-    checkIsInMulti();
-    client.auth(password);
-    return client.getStatusCodeReply();
-}
-</code></pre><p>所以在创建了Jedis的实例后再加上一行jedis.auth(“123456”); 即可</p>
-<pre><code>@Test
-public void testTwo() {
-    Jedis jedis = new Jedis(&quot;192.168.145.10&quot;);
-    jedis.auth(&quot;123456&quot;);
-    System.out.println(&quot;Connection to server sucessfully&quot;);
-    // 查看服务是否运行
-    System.out.println(&quot;Server is running: &quot; + jedis.ping());
-}
-</code></pre><p><img src="https://i.imgur.com/MpHJLvu.png" alt=""></p>
-<h2 id="spring-data-redis设置密码"><a href="#spring-data-redis设置密码" class="headerlink" title="spring-data-redis设置密码"></a>spring-data-redis设置密码</h2><p>通常情况下在实际的java项目中我们会选择Spring提供的spring-data-redis来操作redis，spring的封装可以给我们提供很多便捷之处。那么spring-data-redis又是如何设置密码的呢？首先定义一个redis.properties配置文件，定义一组redis属性供spring加载使用，其中就包含密码（redis.password）：</p>
-<pre><code># Redis settings  
-redis.host=192.168.145.10 
-redis.port=6379  
-redis.password=123456
-redis.database=2
-redis.timeout=100000  
-redis.maxTotal=300  
-redis.maxIdle=100
-redis.minIdle=10
-redis.maxWaitMillis=1000  
-redis.testOnBorrow=true  
-</code></pre><p>然后在由Spring封装的JedisConnectionFactory中来设置密码属性即可，下面是完整redis配置：</p>
-<pre><code>&lt;!-- redis配置 --&gt;
-&lt;bean id=&quot;poolConfig&quot; class=&quot;redis.clients.jedis.JedisPoolConfig&quot;&gt;
-    &lt;property name=&quot;maxIdle&quot; value=&quot;${redis.maxIdle}&quot; /&gt;
-    &lt;property name=&quot;maxWaitMillis&quot; value=&quot;${redis.maxWaitMillis}&quot; /&gt;
-    &lt;property name=&quot;testOnBorrow&quot; value=&quot;${redis.testOnBorrow}&quot; /&gt;
-&lt;/bean&gt;
-
-&lt;bean id=&quot;connectionFactory&quot; class=&quot;org.springframework.data.redis.connection.jedis.JedisConnectionFactory&quot;
-    p:host-name=&quot;${redis.host}&quot; p:port=&quot;${redis.port}&quot; 
-    p:password=&quot;${redis.password}&quot; p:pool-config-ref=&quot;poolConfig&quot; /&gt;
-
-&lt;bean id=&quot;redisTemplate&quot; class=&quot;org.springframework.data.redis.core.StringRedisTemplate&quot;&gt;
-    &lt;property name=&quot;connectionFactory&quot; ref=&quot;connectionFactory&quot; /&gt;
-&lt;/bean&gt;
-</code></pre><h2 id="Redis常用数据类型介绍、使用场景及其操作命令"><a href="#Redis常用数据类型介绍、使用场景及其操作命令" class="headerlink" title="Redis常用数据类型介绍、使用场景及其操作命令"></a>Redis常用数据类型介绍、使用场景及其操作命令</h2><p>Redis目前支持5种数据类型，分别是：</p>
-<ul>
-<li>String（字符串）</li>
-<li>List（列表）</li>
-<li>Hash（字典）</li>
-<li>Set（集合）</li>
-<li>Sorted Set（有序集合）</li>
-</ul>
-<p>下面就分别介绍这五种数据类型及其相应的操作命令。</p>
-<h3 id="String（字符串）"><a href="#String（字符串）" class="headerlink" title="String（字符串）"></a>String（字符串）</h3><p>String是简单的 key-value 键值对，value 不仅可以是 String，也可以是数字。String在redis内部存储默认就是一个字符串，被redisObject所引用，当遇到incr,decr等操作时会转成数值型进行计算，此时redisObject的encoding字段为int。</p>
-<p>String在redis内部存储默认就是一个字符串，被redisObject所引用，当遇到incr,decr等操作时会转成数值型进行计算，此时redisObject的encoding字段为int。</p>
-<ul>
-<li>应用场景</li>
-</ul>
-<p>String是最常用的一种数据类型，普通的key/value存储都可以归为此类，这里就不所做解释了。</p>
-<ul>
-<li><p>相关命令</p>
-<pre><code>SET key value                   设置key=value
-GET key                         或者键key对应的值
-GETRANGE key start end          得到字符串的子字符串存放在一个键
-GETSET key value                设置键的字符串值，并返回旧值
-GETBIT key offset               返回存储在键位值的字符串值的偏移
-MGET key1 [key2..]              得到所有的给定键的值
-SETBIT key offset value         设置或清除该位在存储在键的字符串值偏移
-SETEX key seconds value         键到期时设置值
-SETNX key value                 设置键的值，只有当该键不存在
-SETRANGE key offset value       覆盖字符串的一部分从指定键的偏移
-STRLEN key                      得到存储在键的值的长度
-MSET key value [key value...]   设置多个键和多个值
-MSETNX key value [key value...] 设置多个键多个值，只有在当没有按键的存在时
-PSETEX key milliseconds value   设置键的毫秒值和到期时间
-INCR key                        增加键的整数值一次
-INCRBY key increment            由给定的数量递增键的整数值
-INCRBYFLOAT key increment       由给定的数量递增键的浮点值
-DECR key                        递减键一次的整数值
-DECRBY key decrement            由给定数目递减键的整数值
-APPEND key value                追加值到一个键
-</code></pre></li>
-<li><p>其中用于操作管理键的命令有：</p>
-<pre><code>DEL key                         如果存在删除键
-DUMP key                        返回存储在指定键的值的序列化版本
-EXISTS key                      此命令检查该键是否存在
-EXPIRE key seconds              指定键的过期时间
-EXPIREAT key timestamp          指定的键过期时间。在这里，时间是在Unix时间戳格式
-PEXPIRE key milliseconds        设置键以毫秒为单位到期
-PEXPIREAT key milliseconds-timestamp        设置键在Unix时间戳指定为毫秒到期
-KEYS pattern                    查找与指定模式匹配的所有键
-MOVE key db                     移动键到另一个数据库
-PERSIST key                     移除过期的键
-PTTL key                        以毫秒为单位获取剩余时间的到期键。
-TTL key                         获取键到期的剩余时间。
-RANDOMKEY                       从Redis返回随机键
-RENAME key newkey               更改键的名称
-RENAMENX key newkey             重命名键，如果新的键不存在
-TYPE key                        返回存储在键的数据类型的值。
-</code></pre></li>
-<li><p>实例：</p>
-<pre><code>redis 127.0.0.1:6379&gt; set baidu http://www.baidu
-OK
-redis 127.0.0.1:6379&gt; append baidu .com
-(integer) 20
-redis 127.0.0.1:6379&gt; get baidu
-&quot;http://www.baidu.com&quot;
-redis 127.0.0.1:6379&gt; set visitors 0
-OK
-redis 127.0.0.1:6379&gt; incr visitors
-(integer) 1
-redis 127.0.0.1:6379&gt; incr visitors
-(integer) 2
-redis 127.0.0.1:6379&gt; get visitors
-&quot;2&quot;
-redis 127.0.0.1:6379&gt; incrby visitors 100
-(integer) 102
-redis 127.0.0.1:6379&gt; get visitors
-&quot;102&quot;
-redis 127.0.0.1:6379&gt; type baidu
-string
-redis 127.0.0.1:6379&gt; type visitors
-string
-redis 127.0.0.1:6379&gt; ttl baidu
-(integer) -1
-redis 127.0.0.1:6379&gt; rename baidu baidu-site
-OK
-redis 127.0.0.1:6379&gt; get baidu
-(nil)
-redis 127.0.0.1:6379&gt; get baidu-site
-&quot;http://www.baidu.com&quot;
-</code></pre></li>
-</ul>
-<h4 id="List（列表）"><a href="#List（列表）" class="headerlink" title="List（列表）"></a>List（列表）</h4><p>Redis list的实现为一个双向链表，即可以支持反向查找和遍历，更方便操作，不过带来了部分额外的内存开销，Redis内部的很多实现，包括发送缓冲队列等也都是用的这个数据结构。可以从头部或尾部向Redis列表添加元素。列表的最大长度为2^32 - 1，也即每个列表支持超过40亿个元素。</p>
-<ul>
-<li>应用场景</li>
-</ul>
-<p>Redis list的应用场景非常多，也是Redis最重要的数据结构之一，比如twitter的关注列表、粉丝列表等都可以用Redis的list结构来实现，再比如有的应用使用Redis的list类型实现一个简单的轻量级消息队列，生产者push，消费者pop</p>
-<ul>
-<li><p>相关命令</p>
-<pre><code>BLPOP
-BLPOP key1 [key2 ] timeout 取出并获取列表中的第一个元素，或阻塞，直到有可用
-BRPOP
-BRPOP key1 [key2 ] timeout 取出并获取列表中的最后一个元素，或阻塞，直到有可用
-BRPOPLPUSH
-BRPOPLPUSH source destination timeout 从列表中弹出一个值，它推到另一个列表并返回它;或阻塞，直到有可用
-LINDEX
-LINDEX key index 从一个列表其索引获取对应的元素
-LINSERT
-LINSERT key BEFORE|AFTER pivot value 在列表中的其他元素之后或之前插入一个元素
-LLEN
-LLEN key 获取列表的长度
-LPOP
-LPOP key 获取并取出列表中的第一个元素
-LPUSH
-LPUSH key value1 [value2] 在前面加上一个或多个值的列表
-LPUSHX
-LPUSHX key value 在前面加上一个值列表，仅当列表中存在
-LRANGE
-LRANGE key start stop 从一个列表获取各种元素
-LREM
-LREM key count value 从列表中删除元素
-LSET
-LSET key index value 在列表中的索引设置一个元素的值
-LTRIM
-LTRIM key start stop 修剪列表到指定的范围内
-RPOP
-RPOP key 取出并获取列表中的最后一个元素
-RPOPLPUSH
-RPOPLPUSH source destination 删除最后一个元素的列表，将其附加到另一个列表并返回它
-RPUSH
-RPUSH key value1 [value2] 添加一个或多个值到列表头部
-RPUSHX
-RPUSHX key value 添加一个值列表，仅当列表中存在
-</code></pre></li>
-<li><p>使用示例</p>
-<pre><code>redis 127.0.0.1:6379&gt; lpush list1 redis
-(integer) 1
-redis 127.0.0.1:6379&gt; lpush list1 hello
-(integer) 2
-redis 127.0.0.1:6379&gt; rpush list1 world
-(integer) 3
-redis 127.0.0.1:6379&gt; llen list1
-(integer) 3
-redis 127.0.0.1:6379&gt; lrange list1 0 3
-1) &quot;hello&quot;
-2) &quot;redis&quot;
-3) &quot;world&quot;
-redis 127.0.0.1:6379&gt; lpop list1
-&quot;hello&quot;
-redis 127.0.0.1:6379&gt; rpop list1
-&quot;world&quot;
-redis 127.0.0.1:6379&gt; lrange list1 0 3
-1) &quot;redis&quot;
-</code></pre></li>
-</ul>
-<h4 id="Hash（字典，哈希表）"><a href="#Hash（字典，哈希表）" class="headerlink" title="Hash（字典，哈希表）"></a>Hash（字典，哈希表）</h4><p>类似C#中的dict类型或者C++中的hash_map类型</p>
-<p>Redis Hash对应Value内部实际就是一个HashMap，实际这里会有2种不同实现，这个Hash的成员比较少时Redis为了节省内存会采用类似一维数组的方式来紧凑存储，而不会采用真正的HashMap结构，对应的value redisObject的encoding为zipmap,当成员数量增大时会自动转成真正的HashMap</p>
-<ul>
-<li>应用场景</li>
-</ul>
-<p>假设有多个用户及对应的用户信息，可以用来存储以用户ID为key，将用户信息序列化为比如json格式做为value进行保存。</p>
-<ul>
-<li><p>相关命令</p>
-<pre><code>HDEL
-HDEL key field[field...] 删除对象的一个或几个属性域，不存在的属性将被忽略
-HEXISTS
-HEXISTS key field 查看对象是否存在该属性域
-HGET
-HGET key field 获取对象中该field属性域的值
-HGETALL
-HGETALL key 获取对象的所有属性域和值
-HINCRBY
-HINCRBY key field value 将该对象中指定域的值增加给定的value，原子自增操作，只能是integer的属性值可以使用
-HINCRBYFLOAT
-HINCRBYFLOAT key field increment 将该对象中指定域的值增加给定的浮点数
-HKEYS
-HKEYS key 获取对象的所有属性字段
-HVALS
-HVALS key 获取对象的所有属性值
-HLEN
-HLEN key 获取对象的所有属性字段的总数
-HMGET
-HMGET key field[field...] 获取对象的一个或多个指定字段的值
-HSET
-HSET key field value 设置对象指定字段的值
-HMSET
-HMSET key field value [field value ...] 同时设置对象中一个或多个字段的值
-HSETNX
-HSETNX key field value 只在对象不存在指定的字段时才设置字段的值
-HSTRLEN
-HSTRLEN key field 返回对象指定field的value的字符串长度，如果该对象或者field不存在，返回0.
-HSCAN
-HSCAN key cursor [MATCH pattern] [COUNT count] 类似SCAN命令
-</code></pre></li>
-<li><p>使用示例</p>
-<pre><code>127.0.0.1:6379&gt; hset person name jack
-(integer) 1
-127.0.0.1:6379&gt; hset person age 20
-(integer) 1
-127.0.0.1:6379&gt; hset person sex famale
-(integer) 1
-127.0.0.1:6379&gt; hgetall person
-1) &quot;name&quot;
-2) &quot;jack&quot;
-3) &quot;age&quot;
-4) &quot;20&quot;
-5) &quot;sex&quot;
-6) &quot;famale&quot;
-127.0.0.1:6379&gt; hkeys person
-1) &quot;name&quot;
-2) &quot;age&quot;
-3) &quot;sex&quot;
-127.0.0.1:6379&gt; hvals person
-1) &quot;jack&quot;
-2) &quot;20&quot;
-3) &quot;famale&quot;
-</code></pre></li>
-</ul>
-<h4 id="Set（集合）"><a href="#Set（集合）" class="headerlink" title="Set（集合）"></a>Set（集合）</h4><p>可以理解为一堆值不重复的列表，类似数学领域中的集合概念，且Redis也提供了针对集合的求交集、并集、差集等操作。</p>
-<p>set 的内部实现是一个 value永远为null的HashMap，实际就是通过计算hash的方式来快速排重的，这也是set能提供判断一个成员是否在集合内的原因。</p>
-<ul>
-<li>应用场景</li>
-</ul>
-<p>Redis set对外提供的功能与list类似是一个列表的功能，特殊之处在于set是可以自动排重的，当你需要存储一个列表数据，又不希望出现重复数据时，set是一个很好的选择，并且set提供了判断某个成员是否在一个set集合内的重要接口，这个也是list所不能提供的。</p>
-<ul>
-<li><p>相关命令</p>
-<pre><code>SADD
-SADD key member [member ...] 添加一个或者多个元素到集合(set)里
-SACRD
-SCARD key 获取集合里面的元素数量
-SDIFF
-SDIFF key [key ...] 获得队列不存在的元素
-SDIFFSTORE
-SDIFFSTORE destination key [key ...] 获得队列不存在的元素，并存储在一个关键的结果集
-SINTER
-SINTER key [key ...] 获得两个集合的交集
-SINTERSTORE
-SINTERSTORE destination key [key ...] 获得两个集合的交集，并存储在一个集合中
-SISMEMBER
-SISMEMBER key member 确定一个给定的值是一个集合的成员
-SMEMBERS
-SMEMBERS key 获取集合里面的所有key
-SMOVE
-SMOVE source destination member 移动集合里面的一个key到另一个集合
-SPOP
-SPOP key [count] 获取并删除一个集合里面的元素
-SRANDMEMBER
-SRANDMEMBER key [count] 从集合里面随机获取一个元素
-SREM
-SREM key member [member ...] 从集合里删除一个或多个元素，不存在的元素会被忽略
-SUNION
-SUNION key [key ...] 添加多个set元素
-SUNIONSTORE
-SUNIONSTORE destination key [key ...] 合并set元素，并将结果存入新的set里面
-SSCAN
-SSCAN key cursor [MATCH pattern] [COUNT count] 迭代set里面的元素
-</code></pre></li>
-<li><p>使用示例</p>
-<pre><code>redis&gt; SADD myset &quot;Hello&quot;
-(integer) 1
-redis&gt; SADD myset &quot;World&quot;
-(integer) 1
-redis&gt; SMEMBERS myset
-1) &quot;World&quot;
-2) &quot;Hello&quot;
-redis&gt; SADD myset &quot;one&quot;
-(integer) 1
-redis&gt; SISMEMBER myset &quot;one&quot;
-(integer) 1
-redis&gt; SISMEMBER myset &quot;two&quot;
-(integer) 0
-</code></pre></li>
-</ul>
-<h4 id="Sorted-Set（有序集合）"><a href="#Sorted-Set（有序集合）" class="headerlink" title="Sorted Set（有序集合）"></a>Sorted Set（有序集合）</h4><p>Redis有序集合类似Redis集合，不同的是增加了一个功能，即集合是有序的。一个有序集合的每个成员带有分数，用于进行排序。</p>
-<p>Redis有序集合添加、删除和测试的时间复杂度均为O(1)(固定时间，无论里面包含的元素集合的数量)。列表的最大长度为2^32- 1元素(4294967295，超过40亿每个元素的集合)。</p>
-<p>Redis sorted set的内部使用HashMap和跳跃表(SkipList)来保证数据的存储和有序，HashMap里放的是成员到score的映射，而跳跃表里存放的是所有的成员，排序依据是HashMap里存的score,使用跳跃表的结构可以获得比较高的查找效率，并且在实现上比较简单。</p>
-<ul>
-<li>使用场景</li>
-</ul>
-<p>Redis sorted set的使用场景与set类似，区别是set不是自动有序的，而sorted set可以通过用户额外提供一个优先级(score)的参数来为成员排序，并且是插入有序的，即自动排序。当你需要一个有序的并且不重复的集合列表，那么可以选择sorted set数据结构.</p>
-<p>比如用户的积分排行榜需求就可以通过有序集合实现。还有上面介绍的使用List实现轻量级的消息队列，其实也可以通过Sorted Set实现有优先级或按权重的队列。</p>
-<ul>
-<li><p>相关命令</p>
-<pre><code>ZADD
-ZADD key score1 member1 [score2 member2] 添加一个或多个成员到有序集合，或者如果它已经存在更新其分数
-ZCARD
-ZCARD key 得到的有序集合成员的数量
-ZCOUNT
-ZCOUNT key min max 计算一个有序集合成员与给定值范围内的分数
-ZINCRBY
-ZINCRBY key increment member 在有序集合增加成员的分数
-ZINTERSTORE
-ZINTERSTORE destination numkeys key [key ...] 多重交叉排序集合，并存储生成一个新的键有序集合。
-ZLEXCOUNT
-ZLEXCOUNT key min max 计算一个给定的字典范围之间的有序集合成员的数量
-ZRANGE
-ZRANGE key start stop [WITHSCORES] 由索引返回一个成员范围的有序集合（从低到高）
-ZRANGEBYLEX
-ZRANGEBYLEX key min max [LIMIT offset count]返回一个成员范围的有序集合（由字典范围）
-ZRANGEBYSCORE
-ZRANGEBYSCORE key min max [WITHSCORES] [LIMIT] 返回有序集key中，所有 score 值介于 min 和 max 之间(包括等于 min 或 max )的成员，有序集成员按 score 值递增(从小到大)次序排列
-ZRANK
-ZRANK key member 确定成员的索引中有序集合
-ZREM
-ZREM key member [member ...] 从有序集合中删除一个或多个成员，不存在的成员将被忽略
-ZREMRANGEBYLEX
-ZREMRANGEBYLEX key min max 删除所有成员在给定的字典范围之间的有序集合
-ZREMRANGEBYRANK
-ZREMRANGEBYRANK key start stop 在给定的索引之内删除所有成员的有序集合
-ZREMRANGEBYSCORE
-ZREMRANGEBYSCORE key min max 在给定的分数之内删除所有成员的有序集合
-ZREVRANGE
-ZREVRANGE key start stop [WITHSCORES] 返回一个成员范围的有序集合，通过索引，以分数排序，从高分到低分
-ZREVRANGEBYSCORE
-ZREVRANGEBYSCORE key max min [WITHSCORES] 返回一个成员范围的有序集合，以socre排序从高到低
-ZREVRANK
-ZREVRANK key member 确定一个有序集合成员的索引，以分数排序，从高分到低分
-ZSCORE
-ZSCORE key member 获取给定成员相关联的分数在一个有序集合
-ZUNIONSTORE
-ZUNIONSTORE destination numkeys key [key ...] 添加多个集排序，所得排序集合存储在一个新的键
-ZSCAN
-ZSCAN key cursor [MATCH pattern] [COUNT count] 增量迭代排序元素集和相关的分数
-</code></pre></li>
-<li><p>使用示例</p>
-<pre><code>redis 127.0.0.1:6379&gt; zadd dbs 100 redis
-(integer) 1
-redis 127.0.0.1:6379&gt; zadd dbs 98 memcached
-(integer) 1
-redis 127.0.0.1:6379&gt; zadd dbs 99 mongodb
-(integer) 1
-redis 127.0.0.1:6379&gt; zadd dbs 99 leveldb
-(integer) 1
-redis 127.0.0.1:6379&gt; zcard dbs
-(integer) 4
-redis 127.0.0.1:6379&gt; zcount dbs 10 99
-(integer) 3
-redis 127.0.0.1:6379&gt; zrank dbs leveldb
-(integer) 1
-redis 127.0.0.1:6379&gt; zrank dbs other
-(nil)
-redis 127.0.0.1:6379&gt; zrangebyscore dbs 98 100
-1) &quot;memcached&quot;
-2) &quot;leveldb&quot;
-3) &quot;mongodb&quot;
-4) &quot;redis&quot;
-</code></pre></li>
-</ul>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2017/05/10/redis入门/" data-id="cmq8scy6u000rjsqhna68n0vw" class="article-share-link">Share</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/分布式/">分布式</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-kafka集群" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2017/01/07/kafka集群/" class="article-date">
-  <time datetime="2017-01-07T04:16:17.000Z" itemprop="datePublished">2017-01-07</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/01/07/kafka集群/">kafka集群</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="Kafka初识"><a href="#Kafka初识" class="headerlink" title="Kafka初识"></a>Kafka初识</h2><ul>
-<li><p>Kafka使用背景</p>
-<p>  在我们大量使用分布式数据库、分布式计算集群的时候，是否会遇到这样的一些问题：</p>
-<ul>
-<li>我们想分析下用户行为（pageviews），以便我们设计出更好的广告位</li>
-<li>我想对用户的搜索关键词进行统计，分析出当前的流行趋势</li>
-<li>有些数据，存储数据库浪费，直接存储硬盘效率又低</li>
-</ul>
-</li>
-<li><p>Kafka的定义</p>
-<p>  它是一个分布式消息系统,具有高水平扩展和高吞吐量的特点。</p>
-</li>
-</ul>
-<h2 id="Kafka相关概念"><a href="#Kafka相关概念" class="headerlink" title="Kafka相关概念"></a>Kafka相关概念</h2><ul>
-<li><p>AMQP协议：是一个标准开放的应用层的消息中间件（Message Oriented Middleware）协议。AMQP定义了通过网络发送的字节流的数据格式。因此兼容性非常好，任何实现AMQP协议的程序都可以和与AMQP协议兼容的其他程序交互，可以很容易做到跨语言，跨平台。</p>
-</li>
-<li><p>一些基本的概念</p>
-<ul>
-<li>消费者：（Consumer）：从消息队列中请求消息的客户端应用程序</li>
-<li>生产者：（Producer）：向broker发布消息的应用程序</li>
-<li>AMQP服务端（broker）：用来接收生产者发送的消息并将这些消息路由给服务器中的队列，便于fafka将生产者发送的消息，动态的添加到磁盘并给每一条消息一个偏移量，所以对于kafka一个broker就是一个应用程序的实例</li>
-</ul>
-</li>
-</ul>
-<p>kafka支持的客户端语言：Kafka客户端支持当前大部分主流语言，包括：C、C++、Erlang、Java、.net、perl、PHP、Python、Ruby、Go、Javascript<br>可以使用以上任何一种语言和kafka服务器进行通信（即辨析自己的consumer从kafka集群订阅消息也可以自己写producer程序）</p>
-<ul>
-<li><p>Kafka架构</p>
-<p>  生产者生产消息、kafka集群、消费者获取消息这样一种架构，如下图：</p>
-<p>  <img src="https://i.imgur.com/fFh8aZr.png" alt=""></p>
-<p>  kafka集群中的消息，是通过Topic（主题）来进行组织的，如下图：</p>
-<p>  <img src="https://i.imgur.com/yMOoyNJ.png" alt=""></p>
-<p>  一些基本的概念：</p>
-<ul>
-<li>主题（Topic）：一个主题类似新闻中的体育、娱乐、教育等分类概念，在实际工程中通常一个业务一个主题。</li>
-<li><p>分区（Partition）：一个Topic中的消息数据按照多个分区组织，分区是kafka消息队列组织的最小单位，一个分区可以看作是一个FIFO（ First Input First Output的缩写，先入先出队列）的队列。</p>
-<p>kafka分区是提高kafka性能的关键所在，当你发现你的集群性能不高时，常用手段就是增加Topic的分区，分区里面的消息是按照从新到老的顺序进行组织，消费者从队列头订阅消息，生产者从队列尾添加消息。</p>
-<p>工作图：<br><img src="https://i.imgur.com/4eSzo4r.png" alt=""></p>
-<p>备份（Replication）：为了保证分布式可靠性，kafka0.8开始对每个分区的数据进行备份（不同的Broker上），防止其中一个Broker宕机造成分区上的数据不可用。</p>
-</li>
-</ul>
-</li>
-</ul>
-<h2 id="Kafka集群搭建"><a href="#Kafka集群搭建" class="headerlink" title="Kafka集群搭建"></a>Kafka集群搭建</h2><ul>
-<li><p>软件环境</p>
-<ul>
-<li>已经搭建好的zookeeper集群(文章最后另写)</li>
-<li>软件版本kafka_2.11-0.9.0.1.tgz</li>
-<li>软件版本kafka_2.11-0.9.0.1.tgz</li>
-</ul>
-</li>
-<li><p>创建目录并下载安装软件</p>
-<pre><code>#下载软件
-wget https://archive.apache.org/dist/kafka/0.9.0.1/kafka_2.11-0.9.0.1.tgz
-#解压软件
-tar -xvf kafka_2.11-0.9.0.1.tgz
-</code></pre></li>
-<li><p>修改配置文件</p>
-<p>  主要关注config/server.properties     </p>
-<pre><code>broker.id=0  #当前机器在集群中的唯一标识，和zookeeper的myid性质一样
-port=9092 #当前kafka对外提供服务的端口默认是9092
-host.name = 120.76.230.134 #这个参数默认是关闭的，在0.8.1有个bug，DNS解析问题，失败率的问题
-#申明此kafka服务器需要监听的端口号，如果是在本机上跑虚拟机运行可以不用配置本项，默认会使用localhost的地址，如果是在远程服务器上运行则必须配置
-listeners = PLAINTEXT://120.76.230.134:9092 
-advertised.host.name = 120.76.230.134
-advertised.listeners=PLAINTEXT://120.76.230.134:9092
-log.dirs=/data/kafka/kafkalogs  #消息存放的目录
-#在log.retention.hours=168 下面新增下面三项
-message.max.byte=5242880
-default.replication.factor=2
-replica.fetch.max.bytes=5242880
-zookeeper.connect=120.76.230.134:5181,120.76.193.192:5181,120.25.239.155:5181 #zookeeper配置地址
-</code></pre></li>
-</ul>
-<pre><code>每个机子的broker.id、host.name都是不一样的，主要是关注以上几项参数配置。
-</code></pre><ul>
-<li><p>启动Kafka集群并测试</p>
-<p>  启动服务</p>
-<pre><code>#从后台启动Kafka集群（3台都需要启动）
-cd /data/kafka/kafka_2.11-0.11.0.1/bin #进入到kafka的bin目录 
-./kafka-server-start.sh -daemon ../config/server.properties
-</code></pre><p>  检查服务是否启动</p>
-<pre><code>#执行命令jps
-22246 Bootstrap
-26393 Kafka
-</code></pre><p>  创建Topic来验证是否创建成功</p>
-<pre><code>#创建Topic
-./kafka-topics.sh --create --zookeeper 120.76.230.134:5181,120.76.193.192:5181,120.25.239.155:5181 --replication-factor 2 --partitions 1 --topic test
-
-#解释
---replication-factor 2   #复制两份
---partitions 1 #创建1个分区
---topic #主题为test
-
-#在一台服务器上创建一个发布者
-#创建一个broker，发布者
-./kafka-console-producer.sh --broker-list 120.76.230.134:9092 --topic test
-
-#在一台服务器上创建一个订阅者
-./kafka-console-consumer.sh --bootstrap-server 120.76.230.134:9092 --topic test --from-beginning
-</code></pre><p>  测试（在发布者那里发布消息看看订阅者那里是否能正常收到~）：</p>
-</li>
-<li><p>其他命令    </p>
-<p>  大部分命令可以去官方文档查看</p>
-<ul>
-<li><p>查看topic</p>
-<pre><code>./kafka-topics.sh --list --zookeeper 120.76.230.134:5181,120.76.193.192:5181,120.25.239.155:5181
-#就会显示我们创建的所有topic
-</code></pre><p>kafka集群搭建完毕</p>
-</li>
-</ul>
-</li>
-</ul>
-<h2 id="zookeeper集群部署"><a href="#zookeeper集群部署" class="headerlink" title="zookeeper集群部署"></a>zookeeper集群部署</h2><ul>
-<li><p>为什么是基数</p>
-<ul>
-<li>集群必须有一半以上的机器统一才能成为leader</li>
-<li>一半的机器挂掉 整个集群挂掉</li>
-</ul>
-</li>
-<li><p>去官网下载好zookeeper包，解压</p>
-</li>
-<li><p>修改配置/conf/zoo.cfg文件</p>
-<pre><code># 基本事件单元，以毫秒为单位，用来控制心跳和超时
-tickTime=2000
-# 参数设定了允许所有跟随者与领导者进行连接并同步的时间，如果在设定的时间段内，半数以上的跟随者未能完成同步，领导者便会宣布放弃领导地位，进行另一次的领导选举
-# 如果zk集群环境数量确实很大，同步数据的时间会变长，因此这种情况下可以适当调大该参数
-#集群中的follower服务器(F)与leader服务器(L)之间 初始连接 时能容忍的最多心跳数（tickTime的数量）
-initLimit=10
-# 参数设定了允许一个跟随者与一个领导者进行同步的时间，如果在设定的时间段内，跟随者未完成同步，它将会被集群丢弃
-# 所有关联到这个跟随者的客户端将连接到另外一个跟随着
-syncLimit=5
-# 存储持久数据的本地文件系统位置
-dataDir=/data/zookeeper-3.4.9/data
-dataLogDir=/data/zookeeper-3.4.9/logs
-# 监听客户端连接的端口
-clientPort=5181
-
-server.1=120.76.230.134:2888:3888
-server.2=120.76.193.192:2888:3888
-server.3=120.25.239.155:2888:3888
-
-#server.1 这个1是服务器的标识也可以是其他的数字， 表示这个是第几号服务器，用来标识服务器，这个标识要写到快照目录下面myid文件里
-#120.76.230.134为集群里的IP地址，第一个端口是master和slave之间的通信端口，默认是2888，第二个端口是leader选举的端口，集群刚启动的时候选举或者leader挂掉之后进行新的选举的端口默认是3888
-</code></pre><p>  zoo_sample.cfg  这个文件是官方给我们的zookeeper的样板文件，给他复制一份命名为zoo.cfg，zoo.cfg是官方指定的文件命名规则。</p>
-</li>
-<li><p>创建myid文件</p>
-<p>  /data/zookeeper-3.4.9/data目录下要配置myid文件，内容跟server.id相对应，比如:1</p>
-<p>  ./zkServer.sh star启动zookeeper，每台都要启动一遍</p>
-</li>
-<li><p>重要配置说明</p>
-<ul>
-<li><p>myid文件和server.myid  在快照目录下存放的标识本台服务器的文件，他是整个zk集群用来发现彼此的一个重要标识。</p>
-</li>
-<li><p>zoo.cfg 文件是zookeeper配置文件 在conf目录里。</p>
-</li>
-</ul>
-</li>
-</ul>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2017/01/07/kafka集群/" data-id="cmq8scy6t000qjsqhkc8bexbt" class="article-share-link">Share</a>
-      
-      
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/分布式/">分布式</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/InnoDB/" rel="tag">InnoDB</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%BA%93%E5%AD%98%E7%B3%BB%E7%BB%9F/" rel="tag">库存系统</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%B4%A2%E5%BC%95/" rel="tag">索引</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E8%A1%8C%E9%94%81/" rel="tag">行锁</a></li></ul>
 
     </footer>
   </div>
@@ -1189,7 +489,7 @@ server.3=120.25.239.155:2888:3888
   
   
     <nav id="page-nav">
-      <a class="extend prev" rel="prev" href="/page/4/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><span class="page-number current">5</span><a class="page-number" href="/page/6/">6</a><a class="page-number" href="/page/7/">7</a><a class="extend next" rel="next" href="/page/6/">Next &raquo;</a>
+      <a class="extend prev" rel="prev" href="/page/4/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><span class="page-number current">5</span><a class="page-number" href="/page/6/">6</a><a class="page-number" href="/page/7/">7</a><span class="space">&hellip;</span><a class="page-number" href="/page/10/">10</a><a class="extend next" rel="next" href="/page/6/">Next &raquo;</a>
     </nav>
   
 </section>
@@ -1202,7 +502,7 @@ server.3=120.25.239.155:2888:3888
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AGENTS-md/">AGENTS.md</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI/">AI</a><span class="tag-list-count">15</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Agent/">Agent</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CAP/">CAP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Claude-Code/">Claude Code</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Codex/">Codex</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ERP/">ERP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/">Java</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kafka/">Kafka</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Loop-Engineering/">Loop Engineering</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/">MySQL</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Redis/">Redis</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/">SQL</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL优化/">SQL优化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Skill/">Skill</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spec-Coding/">Spec Coding</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spring-Cloud/">Spring Cloud</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/事务/">事务</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/供应链系统/">供应链系统</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/分布式/">分布式</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/分布式系统/">分布式系统</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/分布式锁/">分布式锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/命令行/">命令行</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/工程实践/">工程实践</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/并发控制/">并发控制</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/微服务/">微服务</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/技术文章/">技术文章</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/报表统计/">报表统计</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据分析/">数据分析</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据库/">数据库</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据结构与算法/">数据结构与算法</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/架构设计/">架构设计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/消息队列/">消息队列</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/系统优化/">系统优化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/系统设计/">系统设计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/缓存/">缓存</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/编程效率/">编程效率</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/软件工程/">软件工程</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/锁/">锁</a><span class="tag-list-count">1</span></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AGENTS-md/" rel="tag">AGENTS.md</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI/" rel="tag">AI</a><span class="tag-list-count">15</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AQS/" rel="tag">AQS</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Agent/" rel="tag">Agent</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Atomic/" rel="tag">Atomic</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CAP/" rel="tag">CAP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CAS/" rel="tag">CAS</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Claude-Code/" rel="tag">Claude Code</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Codex/" rel="tag">Codex</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Condition/" rel="tag">Condition</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ERP/" rel="tag">ERP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/InnoDB/" rel="tag">InnoDB</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JMM/" rel="tag">JMM</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kafka/" rel="tag">Kafka</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LongAdder/" rel="tag">LongAdder</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Loop-Engineering/" rel="tag">Loop Engineering</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MVCC/" rel="tag">MVCC</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Monitor/" rel="tag">Monitor</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Next-Key-Lock/" rel="tag">Next-Key Lock</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ReadWriteLock/" rel="tag">ReadWriteLock</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Redis/" rel="tag">Redis</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ReentrantLock/" rel="tag">ReentrantLock</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/" rel="tag">SQL</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL%E4%BC%98%E5%8C%96/" rel="tag">SQL优化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Skill/" rel="tag">Skill</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spec-Coding/" rel="tag">Spec Coding</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spring-Cloud/" rel="tag">Spring Cloud</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/StampedLock/" rel="tag">StampedLock</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/synchronized/" rel="tag">synchronized</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/volatile/" rel="tag">volatile</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%B9%90%E8%A7%82%E9%94%81/" rel="tag">乐观锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8B%E5%8A%A1/" rel="tag">事务</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/" rel="tag">事务隔离级别</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BB%93%E5%82%A8%E7%B3%BB%E7%BB%9F/" rel="tag">仓储系统</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F/" rel="tag">供应链系统</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" rel="tag">分布式</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/" rel="tag">分布式系统</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" rel="tag">分布式锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8D%95%E6%8D%AE%E5%AE%A1%E6%A0%B8/" rel="tag">单据审核</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" rel="tag">可见性</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%91%BD%E4%BB%A4%E8%A1%8C/" rel="tag">命令行</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/" rel="tag">工程实践</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6/" rel="tag">并发控制</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" rel="tag">并发编程</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91%E9%98%9F%E5%88%97/" rel="tag">并发队列</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%BB%E8%AF%BB/" rel="tag">幻读</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BA%93%E5%AD%98%E7%B3%BB%E7%BB%9F/" rel="tag">库存系统</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/" rel="tag">微服务</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%82%B2%E8%A7%82%E9%94%81/" rel="tag">悲观锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8A%80%E6%9C%AF%E6%96%87%E7%AB%A0/" rel="tag">技术文章</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8A%A5%E8%A1%A8%E7%BB%9F%E8%AE%A1/" rel="tag">报表统计</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E5%88%86%E6%9E%90/" rel="tag">数据分析</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="tag">数据库</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/" rel="tag">数据结构与算法</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/" rel="tag">架构设计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%AD%BB%E9%94%81/" rel="tag">死锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" rel="tag">消息队列</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%B3%BB%E7%BB%9F%E4%BC%98%E5%8C%96/" rel="tag">系统优化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/" rel="tag">系统设计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%B4%A2%E5%BC%95/" rel="tag">索引</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BC%93%E5%AD%98/" rel="tag">缓存</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BC%96%E7%A8%8B%E6%95%88%E7%8E%87/" rel="tag">编程效率</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%A1%8C%E9%94%81/" rel="tag">行锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%A2%E5%8D%95%E7%B3%BB%E7%BB%9F/" rel="tag">订单系统</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%BD%AF%E4%BB%B6%E5%B7%A5%E7%A8%8B/" rel="tag">软件工程</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%87%87%E8%B4%AD%E7%B3%BB%E7%BB%9F/" rel="tag">采购系统</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%94%81/" rel="tag">锁</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%94%81%E7%AD%89%E5%BE%85/" rel="tag">锁等待</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%97%B4%E9%9A%99%E9%94%81/" rel="tag">间隙锁</a><span class="tag-list-count">1</span></li></ul>
     </div>
   </div>
 
@@ -1211,7 +511,7 @@ server.3=120.25.239.155:2888:3888
   <div class="widget-wrap">
     <h3 class="widget-title">Tag Cloud</h3>
     <div class="widget tagcloud">
-      <a href="/tags/AGENTS-md/" style="font-size: 10px;">AGENTS.md</a> <a href="/tags/AI/" style="font-size: 20px;">AI</a> <a href="/tags/Agent/" style="font-size: 10px;">Agent</a> <a href="/tags/CAP/" style="font-size: 10px;">CAP</a> <a href="/tags/Claude-Code/" style="font-size: 13.75px;">Claude Code</a> <a href="/tags/Codex/" style="font-size: 18.75px;">Codex</a> <a href="/tags/ERP/" style="font-size: 10px;">ERP</a> <a href="/tags/Java/" style="font-size: 17.5px;">Java</a> <a href="/tags/Kafka/" style="font-size: 10px;">Kafka</a> <a href="/tags/Loop-Engineering/" style="font-size: 10px;">Loop Engineering</a> <a href="/tags/MySQL/" style="font-size: 11.25px;">MySQL</a> <a href="/tags/Redis/" style="font-size: 11.25px;">Redis</a> <a href="/tags/SQL/" style="font-size: 10px;">SQL</a> <a href="/tags/SQL优化/" style="font-size: 10px;">SQL优化</a> <a href="/tags/Skill/" style="font-size: 10px;">Skill</a> <a href="/tags/Spec-Coding/" style="font-size: 12.5px;">Spec Coding</a> <a href="/tags/Spring-Cloud/" style="font-size: 10px;">Spring Cloud</a> <a href="/tags/事务/" style="font-size: 10px;">事务</a> <a href="/tags/供应链系统/" style="font-size: 10px;">供应链系统</a> <a href="/tags/分布式/" style="font-size: 13.75px;">分布式</a> <a href="/tags/分布式系统/" style="font-size: 11.25px;">分布式系统</a> <a href="/tags/分布式锁/" style="font-size: 10px;">分布式锁</a> <a href="/tags/命令行/" style="font-size: 11.25px;">命令行</a> <a href="/tags/工程实践/" style="font-size: 12.5px;">工程实践</a> <a href="/tags/并发控制/" style="font-size: 10px;">并发控制</a> <a href="/tags/微服务/" style="font-size: 10px;">微服务</a> <a href="/tags/技术文章/" style="font-size: 16.25px;">技术文章</a> <a href="/tags/报表统计/" style="font-size: 10px;">报表统计</a> <a href="/tags/数据分析/" style="font-size: 10px;">数据分析</a> <a href="/tags/数据库/" style="font-size: 11.25px;">数据库</a> <a href="/tags/数据结构与算法/" style="font-size: 12.5px;">数据结构与算法</a> <a href="/tags/架构设计/" style="font-size: 11.25px;">架构设计</a> <a href="/tags/消息队列/" style="font-size: 10px;">消息队列</a> <a href="/tags/系统优化/" style="font-size: 10px;">系统优化</a> <a href="/tags/系统设计/" style="font-size: 11.25px;">系统设计</a> <a href="/tags/缓存/" style="font-size: 10px;">缓存</a> <a href="/tags/编程效率/" style="font-size: 16.25px;">编程效率</a> <a href="/tags/软件工程/" style="font-size: 15px;">软件工程</a> <a href="/tags/锁/" style="font-size: 10px;">锁</a>
+      <a href="/tags/AGENTS-md/" style="font-size: 10px;">AGENTS.md</a> <a href="/tags/AI/" style="font-size: 20px;">AI</a> <a href="/tags/AQS/" style="font-size: 10px;">AQS</a> <a href="/tags/Agent/" style="font-size: 10px;">Agent</a> <a href="/tags/Atomic/" style="font-size: 10px;">Atomic</a> <a href="/tags/CAP/" style="font-size: 10px;">CAP</a> <a href="/tags/CAS/" style="font-size: 10px;">CAS</a> <a href="/tags/Claude-Code/" style="font-size: 13.33px;">Claude Code</a> <a href="/tags/Codex/" style="font-size: 17.78px;">Codex</a> <a href="/tags/Condition/" style="font-size: 10px;">Condition</a> <a href="/tags/ERP/" style="font-size: 10px;">ERP</a> <a href="/tags/InnoDB/" style="font-size: 13.33px;">InnoDB</a> <a href="/tags/JMM/" style="font-size: 10px;">JMM</a> <a href="/tags/Java/" style="font-size: 18.89px;">Java</a> <a href="/tags/Kafka/" style="font-size: 10px;">Kafka</a> <a href="/tags/LongAdder/" style="font-size: 10px;">LongAdder</a> <a href="/tags/Loop-Engineering/" style="font-size: 10px;">Loop Engineering</a> <a href="/tags/MVCC/" style="font-size: 10px;">MVCC</a> <a href="/tags/Monitor/" style="font-size: 10px;">Monitor</a> <a href="/tags/MySQL/" style="font-size: 16.67px;">MySQL</a> <a href="/tags/Next-Key-Lock/" style="font-size: 10px;">Next-Key Lock</a> <a href="/tags/ReadWriteLock/" style="font-size: 10px;">ReadWriteLock</a> <a href="/tags/Redis/" style="font-size: 11.11px;">Redis</a> <a href="/tags/ReentrantLock/" style="font-size: 10px;">ReentrantLock</a> <a href="/tags/SQL/" style="font-size: 10px;">SQL</a> <a href="/tags/SQL%E4%BC%98%E5%8C%96/" style="font-size: 10px;">SQL优化</a> <a href="/tags/Skill/" style="font-size: 10px;">Skill</a> <a href="/tags/Spec-Coding/" style="font-size: 12.22px;">Spec Coding</a> <a href="/tags/Spring-Cloud/" style="font-size: 10px;">Spring Cloud</a> <a href="/tags/StampedLock/" style="font-size: 10px;">StampedLock</a> <a href="/tags/synchronized/" style="font-size: 10px;">synchronized</a> <a href="/tags/volatile/" style="font-size: 10px;">volatile</a> <a href="/tags/%E4%B9%90%E8%A7%82%E9%94%81/" style="font-size: 10px;">乐观锁</a> <a href="/tags/%E4%BA%8B%E5%8A%A1/" style="font-size: 11.11px;">事务</a> <a href="/tags/%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/" style="font-size: 10px;">事务隔离级别</a> <a href="/tags/%E4%BB%93%E5%82%A8%E7%B3%BB%E7%BB%9F/" style="font-size: 12.22px;">仓储系统</a> <a href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F/" style="font-size: 14.44px;">供应链系统</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" style="font-size: 13.33px;">分布式</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/" style="font-size: 11.11px;">分布式系统</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" style="font-size: 10px;">分布式锁</a> <a href="/tags/%E5%8D%95%E6%8D%AE%E5%AE%A1%E6%A0%B8/" style="font-size: 10px;">单据审核</a> <a href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" style="font-size: 10px;">可见性</a> <a href="/tags/%E5%91%BD%E4%BB%A4%E8%A1%8C/" style="font-size: 11.11px;">命令行</a> <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/" style="font-size: 12.22px;">工程实践</a> <a href="/tags/%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6/" style="font-size: 10px;">并发控制</a> <a href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" style="font-size: 12.22px;">并发编程</a> <a href="/tags/%E5%B9%B6%E5%8F%91%E9%98%9F%E5%88%97/" style="font-size: 10px;">并发队列</a> <a href="/tags/%E5%B9%BB%E8%AF%BB/" style="font-size: 10px;">幻读</a> <a href="/tags/%E5%BA%93%E5%AD%98%E7%B3%BB%E7%BB%9F/" style="font-size: 11.11px;">库存系统</a> <a href="/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/" style="font-size: 10px;">微服务</a> <a href="/tags/%E6%82%B2%E8%A7%82%E9%94%81/" style="font-size: 10px;">悲观锁</a> <a href="/tags/%E6%8A%80%E6%9C%AF%E6%96%87%E7%AB%A0/" style="font-size: 15.56px;">技术文章</a> <a href="/tags/%E6%8A%A5%E8%A1%A8%E7%BB%9F%E8%AE%A1/" style="font-size: 10px;">报表统计</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E5%88%86%E6%9E%90/" style="font-size: 10px;">数据分析</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 11.11px;">数据库</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/" style="font-size: 12.22px;">数据结构与算法</a> <a href="/tags/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/" style="font-size: 11.11px;">架构设计</a> <a href="/tags/%E6%AD%BB%E9%94%81/" style="font-size: 10px;">死锁</a> <a href="/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" style="font-size: 10px;">消息队列</a> <a href="/tags/%E7%B3%BB%E7%BB%9F%E4%BC%98%E5%8C%96/" style="font-size: 10px;">系统优化</a> <a href="/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/" style="font-size: 11.11px;">系统设计</a> <a href="/tags/%E7%B4%A2%E5%BC%95/" style="font-size: 10px;">索引</a> <a href="/tags/%E7%BC%93%E5%AD%98/" style="font-size: 11.11px;">缓存</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E6%95%88%E7%8E%87/" style="font-size: 15.56px;">编程效率</a> <a href="/tags/%E8%A1%8C%E9%94%81/" style="font-size: 10px;">行锁</a> <a href="/tags/%E8%AE%A2%E5%8D%95%E7%B3%BB%E7%BB%9F/" style="font-size: 10px;">订单系统</a> <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%B7%A5%E7%A8%8B/" style="font-size: 14.44px;">软件工程</a> <a href="/tags/%E9%87%87%E8%B4%AD%E7%B3%BB%E7%BB%9F/" style="font-size: 10px;">采购系统</a> <a href="/tags/%E9%94%81/" style="font-size: 12.22px;">锁</a> <a href="/tags/%E9%94%81%E7%AD%89%E5%BE%85/" style="font-size: 10px;">锁等待</a> <a href="/tags/%E9%97%B4%E9%9A%99%E9%94%81/" style="font-size: 10px;">间隙锁</a>
     </div>
   </div>
 
@@ -1220,7 +520,7 @@ server.3=120.25.239.155:2888:3888
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/06/">六月 2026</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/05/">五月 2026</a><span class="archive-list-count">9</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">十一月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">八月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/05/">五月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">二月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">十一月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/07/">七月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">三月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">六月 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">四月 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">三月 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">一月 2016</a><span class="archive-list-count">1</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/06/">六月 2026</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/05/">五月 2026</a><span class="archive-list-count">9</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/06/">六月 2025</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/05/">五月 2025</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/04/">四月 2025</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/03/">三月 2025</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">十一月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">八月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/05/">五月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">二月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">十一月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/07/">七月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">三月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">六月 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">四月 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">三月 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">一月 2016</a><span class="archive-list-count">1</span></li></ul>
     </div>
   </div>
 
@@ -1236,19 +536,19 @@ server.3=120.25.239.155:2888:3888
           </li>
         
           <li>
-            <a href="/2026/06/10/Codex提高软件编程效率的10个技巧/">Codex提高软件编程效率的10个技巧</a>
+            <a href="/2026/06/10/Codex%E6%8F%90%E9%AB%98%E8%BD%AF%E4%BB%B6%E7%BC%96%E7%A8%8B%E6%95%88%E7%8E%87%E7%9A%8410%E4%B8%AA%E6%8A%80%E5%B7%A7/">Codex提高软件编程效率的10个技巧</a>
           </li>
         
           <li>
-            <a href="/2026/06/10/普通开发者使用AI的三条边界/">普通开发者使用AI的三条边界</a>
+            <a href="/2026/06/10/%E6%99%AE%E9%80%9A%E5%BC%80%E5%8F%91%E8%80%85%E4%BD%BF%E7%94%A8AI%E7%9A%84%E4%B8%89%E6%9D%A1%E8%BE%B9%E7%95%8C/">普通开发者使用AI的三条边界</a>
           </li>
         
           <li>
-            <a href="/2026/06/10/AI-Agent时代的开发工作流/">AI Agent时代的开发工作流</a>
+            <a href="/2026/06/10/AI-Agent%E6%97%B6%E4%BB%A3%E7%9A%84%E5%BC%80%E5%8F%91%E5%B7%A5%E4%BD%9C%E6%B5%81/">AI Agent时代的开发工作流</a>
           </li>
         
           <li>
-            <a href="/2026/06/10/2026年重新理解AI编程助手/">2026年，重新理解AI编程助手</a>
+            <a href="/2026/06/10/2026%E5%B9%B4%E9%87%8D%E6%96%B0%E7%90%86%E8%A7%A3AI%E7%BC%96%E7%A8%8B%E5%8A%A9%E6%89%8B/">2026年，重新理解AI编程助手</a>
           </li>
         
       </ul>
@@ -1283,11 +583,17 @@ server.3=120.25.239.155:2888:3888
 <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
 
 
-  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
-  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
 
 
 <script src="/js/script.js"></script>
+
 
   </div>
 </body>

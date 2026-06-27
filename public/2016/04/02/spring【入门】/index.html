@@ -1,23 +1,23 @@
 <!DOCTYPE html>
 <html>
-<head><meta name="generator" content="Hexo 3.9.0">
+<head>
   <meta charset="utf-8">
   
   <title>spring【入门】 | 陈金星写字的地方</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
   <meta name="description" content="spring介绍：Spring是一个开源框架，它由Rod Johnson创建。它是为了解决企业应用开发的复杂性而创建的。    Spring使用基本的JavaBean来完成以前只可能由EJB完成的事情。  然而，Spring的用途不仅限于服务器端的开发。从简单性、可测试性和松耦合的角度而言，任何Java应用都可以从Spring中受益。  目的：简化Java的开发 基于POJO轻量级和最小侵入式开发">
-<meta name="keywords" content="技术文章">
 <meta property="og:type" content="article">
 <meta property="og:title" content="spring【入门】">
-<meta property="og:url" content="https://guxingxianyue.github.io/2016/04/02/spring【入门】/index.html">
+<meta property="og:url" content="https://guxingxianyue.github.io/2016/04/02/spring%E3%80%90%E5%85%A5%E9%97%A8%E3%80%91/index.html">
 <meta property="og:site_name" content="陈金星写字的地方">
 <meta property="og:description" content="spring介绍：Spring是一个开源框架，它由Rod Johnson创建。它是为了解决企业应用开发的复杂性而创建的。    Spring使用基本的JavaBean来完成以前只可能由EJB完成的事情。  然而，Spring的用途不仅限于服务器端的开发。从简单性、可测试性和松耦合的角度而言，任何Java应用都可以从Spring中受益。  目的：简化Java的开发 基于POJO轻量级和最小侵入式开发">
-<meta property="og:locale" content="zh-CN">
+<meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://i.imgur.com/jRfjJiS.jpg">
-<meta property="og:updated_time" content="2026-06-10T13:10:18.726Z">
+<meta property="article:published_time" content="2016-04-02T11:21:08.000Z">
+<meta property="article:modified_time" content="2026-05-24T16:28:05.902Z">
+<meta property="article:author" content="Jinxing Chen">
+<meta property="article:tag" content="技术文章">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="spring【入门】">
-<meta name="twitter:description" content="spring介绍：Spring是一个开源框架，它由Rod Johnson创建。它是为了解决企业应用开发的复杂性而创建的。    Spring使用基本的JavaBean来完成以前只可能由EJB完成的事情。  然而，Spring的用途不仅限于服务器端的开发。从简单性、可测试性和松耦合的角度而言，任何Java应用都可以从Spring中受益。  目的：简化Java的开发 基于POJO轻量级和最小侵入式开发">
 <meta name="twitter:image" content="https://i.imgur.com/jRfjJiS.jpg">
   
     <link rel="alternative" href="/atom.xml" title="陈金星写字的地方" type="application/atom+xml">
@@ -26,10 +26,12 @@
     <link rel="icon" href="/favicon.png">
   
   <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
-  <link rel="stylesheet" href="/css/style.css">
+  
+<link rel="stylesheet" href="/css/style.css">
+
   
 
-</head></html>
+<meta name="generator" content="Hexo 8.1.2"></head>
 <body>
   <div id="container">
     <div id="wrap">
@@ -40,10 +42,6 @@
       <h1 id="logo-wrap">
         <a href="/" id="logo">陈金星写字的地方</a>
       </h1>
-      
-        <h2 id="subtitle-wrap">
-          <a href="/" id="subtitle">less is more</a>
-        </h2>
       
     </div>
     <div id="header-inner" class="inner">
@@ -72,7 +70,7 @@
       <div class="outer">
         <section id="main"><article id="post-spring【入门】" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2016/04/02/spring【入门】/" class="article-date">
+    <a href="/2016/04/02/spring%E3%80%90%E5%85%A5%E9%97%A8%E3%80%91/" class="article-date">
   <time datetime="2016-04-02T11:21:08.000Z" itemprop="datePublished">2016-04-02</time>
 </a>
     
@@ -99,7 +97,7 @@
 <li>基于POJO轻量级和最小侵入式开发</li>
 <li>通过依赖注入和面向接口实现松耦合</li>
 <li>基于切面和惯例进行声明式编程</li>
-<li>通过切面和模板<strong>减少样板式代码 </strong></li>
+<li>通过切面和模板**减少样板式代码 **</li>
 </ul>
 </li>
 <li>功能：使用基本的JavaBean代替EJB，并提供了更多的企业应用功能</li>
@@ -113,12 +111,12 @@
 <ul>
 <li>改变了java类的结构</li>
 </ul>
-<p>非侵入式</p>
+</li>
+</ul>
+<p> 非侵入式</p>
 <ul>
 <li>对于Hibernate、Spring等框架，对现有的类结构没有影响，就能够增强JavaBean的功能</li>
 <li></li>
-</ul>
-</li>
 </ul>
 <h4 id="松耦合"><a href="#松耦合" class="headerlink" title="松耦合"></a>松耦合</h4><p>一般我们在写程序的时候，都是面向接口编程，通过DaoFactroy等方法来实现松耦合</p>
 <pre><code>private CategoryDao categoryDao = DaoFactory.getInstance().createDao(&quot;zhongfucheng.dao.impl.CategoryDAOImpl&quot;, CategoryDao.class);
@@ -128,7 +126,8 @@ private BookDao bookDao = DaoFactory.getInstance().createDao(&quot;zhongfucheng.
 private UserDao userDao = DaoFactory.getInstance().createDao(&quot;zhongfucheng.dao.impl.UserDaoImpl&quot;, UserDao.class);
 
 private OrderDao orderDao = DaoFactory.getInstance().createDao(&quot;zhongfucheng.dao.impl.OrderDaoImpl&quot;, OrderDao.class);
-</code></pre><p>DAO层和Service层通过DaoFactory来实现松耦合</p>
+</code></pre>
+<p>DAO层和Service层通过DaoFactory来实现松耦合</p>
 <ul>
 <li>如果Serivce层直接new DaoBook()，那么DAO和Service就紧耦合了【Service层依赖紧紧依赖于Dao】</li>
 </ul>
@@ -145,9 +144,9 @@ private OrderDao orderDao = DaoFactory.getInstance().createDao(&quot;zhongfuchen
 </li>
 <li><p>dao–&gt;  UserDao{  .. 访问db}</p>
 </li>
-<li><p>service—&gt;  UserService{  UserDao userDao = new UserDao();}</p>
+<li><p>service—&gt;  UserService{  UserDao userDao &#x3D; new UserDao();}</p>
 </li>
-<li><p>controller—&gt; UserControler{UserService userService = new UserService();}</p>
+<li><p>controller—&gt; UserControler{UserService userService &#x3D; new UserService();}</p>
 </li>
 </ul>
 <p>用户访问：</p>
@@ -204,13 +203,14 @@ private OrderDao orderDao = DaoFactory.getInstance().createDao(&quot;zhongfuchen
 </li>
 <li><p>在创建完对象之后，对象的关系处理就是依赖注入</p>
 </li>
-<li>上面已经说了，控制反转是通过外部容器完成的，而Spring又为我们提供了这么一个容器，我们一般将这个容器叫做：<strong>IOC容器.</strong></li>
+<li></li>
 </ul>
+<p>上面已经说了，控制反转是通过外部容器完成的，而Spring又为我们提供了这么一个容器，我们一般将这个容器叫做：<strong>IOC容器.</strong></p>
 <p>无论是创建对象、处理对象之间的依赖关系、对象创建的时间还是对象的数量，我们都是在Spring为我们提供的IOC容器上配置对象的信息就好了。</p>
 <p>那么使用IOC控制反转这一思想有什么作用呢？</p>
 <p>摘取一下来自知乎的部分解释：</p>
 <blockquote>
-<p>ioc的思想最核心的地方在于，资源不由使用资源的双方管理，而由不使用资源的第三方管理，这可以带来很多好处。第一，资源集中管理，实现资源的可配置和易管理。第二，降低了使用资源双方的依赖程度，也就是我们说的耦合度。也就是说  ，甲方要达成某种目的不需要直接依赖乙方，它只需要达到的目的告诉第三方机构就可以了，比如甲方需要一双袜子，而乙方它卖一双袜子，它要把袜子卖出去，并不需要自己去直接找到一个卖家来完成袜子的卖出。它也只需要找第三方，告诉别人我要卖一双袜子。这下好了，甲乙双方进行交易活动，都不需要自己直接去找卖家，相当于程序内部开放接口，卖家由第三方作为参数传入。甲乙互相不依赖，而且只有在进行交易活动的时候，甲才和乙产生联系。反之亦然。这样做什么好处么呢，甲乙可以在对方不真实存在的情况下独立存在，而且保证不交易时候无联系，想交易的时候可以很容易的产生联系。甲乙交易活动不需要双方见面，避免了双方的互不信任造成交易失败的问题。因为交易由第三方来负责联系，而且甲乙都认为第三方可靠。那么交易就能很可靠很灵活的产生和进行了。这就是ioc的核心思想。生活中这种例子比比皆是，支付宝在整个淘宝体系里就是庞大的ioc容器，交易双方之外的第三方，提供可靠性可依赖可灵活变更交易方的资源管理中心。另外人事代理也是，雇佣机构和个人之外的第三方。<br>==========================update===========================<br>在以上的描述中，诞生了两个专业词汇，依赖注入和控制反转所谓的依赖注入，则是，甲方开放接口，在它需要的时候，能够讲乙方传递进来(注入)所谓的控制反转，甲乙双方不相互依赖，交易活动的进行不依赖于甲乙任何一方，整个活动的进行由第三方负责管理。</p>
+<p>ioc的思想最核心的地方在于，资源不由使用资源的双方管理，而由不使用资源的第三方管理，这可以带来很多好处。第一，资源集中管理，实现资源的可配置和易管理。第二，降低了使用资源双方的依赖程度，也就是我们说的耦合度。也就是说  ，甲方要达成某种目的不需要直接依赖乙方，它只需要达到的目的告诉第三方机构就可以了，比如甲方需要一双袜子，而乙方它卖一双袜子，它要把袜子卖出去，并不需要自己去直接找到一个卖家来完成袜子的卖出。它也只需要找第三方，告诉别人我要卖一双袜子。这下好了，甲乙双方进行交易活动，都不需要自己直接去找卖家，相当于程序内部开放接口，卖家由第三方作为参数传入。甲乙互相不依赖，而且只有在进行交易活动的时候，甲才和乙产生联系。反之亦然。这样做什么好处么呢，甲乙可以在对方不真实存在的情况下独立存在，而且保证不交易时候无联系，想交易的时候可以很容易的产生联系。甲乙交易活动不需要双方见面，避免了双方的互不信任造成交易失败的问题。因为交易由第三方来负责联系，而且甲乙都认为第三方可靠。那么交易就能很可靠很灵活的产生和进行了。这就是ioc的核心思想。生活中这种例子比比皆是，支付宝在整个淘宝体系里就是庞大的ioc容器，交易双方之外的第三方，提供可靠性可依赖可灵活变更交易方的资源管理中心。另外人事代理也是，雇佣机构和个人之外的第三方。<br>&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;update&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;&#x3D;<br>在以上的描述中，诞生了两个专业词汇，依赖注入和控制反转所谓的依赖注入，则是，甲方开放接口，在它需要的时候，能够讲乙方传递进来(注入)所谓的控制反转，甲乙双方不相互依赖，交易活动的进行不依赖于甲乙任何一方，整个活动的进行由第三方负责管理。</p>
 </blockquote>
 <ul>
 <li><p>不用自己组装，拿来就用。</p>
@@ -251,7 +251,7 @@ private OrderDao orderDao = DaoFactory.getInstance().createDao(&quot;zhongfuchen
 <li><p>SpringEE   spring 对javaEE其他模块的支持</p>
 </li>
 </ul>
-<p><img src="https://i.imgur.com/jRfjJiS.jpg" alt=""> </p>
+<p><img src="https://i.imgur.com/jRfjJiS.jpg"> </p>
 <p>上面文主要引出了为啥我们需要使用Spring框架，以及大致了解了Spring是分为六大模块的….下面主要讲解Spring的core模块！</p>
 <h2 id="Core模块快速入门"><a href="#Core模块快速入门" class="headerlink" title="Core模块快速入门"></a>Core模块快速入门</h2><h4 id="搭建配置环境"><a href="#搭建配置环境" class="headerlink" title="搭建配置环境"></a>搭建配置环境</h4><p>引入jar包:</p>
 <p>本博文主要是core模块的内容，涉及到Spring core的开发jar包有五个：</p>
@@ -282,14 +282,16 @@ private OrderDao orderDao = DaoFactory.getInstance().createDao(&quot;zhongfuchen
         http://www.springframework.org/schema/context/spring-context.xsd&quot;&gt;
 
 &lt;/beans&gt;  
-</code></pre><p>我是使用Intellij Idea集成开发工具的，可以选择自带的Spring配置文件,它长的是这样：</p>
+</code></pre>
+<p>我是使用Intellij Idea集成开发工具的，可以选择自带的Spring配置文件,它长的是这样：</p>
 <pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
 &lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot;
        xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
        xsi:schemaLocation=&quot;http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd&quot;&gt;
 
 &lt;/beans&gt;
-</code></pre><p>前面在介绍Spring模块的时候已经说了，Core模块是：<strong>IOC容器，解决对象创建和之间的依赖关系。</strong></p>
+</code></pre>
+<p>前面在介绍Spring模块的时候已经说了，Core模块是：<strong>IOC容器，解决对象创建和之间的依赖关系。</strong></p>
 <p>因此<strong>Core模块主要是学习如何得到IOC容器，通过IOC容器来创建对象、解决对象之间的依赖关系、IOC细节。</strong></p>
 <h4 id="得到Spring容器对象【IOC容器】"><a href="#得到Spring容器对象【IOC容器】" class="headerlink" title="得到Spring容器对象【IOC容器】"></a>得到Spring容器对象【IOC容器】</h4><p>Spring容器不单单只有一个，可以归为两种类型</p>
 <ul>
@@ -298,25 +300,28 @@ private OrderDao orderDao = DaoFactory.getInstance().createDao(&quot;zhongfuchen
 <li><p><strong>应用上下文，ApplicationContext【功能强大，一般我们使用这个】</strong></p>
 </li>
 </ul>
-<p>==<strong>通过Resource获取BeanFactory</strong>==</p>
+<p>&#x3D;&#x3D;<strong>通过Resource获取BeanFactory</strong>&#x3D;&#x3D;</p>
 <ul>
-<li>加载Spring配置文件</li>
+<li><p>加载Spring配置文件</p>
+</li>
 <li><p>通过XmlBeanFactory+配置文件来创建IOC容器</p>
-<pre><code>//加载Spring的资源文件
-Resource resource = new ClassPathResource(&quot;applicationContext.xml&quot;);
-
-//创建IOC容器对象【IOC容器=工厂类+applicationContext.xml】
-BeanFactory beanFactory = new XmlBeanFactory(resource);
-</code></pre></li>
+<pre><code>  //加载Spring的资源文件
+  Resource resource = new ClassPathResource(&quot;applicationContext.xml&quot;);
+  
+  //创建IOC容器对象【IOC容器=工厂类+applicationContext.xml】
+  BeanFactory beanFactory = new XmlBeanFactory(resource);
+</code></pre>
+</li>
 </ul>
-<p>==<strong>类路径下XML获取ApplicationContext</strong>==</p>
+<p>&#x3D;&#x3D;<strong>类路径下XML获取ApplicationContext</strong>&#x3D;&#x3D;</p>
 <ul>
 <li><p>直接通过ClassPathXmlApplicationContext对象来获取</p>
-<pre><code>// 得到IOC容器对象
-ApplicationContext ac = new ClassPathXmlApplicationContext(&quot;applicationContext.xml&quot;);
+<pre><code>  // 得到IOC容器对象
+  ApplicationContext ac = new ClassPathXmlApplicationContext(&quot;applicationContext.xml&quot;);
 
-System.out.println(ac);
-</code></pre></li>
+  System.out.println(ac);
+</code></pre>
+</li>
 </ul>
 <p>在Spring中总体来看可以通过三种方式来配置对象:</p>
 <ul>
@@ -351,7 +356,8 @@ public class User {
         this.username = username;
     }
 }
-</code></pre><p>以前我们是通过new User的方法创建对象</p>
+</code></pre>
+<p>以前我们是通过new User的方法创建对象</p>
 <p>现在我们有了IOC容器，可以让IOC容器帮我们创建对象了。在applicationContext.xml文件中配置对应的信息就行了</p>
 <pre><code>   &lt;!--
 使用bean节点来创建对象
@@ -359,16 +365,18 @@ id属性标识着对象
 name属性代表着要创建对象的类全名
 --&gt;
 &lt;bean id=&quot;user&quot; class=&quot;User&quot;/&gt;
-</code></pre><p><strong>通过IOC容器对象获取对象:</strong></p>
+</code></pre>
+<p><strong>通过IOC容器对象获取对象:</strong></p>
 <ul>
 <li><p>在外界通过IOC容器对象得到User对象</p>
-<pre><code>// 得到IOC容器对象
-ApplicationContext ac = new ClassPathXmlApplicationContext(&quot;applicationContext.xml&quot;);
+<pre><code>  // 得到IOC容器对象
+  ApplicationContext ac = new ClassPathXmlApplicationContext(&quot;applicationContext.xml&quot;);
 
-User user = (User) ac.getBean(&quot;user&quot;);
+  User user = (User) ac.getBean(&quot;user&quot;);
 
-System.out.println(user);
-</code></pre></li>
+  System.out.println(user);
+</code></pre>
+</li>
 </ul>
 <p>上面我们使用的是IOC通过无参构造函数来创建对象，我们来回顾一下一般有几种创建对象的方式：</p>
 <ul>
@@ -381,19 +389,21 @@ System.out.println(user);
 </li>
 </ul>
 <p>使用无参的构造函数创建对象我们已经会了，接下来我们看看使用剩下的IOC容器是怎么创建对象的。</p>
-<p>==<strong>带参数的构造函数创建对象</strong>==</p>
+<p>&#x3D;&#x3D;<strong>带参数的构造函数创建对象</strong>&#x3D;&#x3D;</p>
 <p>首先，JavaBean就要提供带参数的构造函数：</p>
 <pre><code>public User(String id, String username) {
     this.id = id;
     this.username = username;
 }
-</code></pre><p>接下来，关键是怎么配置applicationContext.xml文件了。</p>
+</code></pre>
+<p>接下来，关键是怎么配置applicationContext.xml文件了。</p>
 <pre><code>&lt;bean id=&quot;user&quot; class=&quot;User&quot;&gt;
     &lt;!--通过constructor这个节点来指定构造函数的参数类型、名称、第几个--&gt;
     &lt;constructor-arg index=&quot;0&quot; name=&quot;id&quot; type=&quot;java.lang.String&quot; value=&quot;1&quot;&gt;&lt;/constructor-arg&gt;
     &lt;constructor-arg index=&quot;1&quot; name=&quot;username&quot; type=&quot;java.lang.String&quot; value=&quot;zhongfucheng&quot;&gt;&lt;/constructor-arg&gt;
 &lt;/bean&gt;
-</code></pre><p>在constructor上如果构造函数的值是一个对象，而不是一个普通类型的值，我们就需要用到ref属性了，而不是value属性</p>
+</code></pre>
+<p>在constructor上如果构造函数的值是一个对象，而不是一个普通类型的值，我们就需要用到ref属性了，而不是value属性</p>
 <p>比如说：我在User对象上维护了Person对象的值，想要在构造函数中初始化它。因此，就需要用到ref属性了</p>
 <pre><code>&lt;bean id=&quot;person&quot; class=&quot;Person&quot;&gt;&lt;/bean&gt; 
 
@@ -403,7 +413,8 @@ System.out.println(user);
     &lt;constructor-arg index=&quot;0&quot; name=&quot;id&quot; type=&quot;java.lang.String&quot; value=&quot;1&quot;&gt;&lt;/constructor-arg&gt;
     &lt;constructor-arg index=&quot;1&quot; name=&quot;username&quot; type=&quot;java.lang.String&quot; ref=&quot;person&quot;&gt;&lt;/constructor-arg&gt;
 &lt;/bean&gt;
-</code></pre><p><strong>==工厂静态方法创建对象==</strong></p>
+</code></pre>
+<p><strong>&#x3D;&#x3D;工厂静态方法创建对象&#x3D;&#x3D;</strong></p>
 <p>首先，使用一个工厂的静态方法返回一个对象</p>
 <pre><code>public class Factory {
 
@@ -413,12 +424,14 @@ System.out.println(user);
     }
 
 }
-</code></pre><p>配置文件中使用工厂的静态方法返回对象</p>
+</code></pre>
+<p>配置文件中使用工厂的静态方法返回对象</p>
 <pre><code>&lt;!--工厂静态方法创建对象，直接使用class指向静态类，指定静态方法就行了--&gt;
 &lt;bean id=&quot;user&quot; class=&quot;Factory&quot; factory-method=&quot;getBean&quot; &gt;
 
 &lt;/bean&gt;
-</code></pre><p><strong>==工厂非静态方法创建对象==</strong></p>
+</code></pre>
+<p><strong>&#x3D;&#x3D;工厂非静态方法创建对象&#x3D;&#x3D;</strong></p>
 <p>首先，也是通过工厂的非静态方法来得到一个对象</p>
 <pre><code>public class Factory {
 
@@ -430,21 +443,23 @@ System.out.println(user);
 
 
 }
-</code></pre><p>配置文件中使用工厂的非静态方法返回对象</p>
+</code></pre>
+<p>配置文件中使用工厂的非静态方法返回对象</p>
 <pre><code>&lt;!--首先创建工厂对象--&gt;
 &lt;bean id=&quot;factory&quot; class=&quot;Factory&quot;/&gt;
 
 &lt;!--指定工厂对象和工厂方法--&gt;
 &lt;bean id=&quot;user&quot; class=&quot;User&quot; factory-bean=&quot;factory&quot; factory-method=&quot;getBean&quot;/&gt;
-</code></pre><h4 id="注解方式"><a href="#注解方式" class="headerlink" title="注解方式"></a>注解方式</h4><p>通过注解来配置信息就是为了简化IOC容器的配置，注解可以把对象添加到IOC容器中、处理对象依赖关系</p>
+</code></pre>
+<h4 id="注解方式"><a href="#注解方式" class="headerlink" title="注解方式"></a>注解方式</h4><p>通过注解来配置信息就是为了简化IOC容器的配置，注解可以把对象添加到IOC容器中、处理对象依赖关系</p>
 <p>使用注解步骤：</p>
 <ul>
 <li>1）先引入context名称空间<ul>
-<li>xmlns:context=”<a href="http://www.springframework.org/schema/context&quot;" target="_blank" rel="noopener">http://www.springframework.org/schema/context&quot;</a></li>
+<li>xmlns:context&#x3D;”<a href="http://www.springframework.org/schema/context">http://www.springframework.org/schema/context</a>“</li>
 </ul>
 </li>
 <li>2）开启注解扫描器<ul>
-<li>&lt;context:component-scan base-package=””&gt;&lt;/context:component-scan&gt;</li>
+<li>&lt;context:component-scan base-package&#x3D;””&gt;</context:component-scan></li>
 </ul>
 </li>
 </ul>
@@ -465,95 +480,101 @@ System.out.println(user);
 <p>测试代码:</p>
 <ul>
 <li><p>UserDao</p>
-<pre><code>package aa;
-
-import org.springframework.stereotype.Repository;
-
-/**
- * Created by ozc on 2017/5/10.
- */
-
-//把对象添加到容器中,首字母会小写
-@Repository
-public class UserDao {
-
-    public void save() {
-        System.out.println(&quot;DB:保存用户&quot;);
-    }
-</code></pre></li>
-</ul>
-<pre><code>}
-</code></pre><ul>
+<pre><code>  package aa;
+  
+  import org.springframework.stereotype.Repository;
+  
+  /**
+   * Created by ozc on 2017/5/10.
+   */
+  
+  //把对象添加到容器中,首字母会小写
+  @Repository
+  public class UserDao {
+  
+      public void save() {
+          System.out.println(&quot;DB:保存用户&quot;);
+      }
+  
+  
+  }
+</code></pre>
+</li>
 <li><p>userService</p>
-<pre><code>package aa;
-
-import org.springframework.stereotype.Service;
-
-import javax.annotation.Resource;
-</code></pre></li>
-</ul>
-<pre><code>//把UserService对象添加到IOC容器中,首字母会小写
-@Service
-public class UserService {
-
-    //如果@Resource不指定值，那么就根据类型来找---&gt;UserDao....当然了，IOC容器不能有两个UserDao类型的对象
-    //@Resource
-
-    //如果指定了值，那么Spring就在IOC容器找有没有id为userDao的对象。
-    @Resource(name = &quot;userDao&quot;)
-    private UserDao userDao;
-
-    public void save() {
-        userDao.save();
-    }
-}
-</code></pre><ul>
-<li>userController</li>
-<li><pre><code>package aa;
-
-import org.springframework.stereotype.Controller;
-
-import javax.annotation.Resource;
-
-/**
- * Created by ozc on 2017/5/10.
- */
-
-//把对象添加到IOC容器中,首字母会小写
-@Controller
-public class UserController {
-
-    @Resource(name = &quot;userService&quot;)
-    private UserService userService;
-
-    public String execute() {
-        userService.save();
-        return null;
-    }
-}
-</code></pre></li>
+<pre><code>  package aa;
+  
+  import org.springframework.stereotype.Service;
+  
+  import javax.annotation.Resource;
+  
+  
+  //把UserService对象添加到IOC容器中,首字母会小写
+  @Service
+  public class UserService {
+  
+      //如果@Resource不指定值，那么就根据类型来找---&gt;UserDao....当然了，IOC容器不能有两个UserDao类型的对象
+      //@Resource
+  
+      //如果指定了值，那么Spring就在IOC容器找有没有id为userDao的对象。
+      @Resource(name = &quot;userDao&quot;)
+      private UserDao userDao;
+  
+      public void save() {
+          userDao.save();
+      }
+  }
+  
+</code></pre>
+</li>
+<li><p>userController</p>
+</li>
+<li><pre><code>  package aa;
+  
+  import org.springframework.stereotype.Controller;
+  
+  import javax.annotation.Resource;
+  
+  /**
+   * Created by ozc on 2017/5/10.
+   */
+  
+  //把对象添加到IOC容器中,首字母会小写
+  @Controller
+  public class UserController {
+  
+      @Resource(name = &quot;userService&quot;)
+      private UserService userService;
+  
+      public String execute() {
+          userService.save();
+          return null;
+      }
+  }
+</code></pre>
+</li>
 <li><p>测试</p>
-<pre><code>package aa;
-
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-
-/**
- * Created by ozc on 2017/5/10.
- */
-public class App {
-
-    public static void main(String[] args) {
-
-        // 创建容器对象
-        ApplicationContext ac = new ClassPathXmlApplicationContext(&quot;aa/applicationContext.xml&quot;);
-
-        UserAv userController = (UserController) ac.getBean(&quot;userController&quot;);
-
-        userController.execute();
-    }
-}
-</code></pre></li>
+<pre><code>  package aa;
+  
+  import org.springframework.context.ApplicationContext;
+  import org.springframework.context.support.ClassPathXmlApplicationContext;
+  
+  /**
+   * Created by ozc on 2017/5/10.
+   */
+  public class App {
+  
+      public static void main(String[] args) {
+  
+          // 创建容器对象
+          ApplicationContext ac = new ClassPathXmlApplicationContext(&quot;aa/applicationContext.xml&quot;);
+  
+          UserAv userController = (UserController) ac.getBean(&quot;userController&quot;);
+  
+          userController.execute();
+      }
+  }
+</code></pre>
+</li>
 </ul>
 <h4 id="bean对象创建细节"><a href="#bean对象创建细节" class="headerlink" title="bean对象创建细节"></a>bean对象创建细节</h4><p>在Spring第一篇中，我们为什么要引入Spring提出了这么一些问题：</p>
 <ul>
@@ -575,9 +596,9 @@ public class App {
 </li>
 </ul>
 <p>既然我们现在已经初步了解IOC容器了，那么这些问题我们都是可以解决的。并且是十分简单【对象写死问题已经解决了，IOC容器就是控制反转创建对象】</p>
-<p><strong>==scope属性==</strong></p>
+<p><strong>&#x3D;&#x3D;scope属性&#x3D;&#x3D;</strong></p>
 <p>指定scope属性，IOC容器就知道创建对象的时候是单例还是多例的了。</p>
-<p>属性的值就只有两个：单例/多例</p>
+<p>属性的值就只有两个：单例&#x2F;多例</p>
 <ul>
 <li>当我们使用singleton【单例】的时候，从IOC容器获取的对象都是同一个</li>
 <li>当我们使用prototype【多例】的时候，从IOC容器获取的对象都是不同的</li>
@@ -587,14 +608,16 @@ public class App {
 <li>当使用singleton的时候，对象在IOC容器之前就已经创建了</li>
 <li>当使用prototype的时候，对象在使用的时候才创建</li>
 </ul>
-<p><strong>==lazy==-init属性</strong> </p>
+<p><strong>&#x3D;&#x3D;lazy&#x3D;&#x3D;-init属性</strong> </p>
 <p>lazy-init属性只对singleton【单例】的对象有效…..lazy-init默认为false….</p>
 <p>有的时候，可能我们想要对象在使用的时候才创建，那么将lazy-init设置为ture就行了</p>
-<p><strong>==init==-method和destroy-method</strong></p>
+<p><strong>&#x3D;&#x3D;init&#x3D;&#x3D;-method和destroy-method</strong></p>
 <p>如果我们想要对象在创建后，执行某个方法，我们指定为init-method属性就行了。。</p>
 <p>如果我们想要IOC容器销毁后，执行某个方法，我们指定destroy-method属性就行了。</p>
-<pre><code>&lt;bean id=&quot;user&quot; class=&quot;User&quot; scope=&quot;singleton&quot; lazy-init=&quot;true&quot; init-method=&quot;&quot; destroy-method=&quot;&quot;/&gt;
-</code></pre><p>==<strong>Bean创建细节总结</strong>==</p>
+<pre><code> &lt;bean id=&quot;user&quot; class=&quot;User&quot; scope=&quot;singleton&quot; lazy-init=&quot;true&quot; init-method=&quot;&quot; destroy-method=&quot;&quot;/&gt;
+ 
+</code></pre>
+<p>&#x3D;&#x3D;<strong>Bean创建细节总结</strong>&#x3D;&#x3D;</p>
 <pre><code>/**
  * 1) 对象创建： 单例/多例
  *  scope=&quot;singleton&quot;, 默认值， 即 默认是单例 【service/dao/工具类】
@@ -612,13 +635,14 @@ public class App {
  *    destroy-method=&quot;destroy_user&quot;  【在调用容器对象的destroy方法时候执行，(容器用实现类)】
  */
 </code></pre>
+
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2016/04/02/spring【入门】/" data-id="cmq8scy6y0013jsqhml0m2sd7" class="article-share-link">Share</a>
+      <a data-url="https://guxingxianyue.github.io/2016/04/02/spring%E3%80%90%E5%85%A5%E9%97%A8%E3%80%91/" data-id="cuidw4ABvKatIv7sIxksKs-3a" class="article-share-link">Share</a>
       
       
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/技术文章/">技术文章</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%8A%80%E6%9C%AF%E6%96%87%E7%AB%A0/" rel="tag">技术文章</a></li></ul>
 
     </footer>
   </div>
@@ -626,7 +650,7 @@ public class App {
     
 <nav id="article-nav">
   
-    <a href="/2016/04/10/Mybatis【入门】/" id="article-nav-newer" class="article-nav-link-wrap">
+    <a href="/2016/04/10/Mybatis%E3%80%90%E5%85%A5%E9%97%A8%E3%80%91/" id="article-nav-newer" class="article-nav-link-wrap">
       <strong class="article-nav-caption">Newer</strong>
       <div class="article-nav-title">
         
@@ -636,7 +660,7 @@ public class App {
     </a>
   
   
-    <a href="/2016/03/20/JAVA多线程的应用场景和目的/" id="article-nav-older" class="article-nav-link-wrap">
+    <a href="/2016/03/20/JAVA%E5%A4%9A%E7%BA%BF%E7%A8%8B%E7%9A%84%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF%E5%92%8C%E7%9B%AE%E7%9A%84/" id="article-nav-older" class="article-nav-link-wrap">
       <strong class="article-nav-caption">Older</strong>
       <div class="article-nav-title">JAVA多线程的应用场景和目的</div>
     </a>
@@ -656,7 +680,7 @@ public class App {
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AGENTS-md/">AGENTS.md</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI/">AI</a><span class="tag-list-count">15</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Agent/">Agent</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CAP/">CAP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Claude-Code/">Claude Code</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Codex/">Codex</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ERP/">ERP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/">Java</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kafka/">Kafka</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Loop-Engineering/">Loop Engineering</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/">MySQL</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Redis/">Redis</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/">SQL</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL优化/">SQL优化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Skill/">Skill</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spec-Coding/">Spec Coding</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spring-Cloud/">Spring Cloud</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/事务/">事务</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/供应链系统/">供应链系统</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/分布式/">分布式</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/分布式系统/">分布式系统</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/分布式锁/">分布式锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/命令行/">命令行</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/工程实践/">工程实践</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/并发控制/">并发控制</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/微服务/">微服务</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/技术文章/">技术文章</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/报表统计/">报表统计</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据分析/">数据分析</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据库/">数据库</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据结构与算法/">数据结构与算法</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/架构设计/">架构设计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/消息队列/">消息队列</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/系统优化/">系统优化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/系统设计/">系统设计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/缓存/">缓存</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/编程效率/">编程效率</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/软件工程/">软件工程</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/锁/">锁</a><span class="tag-list-count">1</span></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AGENTS-md/" rel="tag">AGENTS.md</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI/" rel="tag">AI</a><span class="tag-list-count">15</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AQS/" rel="tag">AQS</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Agent/" rel="tag">Agent</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Atomic/" rel="tag">Atomic</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CAP/" rel="tag">CAP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CAS/" rel="tag">CAS</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Claude-Code/" rel="tag">Claude Code</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Codex/" rel="tag">Codex</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Condition/" rel="tag">Condition</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ERP/" rel="tag">ERP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/InnoDB/" rel="tag">InnoDB</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JMM/" rel="tag">JMM</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kafka/" rel="tag">Kafka</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LongAdder/" rel="tag">LongAdder</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Loop-Engineering/" rel="tag">Loop Engineering</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MVCC/" rel="tag">MVCC</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Monitor/" rel="tag">Monitor</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Next-Key-Lock/" rel="tag">Next-Key Lock</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ReadWriteLock/" rel="tag">ReadWriteLock</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Redis/" rel="tag">Redis</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ReentrantLock/" rel="tag">ReentrantLock</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/" rel="tag">SQL</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL%E4%BC%98%E5%8C%96/" rel="tag">SQL优化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Skill/" rel="tag">Skill</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spec-Coding/" rel="tag">Spec Coding</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spring-Cloud/" rel="tag">Spring Cloud</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/StampedLock/" rel="tag">StampedLock</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/synchronized/" rel="tag">synchronized</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/volatile/" rel="tag">volatile</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%B9%90%E8%A7%82%E9%94%81/" rel="tag">乐观锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8B%E5%8A%A1/" rel="tag">事务</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/" rel="tag">事务隔离级别</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BB%93%E5%82%A8%E7%B3%BB%E7%BB%9F/" rel="tag">仓储系统</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F/" rel="tag">供应链系统</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" rel="tag">分布式</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/" rel="tag">分布式系统</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" rel="tag">分布式锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8D%95%E6%8D%AE%E5%AE%A1%E6%A0%B8/" rel="tag">单据审核</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" rel="tag">可见性</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%91%BD%E4%BB%A4%E8%A1%8C/" rel="tag">命令行</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/" rel="tag">工程实践</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6/" rel="tag">并发控制</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" rel="tag">并发编程</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91%E9%98%9F%E5%88%97/" rel="tag">并发队列</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%BB%E8%AF%BB/" rel="tag">幻读</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BA%93%E5%AD%98%E7%B3%BB%E7%BB%9F/" rel="tag">库存系统</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/" rel="tag">微服务</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%82%B2%E8%A7%82%E9%94%81/" rel="tag">悲观锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8A%80%E6%9C%AF%E6%96%87%E7%AB%A0/" rel="tag">技术文章</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8A%A5%E8%A1%A8%E7%BB%9F%E8%AE%A1/" rel="tag">报表统计</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E5%88%86%E6%9E%90/" rel="tag">数据分析</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="tag">数据库</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/" rel="tag">数据结构与算法</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/" rel="tag">架构设计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%AD%BB%E9%94%81/" rel="tag">死锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" rel="tag">消息队列</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%B3%BB%E7%BB%9F%E4%BC%98%E5%8C%96/" rel="tag">系统优化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/" rel="tag">系统设计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%B4%A2%E5%BC%95/" rel="tag">索引</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BC%93%E5%AD%98/" rel="tag">缓存</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BC%96%E7%A8%8B%E6%95%88%E7%8E%87/" rel="tag">编程效率</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%A1%8C%E9%94%81/" rel="tag">行锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%A2%E5%8D%95%E7%B3%BB%E7%BB%9F/" rel="tag">订单系统</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%BD%AF%E4%BB%B6%E5%B7%A5%E7%A8%8B/" rel="tag">软件工程</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%87%87%E8%B4%AD%E7%B3%BB%E7%BB%9F/" rel="tag">采购系统</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%94%81/" rel="tag">锁</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%94%81%E7%AD%89%E5%BE%85/" rel="tag">锁等待</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%97%B4%E9%9A%99%E9%94%81/" rel="tag">间隙锁</a><span class="tag-list-count">1</span></li></ul>
     </div>
   </div>
 
@@ -665,7 +689,7 @@ public class App {
   <div class="widget-wrap">
     <h3 class="widget-title">Tag Cloud</h3>
     <div class="widget tagcloud">
-      <a href="/tags/AGENTS-md/" style="font-size: 10px;">AGENTS.md</a> <a href="/tags/AI/" style="font-size: 20px;">AI</a> <a href="/tags/Agent/" style="font-size: 10px;">Agent</a> <a href="/tags/CAP/" style="font-size: 10px;">CAP</a> <a href="/tags/Claude-Code/" style="font-size: 13.75px;">Claude Code</a> <a href="/tags/Codex/" style="font-size: 18.75px;">Codex</a> <a href="/tags/ERP/" style="font-size: 10px;">ERP</a> <a href="/tags/Java/" style="font-size: 17.5px;">Java</a> <a href="/tags/Kafka/" style="font-size: 10px;">Kafka</a> <a href="/tags/Loop-Engineering/" style="font-size: 10px;">Loop Engineering</a> <a href="/tags/MySQL/" style="font-size: 11.25px;">MySQL</a> <a href="/tags/Redis/" style="font-size: 11.25px;">Redis</a> <a href="/tags/SQL/" style="font-size: 10px;">SQL</a> <a href="/tags/SQL优化/" style="font-size: 10px;">SQL优化</a> <a href="/tags/Skill/" style="font-size: 10px;">Skill</a> <a href="/tags/Spec-Coding/" style="font-size: 12.5px;">Spec Coding</a> <a href="/tags/Spring-Cloud/" style="font-size: 10px;">Spring Cloud</a> <a href="/tags/事务/" style="font-size: 10px;">事务</a> <a href="/tags/供应链系统/" style="font-size: 10px;">供应链系统</a> <a href="/tags/分布式/" style="font-size: 13.75px;">分布式</a> <a href="/tags/分布式系统/" style="font-size: 11.25px;">分布式系统</a> <a href="/tags/分布式锁/" style="font-size: 10px;">分布式锁</a> <a href="/tags/命令行/" style="font-size: 11.25px;">命令行</a> <a href="/tags/工程实践/" style="font-size: 12.5px;">工程实践</a> <a href="/tags/并发控制/" style="font-size: 10px;">并发控制</a> <a href="/tags/微服务/" style="font-size: 10px;">微服务</a> <a href="/tags/技术文章/" style="font-size: 16.25px;">技术文章</a> <a href="/tags/报表统计/" style="font-size: 10px;">报表统计</a> <a href="/tags/数据分析/" style="font-size: 10px;">数据分析</a> <a href="/tags/数据库/" style="font-size: 11.25px;">数据库</a> <a href="/tags/数据结构与算法/" style="font-size: 12.5px;">数据结构与算法</a> <a href="/tags/架构设计/" style="font-size: 11.25px;">架构设计</a> <a href="/tags/消息队列/" style="font-size: 10px;">消息队列</a> <a href="/tags/系统优化/" style="font-size: 10px;">系统优化</a> <a href="/tags/系统设计/" style="font-size: 11.25px;">系统设计</a> <a href="/tags/缓存/" style="font-size: 10px;">缓存</a> <a href="/tags/编程效率/" style="font-size: 16.25px;">编程效率</a> <a href="/tags/软件工程/" style="font-size: 15px;">软件工程</a> <a href="/tags/锁/" style="font-size: 10px;">锁</a>
+      <a href="/tags/AGENTS-md/" style="font-size: 10px;">AGENTS.md</a> <a href="/tags/AI/" style="font-size: 20px;">AI</a> <a href="/tags/AQS/" style="font-size: 10px;">AQS</a> <a href="/tags/Agent/" style="font-size: 10px;">Agent</a> <a href="/tags/Atomic/" style="font-size: 10px;">Atomic</a> <a href="/tags/CAP/" style="font-size: 10px;">CAP</a> <a href="/tags/CAS/" style="font-size: 10px;">CAS</a> <a href="/tags/Claude-Code/" style="font-size: 13.33px;">Claude Code</a> <a href="/tags/Codex/" style="font-size: 17.78px;">Codex</a> <a href="/tags/Condition/" style="font-size: 10px;">Condition</a> <a href="/tags/ERP/" style="font-size: 10px;">ERP</a> <a href="/tags/InnoDB/" style="font-size: 13.33px;">InnoDB</a> <a href="/tags/JMM/" style="font-size: 10px;">JMM</a> <a href="/tags/Java/" style="font-size: 18.89px;">Java</a> <a href="/tags/Kafka/" style="font-size: 10px;">Kafka</a> <a href="/tags/LongAdder/" style="font-size: 10px;">LongAdder</a> <a href="/tags/Loop-Engineering/" style="font-size: 10px;">Loop Engineering</a> <a href="/tags/MVCC/" style="font-size: 10px;">MVCC</a> <a href="/tags/Monitor/" style="font-size: 10px;">Monitor</a> <a href="/tags/MySQL/" style="font-size: 16.67px;">MySQL</a> <a href="/tags/Next-Key-Lock/" style="font-size: 10px;">Next-Key Lock</a> <a href="/tags/ReadWriteLock/" style="font-size: 10px;">ReadWriteLock</a> <a href="/tags/Redis/" style="font-size: 11.11px;">Redis</a> <a href="/tags/ReentrantLock/" style="font-size: 10px;">ReentrantLock</a> <a href="/tags/SQL/" style="font-size: 10px;">SQL</a> <a href="/tags/SQL%E4%BC%98%E5%8C%96/" style="font-size: 10px;">SQL优化</a> <a href="/tags/Skill/" style="font-size: 10px;">Skill</a> <a href="/tags/Spec-Coding/" style="font-size: 12.22px;">Spec Coding</a> <a href="/tags/Spring-Cloud/" style="font-size: 10px;">Spring Cloud</a> <a href="/tags/StampedLock/" style="font-size: 10px;">StampedLock</a> <a href="/tags/synchronized/" style="font-size: 10px;">synchronized</a> <a href="/tags/volatile/" style="font-size: 10px;">volatile</a> <a href="/tags/%E4%B9%90%E8%A7%82%E9%94%81/" style="font-size: 10px;">乐观锁</a> <a href="/tags/%E4%BA%8B%E5%8A%A1/" style="font-size: 11.11px;">事务</a> <a href="/tags/%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/" style="font-size: 10px;">事务隔离级别</a> <a href="/tags/%E4%BB%93%E5%82%A8%E7%B3%BB%E7%BB%9F/" style="font-size: 12.22px;">仓储系统</a> <a href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F/" style="font-size: 14.44px;">供应链系统</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" style="font-size: 13.33px;">分布式</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/" style="font-size: 11.11px;">分布式系统</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" style="font-size: 10px;">分布式锁</a> <a href="/tags/%E5%8D%95%E6%8D%AE%E5%AE%A1%E6%A0%B8/" style="font-size: 10px;">单据审核</a> <a href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" style="font-size: 10px;">可见性</a> <a href="/tags/%E5%91%BD%E4%BB%A4%E8%A1%8C/" style="font-size: 11.11px;">命令行</a> <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/" style="font-size: 12.22px;">工程实践</a> <a href="/tags/%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6/" style="font-size: 10px;">并发控制</a> <a href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" style="font-size: 12.22px;">并发编程</a> <a href="/tags/%E5%B9%B6%E5%8F%91%E9%98%9F%E5%88%97/" style="font-size: 10px;">并发队列</a> <a href="/tags/%E5%B9%BB%E8%AF%BB/" style="font-size: 10px;">幻读</a> <a href="/tags/%E5%BA%93%E5%AD%98%E7%B3%BB%E7%BB%9F/" style="font-size: 11.11px;">库存系统</a> <a href="/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/" style="font-size: 10px;">微服务</a> <a href="/tags/%E6%82%B2%E8%A7%82%E9%94%81/" style="font-size: 10px;">悲观锁</a> <a href="/tags/%E6%8A%80%E6%9C%AF%E6%96%87%E7%AB%A0/" style="font-size: 15.56px;">技术文章</a> <a href="/tags/%E6%8A%A5%E8%A1%A8%E7%BB%9F%E8%AE%A1/" style="font-size: 10px;">报表统计</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E5%88%86%E6%9E%90/" style="font-size: 10px;">数据分析</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 11.11px;">数据库</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/" style="font-size: 12.22px;">数据结构与算法</a> <a href="/tags/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/" style="font-size: 11.11px;">架构设计</a> <a href="/tags/%E6%AD%BB%E9%94%81/" style="font-size: 10px;">死锁</a> <a href="/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" style="font-size: 10px;">消息队列</a> <a href="/tags/%E7%B3%BB%E7%BB%9F%E4%BC%98%E5%8C%96/" style="font-size: 10px;">系统优化</a> <a href="/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/" style="font-size: 11.11px;">系统设计</a> <a href="/tags/%E7%B4%A2%E5%BC%95/" style="font-size: 10px;">索引</a> <a href="/tags/%E7%BC%93%E5%AD%98/" style="font-size: 11.11px;">缓存</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E6%95%88%E7%8E%87/" style="font-size: 15.56px;">编程效率</a> <a href="/tags/%E8%A1%8C%E9%94%81/" style="font-size: 10px;">行锁</a> <a href="/tags/%E8%AE%A2%E5%8D%95%E7%B3%BB%E7%BB%9F/" style="font-size: 10px;">订单系统</a> <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%B7%A5%E7%A8%8B/" style="font-size: 14.44px;">软件工程</a> <a href="/tags/%E9%87%87%E8%B4%AD%E7%B3%BB%E7%BB%9F/" style="font-size: 10px;">采购系统</a> <a href="/tags/%E9%94%81/" style="font-size: 12.22px;">锁</a> <a href="/tags/%E9%94%81%E7%AD%89%E5%BE%85/" style="font-size: 10px;">锁等待</a> <a href="/tags/%E9%97%B4%E9%9A%99%E9%94%81/" style="font-size: 10px;">间隙锁</a>
     </div>
   </div>
 
@@ -674,7 +698,7 @@ public class App {
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/06/">六月 2026</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/05/">五月 2026</a><span class="archive-list-count">9</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">十一月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">八月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/05/">五月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">二月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">十一月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/07/">七月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">三月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">六月 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">四月 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">三月 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">一月 2016</a><span class="archive-list-count">1</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/06/">六月 2026</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/05/">五月 2026</a><span class="archive-list-count">9</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/06/">六月 2025</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/05/">五月 2025</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/04/">四月 2025</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/03/">三月 2025</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">十一月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">八月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/05/">五月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">二月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">十一月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/07/">七月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">三月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">六月 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">四月 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">三月 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">一月 2016</a><span class="archive-list-count">1</span></li></ul>
     </div>
   </div>
 
@@ -690,19 +714,19 @@ public class App {
           </li>
         
           <li>
-            <a href="/2026/06/10/Codex提高软件编程效率的10个技巧/">Codex提高软件编程效率的10个技巧</a>
+            <a href="/2026/06/10/Codex%E6%8F%90%E9%AB%98%E8%BD%AF%E4%BB%B6%E7%BC%96%E7%A8%8B%E6%95%88%E7%8E%87%E7%9A%8410%E4%B8%AA%E6%8A%80%E5%B7%A7/">Codex提高软件编程效率的10个技巧</a>
           </li>
         
           <li>
-            <a href="/2026/06/10/普通开发者使用AI的三条边界/">普通开发者使用AI的三条边界</a>
+            <a href="/2026/06/10/%E6%99%AE%E9%80%9A%E5%BC%80%E5%8F%91%E8%80%85%E4%BD%BF%E7%94%A8AI%E7%9A%84%E4%B8%89%E6%9D%A1%E8%BE%B9%E7%95%8C/">普通开发者使用AI的三条边界</a>
           </li>
         
           <li>
-            <a href="/2026/06/10/AI-Agent时代的开发工作流/">AI Agent时代的开发工作流</a>
+            <a href="/2026/06/10/AI-Agent%E6%97%B6%E4%BB%A3%E7%9A%84%E5%BC%80%E5%8F%91%E5%B7%A5%E4%BD%9C%E6%B5%81/">AI Agent时代的开发工作流</a>
           </li>
         
           <li>
-            <a href="/2026/06/10/2026年重新理解AI编程助手/">2026年，重新理解AI编程助手</a>
+            <a href="/2026/06/10/2026%E5%B9%B4%E9%87%8D%E6%96%B0%E7%90%86%E8%A7%A3AI%E7%BC%96%E7%A8%8B%E5%8A%A9%E6%89%8B/">2026年，重新理解AI编程助手</a>
           </li>
         
       </ul>
@@ -737,11 +761,17 @@ public class App {
 <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
 
 
-  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
-  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
 
 
 <script src="/js/script.js"></script>
+
 
   </div>
 </body>

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-<head><meta name="generator" content="Hexo 3.9.0">
+<head>
   <meta charset="utf-8">
   
   <title>陈金星写字的地方</title>
@@ -11,10 +11,9 @@
 <meta property="og:url" content="https://guxingxianyue.github.io/page/4/index.html">
 <meta property="og:site_name" content="陈金星写字的地方">
 <meta property="og:description" content="less is more">
-<meta property="og:locale" content="zh-CN">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:author" content="Jinxing Chen">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="陈金星写字的地方">
-<meta name="twitter:description" content="less is more">
   
     <link rel="alternative" href="/atom.xml" title="陈金星写字的地方" type="application/atom+xml">
   
@@ -22,10 +21,12 @@
     <link rel="icon" href="/favicon.png">
   
   <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
-  <link rel="stylesheet" href="/css/style.css">
+  
+<link rel="stylesheet" href="/css/style.css">
+
   
 
-</head></html>
+<meta name="generator" content="Hexo 8.1.2"></head>
 <body>
   <div id="container">
     <div id="wrap">
@@ -36,10 +37,6 @@
       <h1 id="logo-wrap">
         <a href="/" id="logo">陈金星写字的地方</a>
       </h1>
-      
-        <h2 id="subtitle-wrap">
-          <a href="/" id="subtitle">less is more</a>
-        </h2>
       
     </div>
     <div id="header-inner" class="inner">
@@ -68,10 +65,10 @@
       <div class="outer">
         <section id="main">
   
-    <article id="post-erp系统报表统计" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-MySQL悲观锁与乐观锁：供应链单据审核防并发" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2024/11/06/erp系统报表统计/" class="article-date">
-  <time datetime="2024-11-06T08:45:00.000Z" itemprop="datePublished">2024-11-06</time>
+    <a href="/2025/06/19/MySQL%E6%82%B2%E8%A7%82%E9%94%81%E4%B8%8E%E4%B9%90%E8%A7%82%E9%94%81%EF%BC%9A%E4%BE%9B%E5%BA%94%E9%93%BE%E5%8D%95%E6%8D%AE%E5%AE%A1%E6%A0%B8%E9%98%B2%E5%B9%B6%E5%8F%91/" class="article-date">
+  <time datetime="2025-06-19T01:40:00.000Z" itemprop="datePublished">2025-06-19</time>
 </a>
     
   </div>
@@ -82,7 +79,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2024/11/06/erp系统报表统计/">erp系统报表统计</a>
+      <a class="article-title" href="/2025/06/19/MySQL%E6%82%B2%E8%A7%82%E9%94%81%E4%B8%8E%E4%B9%90%E8%A7%82%E9%94%81%EF%BC%9A%E4%BE%9B%E5%BA%94%E9%93%BE%E5%8D%95%E6%8D%AE%E5%AE%A1%E6%A0%B8%E9%98%B2%E5%B9%B6%E5%8F%91/">MySQL悲观锁与乐观锁：供应链单据审核防并发</a>
     </h1>
   
 
@@ -90,117 +87,55 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>ERP 系统里的报表统计看起来只是把数据查出来、汇总一下、展示成表格或图表，但真实项目里，报表往往是最容易拖慢系统、最容易和业务口径争议、也最难长期维护的部分。</p>
-<p>原因很简单：ERP 覆盖采购、销售、库存、生产、财务、人事、仓储等多个业务域。每个业务域都有自己的单据、状态、时间口径和组织权限。报表统计不是一个单纯的 SQL 问题，而是数据模型、业务口径、性能、权限和交付方式的综合问题。</p>
-<p><img src="/images/tech-flowcharts/erp-report-optimization-flow.svg" alt="ERP 报表统计优化流程"></p>
-<h2 id="报表统计为什么难"><a href="#报表统计为什么难" class="headerlink" title="报表统计为什么难"></a>报表统计为什么难</h2><p>第一个难点是数据来源多。</p>
-<p>一个销售毛利报表可能需要销售订单、出库单、发票、成本价、退货单、客户档案、商品档案。一个库存周转报表可能需要期初库存、入库流水、出库流水、调拨单、盘点单、库存成本。数据分散在多个模块，任何一个模块的状态定义不清楚，报表结果就会不准确。</p>
-<p>第二个难点是业务口径复杂。</p>
-<p>同样是“销售额”，财务可能按已开票金额统计，销售部门可能按已审核订单金额统计，仓库可能只关心已出库金额。口径不同，结果就不同。如果系统没有把口径写清楚，用户会认为报表错了。</p>
-<p>第三个难点是数据量增长快。</p>
-<p>ERP 系统上线初期，订单、库存流水、财务凭证数量不大，直接查交易表还能接受。运行一年后，库存流水可能达到几千万甚至上亿行。原来 1 秒的统计 SQL 可能变成 30 秒。</p>
-<p>第四个难点是权限过滤复杂。</p>
-<p>不同用户能看的组织、仓库、客户、供应商、商品类目不同。报表查询不仅要统计数据，还要拼接权限条件。如果权限模型复杂，SQL 会变得非常重。</p>
-<p>第五个难点是实时性要求不一致。</p>
-<p>老板看经营大盘，希望数字尽量实时；财务月结报表更强调准确；仓库作业看板需要分钟级刷新；历史经营分析允许 T+1。不同报表如果都按实时查询设计，系统成本会很高。</p>
-<h2 id="常见问题点"><a href="#常见问题点" class="headerlink" title="常见问题点"></a>常见问题点</h2><p>ERP 报表项目里最常见的问题，是把报表当成页面功能开发，而不是当成数据产品设计。</p>
-<p>典型表现包括：</p>
-<ul>
-<li>每个报表单独写一套复杂 SQL，逻辑重复。</li>
-<li>报表直接查询交易库，和业务写入争抢资源。</li>
-<li>没有统一指标口径，同一个指标在不同页面结果不一致。</li>
-<li>大量使用 <code>SELECT *</code>、多表 JOIN、动态条件拼接。</li>
-<li>明细报表和汇总报表混在一起。</li>
-<li>用户随意选择超大时间范围，导致全表扫描。</li>
-<li>导出功能同步执行，拖垮应用线程。</li>
-<li>报表结果没有版本，月结后历史数据还会变化。</li>
-</ul>
-<p>这些问题短期看只是慢，长期看会变成信任问题。用户一旦认为报表不准，即使系统性能优化了，也很难恢复信任。</p>
-<h2 id="优化思路一：先统一指标口径"><a href="#优化思路一：先统一指标口径" class="headerlink" title="优化思路一：先统一指标口径"></a>优化思路一：先统一指标口径</h2><p>报表优化的第一步不是建索引，而是定义口径。</p>
-<p>每个核心指标都应该回答这些问题：</p>
-<ul>
-<li>指标名称是什么。</li>
-<li>统计对象是什么。</li>
-<li>数据来源表是什么。</li>
-<li>使用哪个时间字段。</li>
-<li>包含哪些状态。</li>
-<li>是否扣除退货、作废、冲红。</li>
-<li>是否含税。</li>
-<li>是否按组织、仓库、客户、供应商过滤。</li>
-<li>数据刷新频率是多少。</li>
-</ul>
-<p>例如“销售额”可以定义为：统计已审核且未作废销售订单的含税金额，按订单审核时间归属日期，退货单按负数冲减。这个定义必须在报表说明、SQL 逻辑和测试用例里保持一致。</p>
-<p>没有口径统一，后面的性能优化意义有限，因为优化得越快，错误传播得越快。</p>
-<h2 id="优化思路二：交易库和统计库分离"><a href="#优化思路二：交易库和统计库分离" class="headerlink" title="优化思路二：交易库和统计库分离"></a>优化思路二：交易库和统计库分离</h2><p>ERP 的交易库主要服务于业务写入和核心查询，比如下单、审核、入库、出库、付款。报表统计通常是宽范围扫描和聚合，负载特征完全不同。</p>
-<p>如果所有报表都直接查交易库，高峰期报表会影响业务操作。更稳妥的方式是把交易数据同步到统计库或数仓，在统计库里做报表查询。</p>
-<p>常见方式包括：</p>
-<ul>
-<li>通过 binlog 或 CDC 同步交易数据。</li>
-<li>通过 MQ 订阅业务事件。</li>
-<li>通过定时任务增量抽取。</li>
-<li>通过离线 ETL 生成 T+1 报表。</li>
-</ul>
-<p>小系统可以先用只读从库承接报表查询。数据量继续增长后，再引入 ClickHouse、Doris、Elasticsearch 或专门的数据仓库。</p>
-<h2 id="优化思路三：建设汇总表和宽表"><a href="#优化思路三：建设汇总表和宽表" class="headerlink" title="优化思路三：建设汇总表和宽表"></a>优化思路三：建设汇总表和宽表</h2><p>复杂报表不能每次都从原始明细重新计算。</p>
-<p>例如销售日报，如果每次都扫描销售订单、退货单、客户表、商品表、组织表，再按日期、区域、客户分组，成本会很高。可以每天或每小时生成汇总表：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">erp_sales_daily_summary</span><br><span class="line">- summary_date</span><br><span class="line">- org_id</span><br><span class="line">- customer_id</span><br><span class="line">- product_category_id</span><br><span class="line">- order_amount</span><br><span class="line">- return_amount</span><br><span class="line">- net_amount</span><br><span class="line">- order_count</span><br><span class="line">- updated_at</span><br></pre></td></tr></table></figure>
-<p>页面查询时直接按汇总表聚合，速度会稳定很多。</p>
-<p>宽表适合解决多表关联问题。比如订单分析宽表可以提前把订单号、客户、业务员、区域、商品类目、金额、状态、审核时间等字段放在同一张表里。报表查询不再频繁 JOIN 多张业务表。</p>
-<p>汇总表和宽表的代价是数据冗余和同步逻辑复杂，但对于高频报表，这个代价通常值得。</p>
-<h2 id="优化思路四：按报表类型选择实时性"><a href="#优化思路四：按报表类型选择实时性" class="headerlink" title="优化思路四：按报表类型选择实时性"></a>优化思路四：按报表类型选择实时性</h2><p>不是所有报表都需要实时。</p>
-<p>可以把 ERP 报表分成几类：</p>
-<ul>
-<li>实时看板：库存预警、待审批、待发货，要求秒级或分钟级。</li>
-<li>经营汇总：销售日报、采购日报、仓库作业日报，允许分钟级或小时级。</li>
-<li>财务报表：应收应付、成本核算、月结报表，强调准确和可追溯。</li>
-<li>历史分析：年度趋势、供应商绩效、客户贡献，允许 T+1。</li>
-</ul>
-<p>实时看板可以用缓存、事件驱动和小范围查询。经营汇总可以用增量任务刷新。财务报表需要快照和版本。历史分析可以走离线数仓。</p>
-<p>这样做的好处是把系统资源花在真正需要实时的地方，而不是让所有报表都背上实时查询的成本。</p>
-<h2 id="优化思路五：限制查询范围和导出方式"><a href="#优化思路五：限制查询范围和导出方式" class="headerlink" title="优化思路五：限制查询范围和导出方式"></a>优化思路五：限制查询范围和导出方式</h2><p>报表页面必须有保护措施。</p>
-<p>常见策略包括：</p>
-<ul>
-<li>默认时间范围不要太大。</li>
-<li>对明细报表限制最大查询跨度。</li>
-<li>大范围查询必须走异步任务。</li>
-<li>导出任务进入队列，完成后生成下载文件。</li>
-<li>对高频用户和重报表做限流。</li>
-<li>对历史数据做分区或归档。</li>
-</ul>
-<p>比如库存流水明细可以允许页面查询最近 31 天。如果用户要导出一年数据，系统创建导出任务，后台慢慢生成 Excel 或 CSV，完成后通知用户下载。这样不会占用 Web 请求线程，也不会让用户长时间等待。</p>
-<h2 id="优化思路六：做好权限预处理"><a href="#优化思路六：做好权限预处理" class="headerlink" title="优化思路六：做好权限预处理"></a>优化思路六：做好权限预处理</h2><p>ERP 报表的权限经常比业务页面更复杂。一个区域经理能看多个组织，一个仓库主管只能看部分仓库，一个采购员只能看自己负责的供应商。</p>
-<p>如果每次查询都动态拼接复杂权限 SQL，性能和维护性都会变差。可以考虑把用户可访问范围预处理成权限表或缓存。</p>
-<p>例如：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">erp_user_data_scope</span><br><span class="line">- user_id</span><br><span class="line">- scope_type</span><br><span class="line">- scope_id</span><br></pre></td></tr></table></figure>
-<p>报表查询时先拿到用户可访问的组织、仓库、供应商，再参与过滤。对于权限范围很大的用户，可以使用角色级缓存或组织树预计算。</p>
-<p>权限必须和报表口径一起测试。报表统计错一部分是数据问题，越权展示则是安全问题。</p>
-<h2 id="优化思路七：让报表可核对"><a href="#优化思路七：让报表可核对" class="headerlink" title="优化思路七：让报表可核对"></a>优化思路七：让报表可核对</h2><p>报表不仅要快，还要能解释。</p>
-<p>用户看到销售额 128 万时，经常会追问：这个数字由哪些单据组成？为什么和昨天看到的不一样？为什么和财务报表不同？</p>
-<p>因此报表系统需要支持从汇总到明细的下钻。汇总表里的数字应该能追溯到明细单据，财务月结类报表还应该有快照版本。月结完成后，历史报表不能因为后续业务数据修改而悄悄变化。</p>
-<p>对于关键报表，可以保留统计任务日志：统计时间、数据范围、处理行数、异常记录、结果版本。这样出现争议时可以快速定位。</p>
-<h2 id="一个供应链-ERP-报表优化例子"><a href="#一个供应链-ERP-报表优化例子" class="headerlink" title="一个供应链 ERP 报表优化例子"></a>一个供应链 ERP 报表优化例子</h2><p>假设系统有一个“供应商履约报表”，统计供应商按时交货率、延期次数、采购金额、退货金额。</p>
-<p>初始实现可能是一个大 SQL，实时关联采购订单、收货单、退货单、供应商表，并按供应商分组。数据量小时可用，数据量大后页面打开要 20 秒。</p>
-<p>优化可以这样做：</p>
-<ol>
-<li>明确口径：按采购订单承诺交货日期和实际收货日期计算是否延期，作废采购单不统计，退货金额单独列示。</li>
-<li>建立采购履约明细宽表，把采购单、供应商、承诺日期、收货日期、金额、退货金额、状态提前整理好。</li>
-<li>每小时增量刷新履约明细宽表。</li>
-<li>每天生成供应商履约汇总表。</li>
-<li>页面默认查汇总表，点击供应商后再下钻明细。</li>
-<li>超过 6 个月范围的导出走异步任务。</li>
-</ol>
-<p>优化后，页面查询从扫描多张交易表变成读取汇总表，响应时间稳定在几百毫秒。更重要的是，指标口径清楚，用户可以下钻核对每一个数字。</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>ERP 报表统计的核心难点不只是 SQL 慢，而是数据来源多、业务口径多、权限复杂、实时性差异大、历史数据需要可追溯。</p>
-<p>优化报表统计的顺序应该是：先统一口径，再分离统计负载，再建设宽表和汇总表，再按实时性分层，再控制查询和导出，最后补上权限、下钻和快照能力。</p>
-<p>报表系统做得好，不只是页面快，而是让业务人员相信数据、理解数据，并且能用数据做决策。</p>
+        <p>悲观锁和乐观锁不是 MySQL 独有的语法，而是两种并发控制思想。悲观锁假设冲突很常见，所以先加锁再修改。乐观锁假设冲突不多，所以先尝试更新，更新时验证版本或状态。</p>
+<p>供应链系统里，单据审核、防重复提交、库存预占、结算过账都需要在这两种策略之间做选择。选择标准不是哪个更高级，而是冲突概率、业务代价、事务长度和用户体验。</p>
+<h2 id="悲观锁：先锁住再处理"><a href="#悲观锁：先锁住再处理" class="headerlink" title="悲观锁：先锁住再处理"></a>悲观锁：先锁住再处理</h2><p>采购单审核可以使用 <code>FOR UPDATE</code>：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">START</span> TRANSACTION;</span><br><span class="line"></span><br><span class="line"><span class="keyword">SELECT</span> id, status, total_amount</span><br><span class="line"><span class="keyword">FROM</span> scm_purchase_order</span><br><span class="line"><span class="keyword">WHERE</span> id <span class="operator">=</span> <span class="number">9001</span></span><br><span class="line"><span class="keyword">FOR</span> <span class="keyword">UPDATE</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">UPDATE</span> scm_purchase_order</span><br><span class="line"><span class="keyword">SET</span> status <span class="operator">=</span> <span class="string">&#x27;APPROVED&#x27;</span>,</span><br><span class="line">    approved_by <span class="operator">=</span> <span class="number">101</span>,</span><br><span class="line">    approved_at <span class="operator">=</span> NOW()</span><br><span class="line"><span class="keyword">WHERE</span> id <span class="operator">=</span> <span class="number">9001</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">COMMIT</span>;</span><br></pre></td></tr></table></figure>
+
+<p>当事务 A 持有这张采购单的排他锁时，事务 B 也执行 <code>FOR UPDATE</code> 会等待。这样可以保证同一张单据审核过程串行化。</p>
+<p>悲观锁适合冲突概率高、重复执行代价大、必须读取多项数据后才能决定更新的场景。比如结算过账要检查供应商余额、发票状态、入库明细和付款计划，处理过程必须串行。</p>
+<h2 id="悲观锁的问题"><a href="#悲观锁的问题" class="headerlink" title="悲观锁的问题"></a>悲观锁的问题</h2><p>悲观锁的缺点是持锁期间其他事务要等待。如果事务里包含慢操作，影响会放大。</p>
+<p>错误示例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Transactional</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">approve</span><span class="params">(<span class="type">long</span> purchaseOrderId)</span> &#123;</span><br><span class="line">    <span class="type">PurchaseOrder</span> <span class="variable">order</span> <span class="operator">=</span> mapper.selectForUpdate(purchaseOrderId);</span><br><span class="line">    contractClient.check(order.getSupplierId());</span><br><span class="line">    mapper.approve(purchaseOrderId);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>远程合同校验放在事务里，会让数据库锁一直持有。正确做法是事务外做可提前完成的校验，事务内只做最终状态判断和更新。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">approve</span><span class="params">(<span class="type">long</span> purchaseOrderId)</span> &#123;</span><br><span class="line">    <span class="type">PurchaseOrderSnapshot</span> <span class="variable">snapshot</span> <span class="operator">=</span> mapper.selectSnapshot(purchaseOrderId);</span><br><span class="line">    contractClient.check(snapshot.supplierId());</span><br><span class="line">    approveInTransaction(purchaseOrderId);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Transactional</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">approveInTransaction</span><span class="params">(<span class="type">long</span> purchaseOrderId)</span> &#123;</span><br><span class="line">    <span class="type">PurchaseOrder</span> <span class="variable">order</span> <span class="operator">=</span> mapper.selectForUpdate(purchaseOrderId);</span><br><span class="line">    <span class="keyword">if</span> (!order.waitApprove()) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">BizException</span>(<span class="string">&quot;状态已变化&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    mapper.approve(purchaseOrderId);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="乐观锁：更新时校验版本"><a href="#乐观锁：更新时校验版本" class="headerlink" title="乐观锁：更新时校验版本"></a>乐观锁：更新时校验版本</h2><p>乐观锁通常依赖 <code>version</code> 字段：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">ALTER TABLE</span> scm_purchase_order</span><br><span class="line"><span class="keyword">ADD</span> <span class="keyword">COLUMN</span> version <span class="type">INT</span> <span class="keyword">NOT NULL</span> <span class="keyword">DEFAULT</span> <span class="number">0</span>;</span><br></pre></td></tr></table></figure>
+
+<p>更新时带上旧版本：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span> scm_purchase_order</span><br><span class="line"><span class="keyword">SET</span> status <span class="operator">=</span> <span class="string">&#x27;APPROVED&#x27;</span>,</span><br><span class="line">    approved_by <span class="operator">=</span> #&#123;userId&#125;,</span><br><span class="line">    approved_at <span class="operator">=</span> NOW(),</span><br><span class="line">    version <span class="operator">=</span> version <span class="operator">+</span> <span class="number">1</span></span><br><span class="line"><span class="keyword">WHERE</span> id <span class="operator">=</span> #&#123;id&#125;</span><br><span class="line">  <span class="keyword">AND</span> status <span class="operator">=</span> <span class="string">&#x27;WAIT_APPROVE&#x27;</span></span><br><span class="line">  <span class="keyword">AND</span> version <span class="operator">=</span> #&#123;version&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>如果影响行数是 1，审核成功。如果是 0，说明状态或版本已经被别人改过，业务层提示用户刷新。</p>
+<p>Java 代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">approveOptimistic</span><span class="params">(<span class="type">long</span> id, <span class="type">int</span> version, <span class="type">long</span> userId)</span> &#123;</span><br><span class="line">    <span class="type">int</span> <span class="variable">affected</span> <span class="operator">=</span> mapper.approve(id, version, userId);</span><br><span class="line">    <span class="keyword">if</span> (affected != <span class="number">1</span>) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">BizException</span>(<span class="string">&quot;单据已被其他人处理，请刷新后重试&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>乐观锁适合冲突概率较低、操作短、用户可以接受重试的场景。比如供应商资料维护、采购单草稿编辑、价格策略调整。</p>
+<h2 id="只用状态条件也可以"><a href="#只用状态条件也可以" class="headerlink" title="只用状态条件也可以"></a>只用状态条件也可以</h2><p>很多单据流转不一定需要单独 <code>version</code>，状态条件本身就是乐观锁：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span> scm_sales_order</span><br><span class="line"><span class="keyword">SET</span> status <span class="operator">=</span> <span class="string">&#x27;CANCELLED&#x27;</span></span><br><span class="line"><span class="keyword">WHERE</span> id <span class="operator">=</span> #&#123;id&#125;</span><br><span class="line">  <span class="keyword">AND</span> status <span class="keyword">IN</span> (<span class="string">&#x27;CREATED&#x27;</span>, <span class="string">&#x27;WAIT_PAY&#x27;</span>);</span><br></pre></td></tr></table></figure>
+
+<p>如果订单已经出库，更新影响行数为 0。业务层返回“当前状态不允许取消”。</p>
+<p>状态条件的优点是表达业务语义，缺点是不能发现所有字段覆盖问题。如果是编辑表单保存，还是应该使用 <code>version</code> 或 <code>updated_at</code> 防止覆盖别人刚改的内容。</p>
+<h2 id="库存扣减选哪种"><a href="#库存扣减选哪种" class="headerlink" title="库存扣减选哪种"></a>库存扣减选哪种</h2><p>库存扣减常用条件更新：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span> scm_inventory</span><br><span class="line"><span class="keyword">SET</span> available_qty <span class="operator">=</span> available_qty <span class="operator">-</span> #&#123;qty&#125;,</span><br><span class="line">    locked_qty <span class="operator">=</span> locked_qty <span class="operator">+</span> #&#123;qty&#125;,</span><br><span class="line">    version <span class="operator">=</span> version <span class="operator">+</span> <span class="number">1</span></span><br><span class="line"><span class="keyword">WHERE</span> warehouse_id <span class="operator">=</span> #&#123;warehouseId&#125;</span><br><span class="line">  <span class="keyword">AND</span> sku_id <span class="operator">=</span> #&#123;skuId&#125;</span><br><span class="line">  <span class="keyword">AND</span> available_qty <span class="operator">&gt;=</span> #&#123;qty&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>这更像乐观更新，但执行时 InnoDB 仍会对命中的记录加排他锁。它的优势是单 SQL 完成判断和修改，不需要先 <code>SELECT FOR UPDATE</code>。</p>
+<p>如果扣减逻辑必须读取复杂批次、先进先出规则、多个库位分配，再逐条修改，悲观锁或固定顺序的当前读会更清晰。</p>
+<h2 id="选择原则"><a href="#选择原则" class="headerlink" title="选择原则"></a>选择原则</h2><p>高冲突、强顺序、长业务校验：考虑悲观锁，但事务必须短。</p>
+<p>低冲突、短更新、用户可重试：优先乐观锁。</p>
+<p>单据状态流转：优先状态条件更新。</p>
+<p>库存余额扣减：优先条件更新，必要时结合版本和流水唯一键。</p>
+<p>跨系统流程：不要靠长事务持锁等待外部系统，使用状态机、消息表和补偿任务。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>悲观锁和乐观锁是供应链系统里最常用的并发控制策略。悲观锁强调先占有资源，适合强冲突流程；乐观锁强调提交时校验，适合低冲突编辑和状态流转。实际项目中，两者经常结合使用：数据库条件更新保证最终一致，应用层根据影响行数决定成功、失败或重试。</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2024/11/06/erp系统报表统计/" data-id="cmq8scy6t000ojsqh8kw7sbki" class="article-share-link">Share</a>
+      <a data-url="https://guxingxianyue.github.io/2025/06/19/MySQL%E6%82%B2%E8%A7%82%E9%94%81%E4%B8%8E%E4%B9%90%E8%A7%82%E9%94%81%EF%BC%9A%E4%BE%9B%E5%BA%94%E9%93%BE%E5%8D%95%E6%8D%AE%E5%AE%A1%E6%A0%B8%E9%98%B2%E5%B9%B6%E5%8F%91/" data-id="cuidzm8i4RBtfosjn5Yd77VAH" class="article-share-link">Share</a>
       
       
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ERP/">ERP</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/报表统计/">报表统计</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/数据分析/">数据分析</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/系统优化/">系统优化</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%B9%90%E8%A7%82%E9%94%81/" rel="tag">乐观锁</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F/" rel="tag">供应链系统</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%8D%95%E6%8D%AE%E5%AE%A1%E6%A0%B8/" rel="tag">单据审核</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%82%B2%E8%A7%82%E9%94%81/" rel="tag">悲观锁</a></li></ul>
 
     </footer>
   </div>
@@ -209,10 +144,10 @@
 
 
   
-    <article id="post-MySQL性能优化" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Java CAS、Atomic和LongAdder：库存计数与并发指标" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2024/08/24/MySQL性能优化/" class="article-date">
-  <time datetime="2024-08-24T06:15:00.000Z" itemprop="datePublished">2024-08-24</time>
+    <a href="/2025/06/05/Java%20CAS%E3%80%81Atomic%E5%92%8CLongAdder%EF%BC%9A%E5%BA%93%E5%AD%98%E8%AE%A1%E6%95%B0%E4%B8%8E%E5%B9%B6%E5%8F%91%E6%8C%87%E6%A0%87/" class="article-date">
+  <time datetime="2025-06-05T01:30:00.000Z" itemprop="datePublished">2025-06-05</time>
 </a>
     
   </div>
@@ -223,7 +158,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2024/08/24/MySQL性能优化/">MySQL性能优化</a>
+      <a class="article-title" href="/2025/06/05/Java%20CAS%E3%80%81Atomic%E5%92%8CLongAdder%EF%BC%9A%E5%BA%93%E5%AD%98%E8%AE%A1%E6%95%B0%E4%B8%8E%E5%B9%B6%E5%8F%91%E6%8C%87%E6%A0%87/">Java CAS、Atomic和LongAdder：库存计数与并发指标</a>
     </h1>
   
 
@@ -231,120 +166,57 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>MySQL 性能优化不是看到慢 SQL 就立刻加索引。真正有效的优化过程，应该先确认问题范围，再定位瓶颈，再选择成本最低、收益最稳定的方案。很多线上问题不是某一条 SQL 写得差，而是数据量、索引设计、查询模型、分页方式、事务范围和业务流程共同导致的。</p>
-<p>在供应链系统里，订单、库存、采购、出入库、结算这些表增长很快。系统刚上线时几万条数据跑得很快，半年后变成几千万条，原来的查询就可能从几十毫秒变成几秒。优化 MySQL 的关键是让数据库少扫描、少排序、少回表、少锁等待。</p>
-<p><img src="/images/tech-flowcharts/mysql-optimization-flow.svg" alt="MySQL SQL 优化步骤流程"></p>
-<h2 id="第一步：先确认是不是数据库慢"><a href="#第一步：先确认是不是数据库慢" class="headerlink" title="第一步：先确认是不是数据库慢"></a>第一步：先确认是不是数据库慢</h2><p>当用户反馈订单列表慢时，不要直接打开 SQL 改写。应该先确认耗时发生在哪里。</p>
-<p>一次请求的耗时可能来自：</p>
-<ul>
-<li>网关排队。</li>
-<li>应用线程池不足。</li>
-<li>远程服务调用慢。</li>
-<li>Redis 缓存超时。</li>
-<li>MySQL 查询慢。</li>
-<li>返回数据过大导致网络传输慢。</li>
-<li>前端渲染慢。</li>
-</ul>
-<p>可以通过接口日志、链路追踪、APM、慢查询日志来拆分耗时。如果接口总耗时 3 秒，其中 MySQL 查询只用了 80 毫秒，那优化 SQL 不是当前重点。</p>
-<p>在 Java 应用里，建议每个核心接口记录 traceId、SQL 耗时、调用下游耗时、返回条数。没有这些数据，优化容易变成猜。</p>
-<h2 id="第二步：找到真实慢-SQL"><a href="#第二步：找到真实慢-SQL" class="headerlink" title="第二步：找到真实慢 SQL"></a>第二步：找到真实慢 SQL</h2><p>确认瓶颈在数据库后，再打开 MySQL 慢查询日志或使用监控平台找慢 SQL。</p>
-<p>慢 SQL 的判断不能只看单次耗时，还要看调用频率。一个报表 SQL 偶尔跑 5 秒不一定最急；一个订单列表 SQL 每次 300 毫秒、每分钟调用几千次，可能对系统压力更大。</p>
-<p>常用观察指标包括：</p>
-<ul>
-<li>平均耗时。</li>
-<li>P95、P99 耗时。</li>
-<li>扫描行数。</li>
-<li>返回行数。</li>
-<li>执行次数。</li>
-<li>是否频繁创建临时表。</li>
-<li>是否频繁 filesort。</li>
-<li>锁等待时间。</li>
-</ul>
-<p>供应链系统中常见慢 SQL 包括订单多条件查询、库存流水查询、采购单明细关联、应收应付报表、仓库作业统计。</p>
-<h2 id="第三步：使用-EXPLAIN-分析执行计划"><a href="#第三步：使用-EXPLAIN-分析执行计划" class="headerlink" title="第三步：使用 EXPLAIN 分析执行计划"></a>第三步：使用 EXPLAIN 分析执行计划</h2><p>拿到慢 SQL 后，必须用 <code>EXPLAIN</code> 看执行计划。执行计划告诉我们 MySQL 准备怎么执行这条 SQL。</p>
-<p>重点关注这些字段：</p>
-<ul>
-<li><code>type</code>：访问类型，至少应尽量达到 <code>range</code>、<code>ref</code>，避免大表 <code>ALL</code>。</li>
-<li><code>key</code>：实际使用的索引。</li>
-<li><code>rows</code>：预估扫描行数。</li>
-<li><code>Extra</code>：是否出现 <code>Using temporary</code>、<code>Using filesort</code>。</li>
-<li><code>filtered</code>：过滤比例。</li>
-</ul>
-<p>比如订单表 <code>scm_order</code> 有 3000 万行，页面按客户、状态、创建时间查询：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">id</span>, order_no, customer_id, <span class="keyword">status</span>, created_at, total_amount</span><br><span class="line"><span class="keyword">FROM</span> scm_order</span><br><span class="line"><span class="keyword">WHERE</span> customer_id = <span class="number">10086</span></span><br><span class="line">  <span class="keyword">AND</span> <span class="keyword">status</span> = <span class="string">'WAIT_DELIVERY'</span></span><br><span class="line">  <span class="keyword">AND</span> created_at &gt;= <span class="string">'2024-08-01'</span></span><br><span class="line"><span class="keyword">ORDER</span> <span class="keyword">BY</span> created_at <span class="keyword">DESC</span></span><br><span class="line"><span class="keyword">LIMIT</span> <span class="number">20</span>;</span><br></pre></td></tr></table></figure>
-<p>如果只在 <code>customer_id</code> 上有单列索引，MySQL 可能先找出该客户所有订单，再过滤状态和时间，并排序。客户订单量大时，这个查询就会慢。</p>
-<h2 id="第四步：按查询模式设计联合索引"><a href="#第四步：按查询模式设计联合索引" class="headerlink" title="第四步：按查询模式设计联合索引"></a>第四步：按查询模式设计联合索引</h2><p>索引不是越多越好。索引会提升查询，也会增加写入成本和存储成本。优化时应该根据高频查询模式设计联合索引。</p>
-<p>上面的订单查询可以考虑：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">INDEX</span> idx_customer_status_created</span><br><span class="line"><span class="keyword">ON</span> scm_order(customer_id, <span class="keyword">status</span>, created_at);</span><br></pre></td></tr></table></figure>
-<p>这样 MySQL 可以先按客户过滤，再按状态过滤，再按时间范围扫描。由于排序字段也在索引里，<code>ORDER BY created_at DESC LIMIT 20</code> 的成本会明显降低。</p>
-<p>联合索引设计要考虑最左前缀原则。等值条件通常放在前面，范围条件和排序字段放在后面。对于不同查询，不要为了每个页面都创建一个索引，而是合并相近查询，找最核心的访问路径。</p>
-<p>供应链系统里的常见索引组合包括：</p>
-<ul>
-<li>订单：<code>customer_id + status + created_at</code>。</li>
-<li>采购单：<code>supplier_id + status + created_at</code>。</li>
-<li>库存流水：<code>sku_id + warehouse_id + created_at</code>。</li>
-<li>出库单：<code>warehouse_id + status + planned_ship_time</code>。</li>
-<li>财务单据：<code>tenant_id + bill_type + bill_date</code>。</li>
-</ul>
-<h2 id="第五步：避免-SELECT"><a href="#第五步：避免-SELECT" class="headerlink" title="第五步：避免 SELECT *"></a>第五步：避免 SELECT *</h2><p>很多列表接口习惯写 <code>SELECT *</code>，这在数据量小时问题不明显，数据量大后会导致更多 IO、更多网络传输，也更容易触发回表。</p>
-<p>列表页应该只查询展示需要的字段。详情页再根据主键查询完整信息。</p>
-<p>例如订单列表只需要订单号、客户、状态、金额、创建时间，就不要把备注、扩展 JSON、收货地址、审批意见一起查出来。供应链系统里很多表有大字段，比如合同备注、物流轨迹、扩展属性，这些字段对列表查询非常不友好。</p>
-<p>如果查询字段都在索引里，还可能形成覆盖索引，减少回表。</p>
-<h2 id="第六步：优化分页方式"><a href="#第六步：优化分页方式" class="headerlink" title="第六步：优化分页方式"></a>第六步：优化分页方式</h2><p>深分页是 MySQL 性能问题的高发点。</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">id</span>, order_no, created_at</span><br><span class="line"><span class="keyword">FROM</span> scm_order</span><br><span class="line"><span class="keyword">WHERE</span> <span class="keyword">status</span> = <span class="string">'FINISHED'</span></span><br><span class="line"><span class="keyword">ORDER</span> <span class="keyword">BY</span> created_at <span class="keyword">DESC</span></span><br><span class="line"><span class="keyword">LIMIT</span> <span class="number">100000</span>, <span class="number">20</span>;</span><br></pre></td></tr></table></figure>
-<p>这条 SQL 需要先跳过 100000 行，再返回 20 行。页码越深，成本越高。</p>
-<p>更好的方式是基于游标分页：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">id</span>, order_no, created_at</span><br><span class="line"><span class="keyword">FROM</span> scm_order</span><br><span class="line"><span class="keyword">WHERE</span> <span class="keyword">status</span> = <span class="string">'FINISHED'</span></span><br><span class="line">  <span class="keyword">AND</span> created_at &lt; <span class="string">'2024-08-24 14:00:00'</span></span><br><span class="line"><span class="keyword">ORDER</span> <span class="keyword">BY</span> created_at <span class="keyword">DESC</span></span><br><span class="line"><span class="keyword">LIMIT</span> <span class="number">20</span>;</span><br></pre></td></tr></table></figure>
-<p>页面保存上一页最后一条记录的创建时间和 id，下一页从这个位置继续查。对于订单流水、库存流水、操作日志这类按时间滚动查看的数据，游标分页更稳定。</p>
-<p>如果必须支持跳页，可以用延迟关联优化：先通过索引查出主键，再回表查详情。</p>
-<h2 id="第七步：减少大表-JOIN-和复杂统计"><a href="#第七步：减少大表-JOIN-和复杂统计" class="headerlink" title="第七步：减少大表 JOIN 和复杂统计"></a>第七步：减少大表 JOIN 和复杂统计</h2><p>供应链系统经常有多表关联：订单表、客户表、商品表、库存表、仓库表、结算表。开发时写一个大 JOIN 很方便，但数据量上来后很难优化。</p>
-<p>优化思路包括：</p>
-<ul>
-<li>把高频展示字段冗余到主表，例如客户名称、供应商名称、仓库名称。</li>
-<li>明细表和主表分开查询，避免列表页一次 JOIN 大量明细。</li>
-<li>报表类查询走宽表、汇总表或数仓，不要压在交易库上。</li>
-<li>对低频复杂查询做异步导出。</li>
-</ul>
-<p>例如订单列表需要展示客户名称，可以在订单表冗余 <code>customer_name_snapshot</code>。客户改名时不影响历史订单展示，也减少订单列表 JOIN 客户表。</p>
-<h2 id="第八步：控制事务范围和锁"><a href="#第八步：控制事务范围和锁" class="headerlink" title="第八步：控制事务范围和锁"></a>第八步：控制事务范围和锁</h2><p>SQL 慢不一定是扫描慢，也可能是锁等待。</p>
-<p>供应链系统里库存扣减、采购入库、出库确认都可能更新同一批库存行。如果事务里先调用外部接口，再更新库存，就会把锁持有时间拉长，导致并发请求排队。</p>
-<p>优化原则是：</p>
-<ul>
-<li>事务内只做必要的数据库操作。</li>
-<li>外部接口调用放在事务外。</li>
-<li>固定多表更新顺序，减少死锁。</li>
-<li>库存扣减使用条件更新，避免先查后改的并发漏洞。</li>
-<li>对热点库存考虑分仓、分批次、分桶。</li>
-</ul>
-<p>库存扣减可以写成：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span> scm_inventory</span><br><span class="line"><span class="keyword">SET</span> available_qty = available_qty - <span class="number">10</span>,</span><br><span class="line">    locked_qty = locked_qty + <span class="number">10</span></span><br><span class="line"><span class="keyword">WHERE</span> sku_id = <span class="number">123</span></span><br><span class="line">  <span class="keyword">AND</span> warehouse_id = <span class="number">8</span></span><br><span class="line">  <span class="keyword">AND</span> available_qty &gt;= <span class="number">10</span>;</span><br></pre></td></tr></table></figure>
-<p>然后根据影响行数判断是否锁定成功。这比先查询库存再更新更安全。</p>
-<h2 id="第九步：用业务模型减少查询压力"><a href="#第九步：用业务模型减少查询压力" class="headerlink" title="第九步：用业务模型减少查询压力"></a>第九步：用业务模型减少查询压力</h2><p>有些性能问题不能只靠 SQL 调优解决，而要调整业务模型。</p>
-<p>例如 ERP 首页要展示今天订单数、待发货数、库存预警数、采购待审数。如果每次打开首页都实时扫订单表、库存表、采购表，数据库压力会很大。</p>
-<p>更合理的方式是把这些指标做成统计表：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">scm_dashboard_metric</span><br><span class="line">- metric_date</span><br><span class="line">- tenant_id</span><br><span class="line">- wait_delivery_count</span><br><span class="line">- low_stock_sku_count</span><br><span class="line">- pending_purchase_count</span><br><span class="line">- updated_at</span><br></pre></td></tr></table></figure>
-<p>业务事件发生后异步更新统计表，首页直接读统计结果。这样牺牲几秒一致性，换来稳定的查询性能。</p>
-<h2 id="第十步：验证优化效果"><a href="#第十步：验证优化效果" class="headerlink" title="第十步：验证优化效果"></a>第十步：验证优化效果</h2><p>优化完成后，必须验证，而不是只看执行计划。</p>
-<p>验证内容包括：</p>
-<ul>
-<li>优化前后 SQL 耗时对比。</li>
-<li>扫描行数是否下降。</li>
-<li>是否仍然出现临时表和 filesort。</li>
-<li>高并发下连接池、CPU、IO 是否改善。</li>
-<li>写入性能是否被新增索引拖慢。</li>
-<li>结果是否和优化前一致。</li>
-</ul>
-<p>对于核心 SQL，建议把优化结论记录下来：原 SQL、问题原因、改造方案、索引变更、回滚方式、压测结果。这样后续团队维护时不会重复踩坑。</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>MySQL 性能优化的步骤可以概括为：确认瓶颈、定位慢 SQL、分析执行计划、设计索引、改写 SQL、优化分页、减少大 JOIN、控制事务、调整业务模型、验证效果。</p>
-<p>在供应链系统里，性能优化不能只看数据库技巧，还要理解业务访问模式。订单列表、库存流水、采购审批、财务报表的查询目标不同，优化策略也不同。真正稳定的优化方案，是让 SQL、索引和业务模型匹配起来。</p>
+        <p>CAS 是 Compare And Swap，比较并交换。它是很多无锁并发工具的基础。Java 里的 <code>AtomicInteger</code>、<code>AtomicLong</code>、<code>AtomicReference</code>、<code>LongAdder</code> 都和 CAS 思路有关。</p>
+<p>供应链系统里，CAS 适合应用层内存计数、指标统计、状态引用切换。它不适合替代数据库里的库存扣减。库存是跨节点共享的业务数据，最终必须由数据库条件更新、唯一约束或专门库存服务保证一致。</p>
+<h2 id="AtomicInteger-的基本用法"><a href="#AtomicInteger-的基本用法" class="headerlink" title="AtomicInteger 的基本用法"></a>AtomicInteger 的基本用法</h2><p>库存同步任务需要统计本轮处理成功数：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">InventorySyncMetrics</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">AtomicInteger</span> <span class="variable">success</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">AtomicInteger</span>();</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">AtomicInteger</span> <span class="variable">failed</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">AtomicInteger</span>();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">markSuccess</span><span class="params">()</span> &#123;</span><br><span class="line">        success.incrementAndGet();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">markFailed</span><span class="params">()</span> &#123;</span><br><span class="line">        failed.incrementAndGet();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">successCount</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> success.get();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>incrementAndGet()</code> 内部会反复尝试 CAS：读取旧值，计算新值，尝试把旧值替换成新值。如果期间其他线程已经修改，就重试。</p>
+<p>这比 <code>volatile int count++</code> 安全，因为复合操作由原子类保证。</p>
+<h2 id="AtomicReference-切换配置"><a href="#AtomicReference-切换配置" class="headerlink" title="AtomicReference 切换配置"></a>AtomicReference 切换配置</h2><p>供应链系统常有策略配置，比如库存分配策略。可以用 <code>AtomicReference</code> 原子替换整份不可变配置：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">AllocationConfigCenter</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> AtomicReference&lt;AllocationConfig&gt; configRef =</span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">AtomicReference</span>&lt;&gt;(AllocationConfig.defaultConfig());</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> AllocationConfig <span class="title function_">current</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> configRef.get();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">refresh</span><span class="params">(AllocationConfig latest)</span> &#123;</span><br><span class="line">        configRef.set(latest);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果需要基于旧配置做条件更新：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">refreshIfVersionMatch</span><span class="params">(AllocationConfig latest)</span> &#123;</span><br><span class="line">    <span class="type">AllocationConfig</span> <span class="variable">current</span> <span class="operator">=</span> configRef.get();</span><br><span class="line">    <span class="keyword">if</span> (latest.version() &lt;= current.version()) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> configRef.compareAndSet(current, latest);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这适合本地配置引用。不要把它理解为分布式配置一致性的完整方案。</p>
+<h2 id="ABA-问题"><a href="#ABA-问题" class="headerlink" title="ABA 问题"></a>ABA 问题</h2><p>CAS 的经典问题是 ABA：线程看到值从 A 变成 B，又变回 A，以为没有变化，但实际中间发生过修改。</p>
+<p>比如内存里的任务状态：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">WAIT -&gt; RUNNING -&gt; WAIT</span><br></pre></td></tr></table></figure>
+
+<p>另一个线程只看最终还是 <code>WAIT</code>，可能误以为任务从未被处理。</p>
+<p>可以用版本号解决：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">AtomicStampedReference&lt;String&gt; status =</span><br><span class="line">    <span class="keyword">new</span> <span class="title class_">AtomicStampedReference</span>&lt;&gt;(<span class="string">&quot;WAIT&quot;</span>, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line"><span class="type">int</span>[] stampHolder = <span class="keyword">new</span> <span class="title class_">int</span>[<span class="number">1</span>];</span><br><span class="line"><span class="type">String</span> <span class="variable">current</span> <span class="operator">=</span> status.get(stampHolder);</span><br><span class="line"></span><br><span class="line"><span class="type">boolean</span> <span class="variable">success</span> <span class="operator">=</span> status.compareAndSet(</span><br><span class="line">    current,</span><br><span class="line">    <span class="string">&quot;RUNNING&quot;</span>,</span><br><span class="line">    stampHolder[<span class="number">0</span>],</span><br><span class="line">    stampHolder[<span class="number">0</span>] + <span class="number">1</span></span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+<p>业务系统里更常见的是数据库版本号：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span> scm_inventory</span><br><span class="line"><span class="keyword">SET</span> available_qty <span class="operator">=</span> available_qty <span class="operator">-</span> <span class="number">5</span>,</span><br><span class="line">    version <span class="operator">=</span> version <span class="operator">+</span> <span class="number">1</span></span><br><span class="line"><span class="keyword">WHERE</span> id <span class="operator">=</span> #&#123;id&#125;</span><br><span class="line">  <span class="keyword">AND</span> version <span class="operator">=</span> #&#123;oldVersion&#125;</span><br><span class="line">  <span class="keyword">AND</span> available_qty <span class="operator">&gt;=</span> <span class="number">5</span>;</span><br></pre></td></tr></table></figure>
+
+<p>这就是乐观锁。它比 Java 内存 CAS 更适合跨实例共享数据。</p>
+<h2 id="LongAdder-适合高并发统计"><a href="#LongAdder-适合高并发统计" class="headerlink" title="LongAdder 适合高并发统计"></a>LongAdder 适合高并发统计</h2><p>高并发下，所有线程竞争同一个 <code>AtomicLong</code> 可能形成热点。<code>LongAdder</code> 通过分散计数降低竞争，最终求和。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ApiMetrics</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">LongAdder</span> <span class="variable">reserveStockCount</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">LongAdder</span>();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">markReserveStock</span><span class="params">()</span> &#123;</span><br><span class="line">        reserveStockCount.increment();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="type">long</span> <span class="title function_">reserveStockCount</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> reserveStockCount.sum();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>它适合接口调用次数、同步成功数、报表处理行数这些指标。它不适合要求每次读取都严格精确的业务余额。</p>
+<p>库存可售数不能这样做：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> <span class="type">LongAdder</span> <span class="variable">salableStock</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">LongAdder</span>();</span><br></pre></td></tr></table></figure>
+
+<p>因为库存是强业务数据，不是指标。它要支持事务、回滚、审计和跨节点一致性。</p>
+<h2 id="CAS-与数据库条件更新的类比"><a href="#CAS-与数据库条件更新的类比" class="headerlink" title="CAS 与数据库条件更新的类比"></a>CAS 与数据库条件更新的类比</h2><p>CAS 的思想和数据库乐观锁很像：都要求“当前值还是我预期的值”才更新。</p>
+<p>Java CAS：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">compareAndSet(oldValue, newValue)</span><br></pre></td></tr></table></figure>
+
+<p>数据库乐观锁：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span> scm_purchase_order</span><br><span class="line"><span class="keyword">SET</span> status <span class="operator">=</span> <span class="string">&#x27;APPROVED&#x27;</span>,</span><br><span class="line">    version <span class="operator">=</span> version <span class="operator">+</span> <span class="number">1</span></span><br><span class="line"><span class="keyword">WHERE</span> id <span class="operator">=</span> #&#123;id&#125;</span><br><span class="line">  <span class="keyword">AND</span> status <span class="operator">=</span> <span class="string">&#x27;WAIT_APPROVE&#x27;</span></span><br><span class="line">  <span class="keyword">AND</span> version <span class="operator">=</span> #&#123;version&#125;;</span><br></pre></td></tr></table></figure>
+
+<p>区别在于 Java CAS 只作用于当前 JVM 内存，数据库乐观锁作用于持久化数据，能被多个应用实例共同遵守。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>CAS 和原子类适合低成本地保护内存状态，尤其是计数、配置引用、轻量状态切换。供应链系统可以用它们做同步指标、缓存版本、任务状态引用。但库存扣减、单据审核、结算过账这些核心数据必须使用数据库条件更新或事务锁。不要把 JVM 内的原子性误认为全系统一致性。</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2024/08/24/MySQL性能优化/" data-id="cmq8scy6p000ejsqhwj2xn9lc" class="article-share-link">Share</a>
+      <a data-url="https://guxingxianyue.github.io/2025/06/05/Java%20CAS%E3%80%81Atomic%E5%92%8CLongAdder%EF%BC%9A%E5%BA%93%E5%AD%98%E8%AE%A1%E6%95%B0%E4%B8%8E%E5%B9%B6%E5%8F%91%E6%8C%87%E6%A0%87/" data-id="cuid8BiHxYwmkjFFcMj6VKF9X" class="article-share-link">Share</a>
       
       
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/">MySQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SQL优化/">SQL优化</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/供应链系统/">供应链系统</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/数据库/">数据库</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Atomic/" rel="tag">Atomic</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CAS/" rel="tag">CAS</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/LongAdder/" rel="tag">LongAdder</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" rel="tag">并发编程</a></li></ul>
 
     </footer>
   </div>
@@ -353,10 +225,10 @@
 
 
   
-    <article id="post-Java分布式系统里面的CAP理论" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Java读写锁和StampedLock：价格与库存快照缓存" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2024/05/12/Java分布式系统里面的CAP理论/" class="article-date">
-  <time datetime="2024-05-12T02:20:00.000Z" itemprop="datePublished">2024-05-12</time>
+    <a href="/2025/05/22/Java%E8%AF%BB%E5%86%99%E9%94%81%E5%92%8CStampedLock%EF%BC%9A%E4%BB%B7%E6%A0%BC%E4%B8%8E%E5%BA%93%E5%AD%98%E5%BF%AB%E7%85%A7%E7%BC%93%E5%AD%98/" class="article-date">
+  <time datetime="2025-05-22T02:00:00.000Z" itemprop="datePublished">2025-05-22</time>
 </a>
     
   </div>
@@ -367,7 +239,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2024/05/12/Java分布式系统里面的CAP理论/">Java分布式系统里面的CAP理论</a>
+      <a class="article-title" href="/2025/05/22/Java%E8%AF%BB%E5%86%99%E9%94%81%E5%92%8CStampedLock%EF%BC%9A%E4%BB%B7%E6%A0%BC%E4%B8%8E%E5%BA%93%E5%AD%98%E5%BF%AB%E7%85%A7%E7%BC%93%E5%AD%98/">Java读写锁和StampedLock：价格与库存快照缓存</a>
     </h1>
   
 
@@ -375,64 +247,37 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>CAP 理论是理解分布式系统取舍的基础。很多人第一次听 CAP 时，会把它理解成一个技术名词：一致性、可用性、分区容错性三选二。这个说法没有错，但如果只停留在口号层面，很容易在真实系统设计里误用。</p>
-<p>更实用的理解是：当系统出现网络分区时，分布式系统必须在一致性和可用性之间做取舍。平时网络正常时，一个系统可以同时做到比较好的一致性和可用性；真正考验架构选择的，是网络异常、节点超时、跨机房通信失败、消息延迟这些情况。</p>
-<p><img src="/images/tech-flowcharts/cap-supply-chain-flow.svg" alt="CAP 在供应链系统中的取舍流程"></p>
-<h2 id="CAP-分别是什么意思"><a href="#CAP-分别是什么意思" class="headerlink" title="CAP 分别是什么意思"></a>CAP 分别是什么意思</h2><p>CAP 包含三个概念。</p>
-<p>Consistency，一致性，指所有节点在同一时刻看到的数据是一致的。用户从任意节点读取同一个业务对象，都应该读到最新写入后的结果。</p>
-<p>Availability，可用性，指每个非故障节点都能在合理时间内返回响应。注意这里强调的是返回响应，不代表一定返回最新数据。</p>
-<p>Partition Tolerance，分区容错性，指系统在网络分区发生时仍然能够继续运行。网络分区可以理解为节点之间无法通信，或者通信延迟大到系统认为对方已经不可用。</p>
-<p>在单机系统里，不需要讨论 P，因为没有跨节点通信。但 Java 分布式系统天然存在多个进程、多个节点、多个数据库副本、多个机房，P 几乎不可避免。只要系统是分布式的，就必须默认网络会出问题。</p>
-<h2 id="为什么不是简单的三选二"><a href="#为什么不是简单的三选二" class="headerlink" title="为什么不是简单的三选二"></a>为什么不是简单的三选二</h2><p>CAP 经常被简化成 C、A、P 三选二，但工程上更准确的说法是：在发生网络分区时，如果继续对外提供服务，就可能牺牲强一致性；如果坚持强一致性，就可能拒绝部分请求，从而牺牲可用性。</p>
-<p>也就是说，P 不是一个可以随便放弃的选项。对于真实分布式系统，网络分区一定要考虑。选择更多发生在 CP 和 AP 之间。</p>
-<p>CP 系统优先保证一致性。网络异常时，它宁可让部分请求失败，也不返回可能错误的数据。</p>
-<p>AP 系统优先保证可用性。网络异常时，它允许部分节点继续提供服务，但可能出现短时间数据不一致，后续通过补偿、同步、校验来恢复一致。</p>
-<h2 id="供应链业务里的库存扣减例子"><a href="#供应链业务里的库存扣减例子" class="headerlink" title="供应链业务里的库存扣减例子"></a>供应链业务里的库存扣减例子</h2><p>假设有一个供应链系统，核心业务链路是：客户下单、锁定库存、生成出库任务、仓库拣货、物流发货。</p>
-<p>其中库存是最容易体现 CAP 取舍的对象。系统有两个机房：上海机房和北京机房。为了提高访问速度，两个机房都部署了订单服务和库存服务，并且都有库存数据副本。</p>
-<p>现在有一个 SKU：<code>A1001</code>，可售库存只剩 1 件。上海客户和北京客户几乎同时下单。</p>
-<p>如果系统选择强一致性，库存扣减必须经过统一的主库、分布式锁或一致性协议确认。只有一个订单能成功锁定库存，另一个订单会失败或进入等待。这样能保证不会超卖，但如果上海和北京之间网络断开，北京机房可能无法确认最新库存，就要拒绝下单或提示系统繁忙。</p>
-<p>这就是 CP 取舍：宁可不可用，也不能卖出不存在的库存。</p>
-<p>如果系统选择高可用，上海机房和北京机房可以在网络分区时各自接单。两个机房都认为库存还有 1 件，于是两个订单都成功。等网络恢复后，系统发现库存被多扣了，需要做补偿：取消后下单的订单、通知客服、给用户补偿券，或者从其他仓库调拨。</p>
-<p>这就是 AP 取舍：先保证用户能下单，再通过业务补偿处理不一致。</p>
-<h2 id="哪些供应链场景更适合-CP"><a href="#哪些供应链场景更适合-CP" class="headerlink" title="哪些供应链场景更适合 CP"></a>哪些供应链场景更适合 CP</h2><p>不是所有业务都需要强一致性，但有些场景不应该轻易牺牲一致性。</p>
-<p>第一类是库存最后一件商品的锁定。对于稀缺商品、定制件、批次严格的物料，如果超卖会带来严重履约风险，库存锁定应该偏 CP。</p>
-<p>第二类是财务结算。供应商应付、客户应收、账期核销、发票金额，这些数据一旦错了，后续修正成本很高，甚至会影响审计。财务主账通常要选择强一致或准强一致。</p>
-<p>第三类是审批状态。采购订单从待审到已审、已驳回、已作废，状态流转必须清晰。不能一个节点显示已审批，另一个节点还允许继续修改明细。</p>
-<p>第四类是唯一性约束。例如采购单号、出库单号、批次号，不能因为网络分区在两个节点生成重复编号。</p>
-<p>这些场景的共同点是：错误数据比短暂不可用更可怕。系统可以提示稍后重试，但不能让错误状态进入主流程。</p>
-<h2 id="哪些供应链场景可以偏-AP"><a href="#哪些供应链场景可以偏-AP" class="headerlink" title="哪些供应链场景可以偏 AP"></a>哪些供应链场景可以偏 AP</h2><p>也有很多场景更适合优先保证可用性。</p>
-<p>第一类是商品基础信息展示。商品名称、图片、描述、类目、品牌等信息短时间不一致，通常不会造成严重后果。读多写少的数据可以通过缓存和异步同步提升可用性。</p>
-<p>第二类是报表统计。当天订单量、仓库作业量、供应商履约率这些指标允许分钟级延迟。报表更关心趋势和分析，不一定要求每一次刷新都读到最新事务数据。</p>
-<p>第三类是搜索索引。订单搜索、商品搜索、供应商搜索往往使用 Elasticsearch 等搜索引擎，索引延迟几秒或几十秒通常可以接受。</p>
-<p>第四类是消息通知。订单创建后发送短信、站内信、邮件，如果短时间失败，可以重试或补发，不应该阻塞主交易链路。</p>
-<p>这些场景的共同点是：短时间不一致可以被用户接受，系统可以通过最终一致性修复。</p>
-<h2 id="Java-系统里常见的-CAP-落地方式"><a href="#Java-系统里常见的-CAP-落地方式" class="headerlink" title="Java 系统里常见的 CAP 落地方式"></a>Java 系统里常见的 CAP 落地方式</h2><p>在 Java 分布式系统里，CAP 不是只体现在数据库选型上，也体现在服务设计、缓存策略、消息机制和降级策略里。</p>
-<p>对于偏 CP 的场景，可以使用数据库事务、唯一索引、乐观锁、悲观锁、分布式锁、Raft 协议组件、强一致主从复制等方式。比如库存锁定时用 <code>sku_id + warehouse_id</code> 作为库存行，通过版本号做乐观锁扣减，保证并发扣减不会突破库存。</p>
-<p>对于偏 AP 的场景，可以使用缓存、消息队列、异步任务、重试补偿、定时对账、事件溯源、最终一致性表等方式。比如订单创建后发送库存变更事件，报表系统异步消费事件生成统计结果。</p>
-<p>关键是不要把所有业务都设计成一种取舍。供应链系统里，库存、财务、审批偏一致性；报表、搜索、通知偏可用性；订单主流程则通常是分段取舍：核心状态强一致，周边动作最终一致。</p>
-<h2 id="一个完整的订单链路取舍"><a href="#一个完整的订单链路取舍" class="headerlink" title="一个完整的订单链路取舍"></a>一个完整的订单链路取舍</h2><p>可以把下单流程拆成几个步骤：</p>
-<ol>
-<li>创建订单草稿。</li>
-<li>校验客户、价格、合同。</li>
-<li>锁定库存。</li>
-<li>写入订单主表。</li>
-<li>发送订单创建事件。</li>
-<li>生成出库任务。</li>
-<li>通知客户下单成功。</li>
-</ol>
-<p>其中第 2、3、4 步属于主交易链路，应该更重视一致性。第 5、6、7 步可以更多使用消息和补偿，保证主链路响应速度和可用性。</p>
-<p>如果库存服务暂时不可用，系统可以拒绝创建正式订单，保留草稿并提示稍后重试。如果短信服务不可用，订单仍然可以创建成功，短信后续重试。这就是按业务重要性拆分 CAP 取舍。</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>CAP 理论的价值不是让我们背诵一致性、可用性、分区容错性，而是提醒我们：分布式系统一定会遇到网络异常，异常发生时必须提前决定哪些数据不能错，哪些流程不能停。</p>
-<p>供应链系统的设计原则可以总结成一句话：核心交易数据宁可慢一点，也不要错；辅助查询和通知可以快一点，再通过最终一致性修正。</p>
-<p>真正成熟的 Java 分布式系统，不会简单宣称自己是 CP 或 AP，而是会在不同业务边界上做不同取舍，并且把补偿、对账、幂等和监控一起设计进去。</p>
+        <p>读写锁适合读多写少的场景。供应链系统里有大量这种数据：商品基础资料、供应商等级、仓库配置、价格策略、库存快照。读请求频繁，写请求相对较少。如果用普通互斥锁，读读之间也会互相阻塞，吞吐会被压低。</p>
+<p><code>ReentrantReadWriteLock</code> 的规则是：读读共享，读写互斥，写写互斥。<code>StampedLock</code> 在此基础上提供乐观读，适合对性能要求更高但代码复杂度可控的场景。</p>
+<h2 id="价格策略缓存"><a href="#价格策略缓存" class="headerlink" title="价格策略缓存"></a>价格策略缓存</h2><p>假设订单试算接口需要频繁读取供应商价格策略：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">PricePolicyCache</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">ReentrantReadWriteLock</span> <span class="variable">rwLock</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ReentrantReadWriteLock</span>();</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">Lock</span> <span class="variable">readLock</span> <span class="operator">=</span> rwLock.readLock();</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">Lock</span> <span class="variable">writeLock</span> <span class="operator">=</span> rwLock.writeLock();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> Map&lt;Long, PricePolicy&gt; policies = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> PricePolicy <span class="title function_">get</span><span class="params">(<span class="type">long</span> supplierId)</span> &#123;</span><br><span class="line">        readLock.lock();</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> policies.get(supplierId);</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            readLock.unlock();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">refresh</span><span class="params">(Map&lt;Long, PricePolicy&gt; latest)</span> &#123;</span><br><span class="line">        writeLock.lock();</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            policies = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;(latest);</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            writeLock.unlock();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>多个订单试算线程可以同时读价格策略。刷新线程写入时，会阻塞读线程，确保读线程不会看到更新到一半的 Map。</p>
+<h2 id="不要在读锁里返回可变对象"><a href="#不要在读锁里返回可变对象" class="headerlink" title="不要在读锁里返回可变对象"></a>不要在读锁里返回可变对象</h2><p>上面的 <code>PricePolicy</code> 应该是不可变对象。如果返回的是可变对象，调用方可能绕过锁修改内部状态。</p>
+<p>推荐：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">PricePolicy</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">long</span> supplierId;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> BigDecimal discountRate;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> List&lt;PriceRule&gt; rules;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">PricePolicy</span><span class="params">(<span class="type">long</span> supplierId, BigDecimal discountRate, List&lt;PriceRule&gt; rules)</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.supplierId = supplierId;</span><br><span class="line">        <span class="built_in">this</span>.discountRate = discountRate;</span><br><span class="line">        <span class="built_in">this</span>.rules = List.copyOf(rules);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>读写锁保护的是引用替换过程，不应该承担对象内部到处可变的复杂度。</p>
+<h2 id="锁降级"><a href="#锁降级" class="headerlink" title="锁降级"></a>锁降级</h2><p><code>ReentrantReadWriteLock</code> 支持锁降级：线程持有写锁时，再获取读锁，然后释放写锁。这样可以在刷新后继续以读锁身份使用新数据。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> PricePolicy <span class="title function_">refreshAndGet</span><span class="params">(<span class="type">long</span> supplierId)</span> &#123;</span><br><span class="line">    writeLock.lock();</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        policies = loadFromDatabase();</span><br><span class="line">        readLock.lock();</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        writeLock.unlock();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> policies.get(supplierId);</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        readLock.unlock();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>不支持从读锁升级到写锁。读锁升级写锁很容易造成死锁，因为多个读线程都在等对方释放读锁。</p>
+<h2 id="StampedLock-的乐观读"><a href="#StampedLock-的乐观读" class="headerlink" title="StampedLock 的乐观读"></a>StampedLock 的乐观读</h2><p><code>StampedLock</code> 提供乐观读。乐观读不阻塞写，但读取后要验证期间是否发生写入。</p>
+<p>库存快照缓存例子：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">InventorySnapshot</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">StampedLock</span> <span class="variable">lock</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">StampedLock</span>();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="type">int</span> availableQty;</span><br><span class="line">    <span class="keyword">private</span> <span class="type">int</span> lockedQty;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">salableQty</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="type">long</span> <span class="variable">stamp</span> <span class="operator">=</span> lock.tryOptimisticRead();</span><br><span class="line">        <span class="type">int</span> <span class="variable">available</span> <span class="operator">=</span> availableQty;</span><br><span class="line">        <span class="type">int</span> <span class="variable">locked</span> <span class="operator">=</span> lockedQty;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (!lock.validate(stamp)) &#123;</span><br><span class="line">            stamp = lock.readLock();</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                available = availableQty;</span><br><span class="line">                locked = lockedQty;</span><br><span class="line">            &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">                lock.unlockRead(stamp);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> available - locked;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">refresh</span><span class="params">(<span class="type">int</span> available, <span class="type">int</span> locked)</span> &#123;</span><br><span class="line">        <span class="type">long</span> <span class="variable">stamp</span> <span class="operator">=</span> lock.writeLock();</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="built_in">this</span>.availableQty = available;</span><br><span class="line">            <span class="built_in">this</span>.lockedQty = locked;</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            lock.unlockWrite(stamp);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>乐观读适合写入很少的场景。如果写入频繁，乐观读经常验证失败，反而增加复杂度。</p>
+<h2 id="StampedLock-的注意点"><a href="#StampedLock-的注意点" class="headerlink" title="StampedLock 的注意点"></a>StampedLock 的注意点</h2><p><code>StampedLock</code> 不是可重入锁。同一线程重复获取写锁可能把自己卡住。它也不直接配合 <code>Condition</code>。因此它适合局部、简单、性能敏感的缓存或数值快照，不适合复杂业务流程锁。</p>
+<p>供应链系统里，仓库维度的实时库存核心数据不应该只靠本地 <code>StampedLock</code> 控制。因为多实例部署下，每个 JVM 都有自己的锁。它适合保护本地缓存视图，最终一致性仍然依赖数据库和消息刷新。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>读写锁适合读多写少的本地共享数据。供应链系统里的价格策略、仓库配置、库存快照缓存都可以使用。选择上，普通读多写少用 <code>ReentrantReadWriteLock</code>；极高频读取、低频刷新、逻辑简单时可以评估 <code>StampedLock</code>。不管使用哪种锁，都要避免返回可变对象，并明确它只保护单 JVM 内存。</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2024/05/12/Java分布式系统里面的CAP理论/" data-id="cmq8scy6n000cjsqhnf3gh4st" class="article-share-link">Share</a>
+      <a data-url="https://guxingxianyue.github.io/2025/05/22/Java%E8%AF%BB%E5%86%99%E9%94%81%E5%92%8CStampedLock%EF%BC%9A%E4%BB%B7%E6%A0%BC%E4%B8%8E%E5%BA%93%E5%AD%98%E5%BF%AB%E7%85%A7%E7%BC%93%E5%AD%98/" data-id="cuidttjNYUx7eZP3cdmbTB2Jy" class="article-share-link">Share</a>
       
       
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CAP/">CAP</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/">Java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/分布式系统/">分布式系统</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/架构设计/">架构设计</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ReadWriteLock/" rel="tag">ReadWriteLock</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/StampedLock/" rel="tag">StampedLock</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F/" rel="tag">供应链系统</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%BC%93%E5%AD%98/" rel="tag">缓存</a></li></ul>
 
     </footer>
   </div>
@@ -441,10 +286,10 @@
 
 
   
-    <article id="post-springcloud里面常用的组件" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-MySQL死锁与锁等待排查：入库上架和库存流水案例" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2024/02/18/springcloud里面常用的组件/" class="article-date">
-  <time datetime="2024-02-18T01:30:00.000Z" itemprop="datePublished">2024-02-18</time>
+    <a href="/2025/05/15/MySQL%E6%AD%BB%E9%94%81%E4%B8%8E%E9%94%81%E7%AD%89%E5%BE%85%E6%8E%92%E6%9F%A5%EF%BC%9A%E5%85%A5%E5%BA%93%E4%B8%8A%E6%9E%B6%E5%92%8C%E5%BA%93%E5%AD%98%E6%B5%81%E6%B0%B4%E6%A1%88%E4%BE%8B/" class="article-date">
+  <time datetime="2025-05-15T01:40:00.000Z" itemprop="datePublished">2025-05-15</time>
 </a>
     
   </div>
@@ -455,7 +300,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2024/02/18/springcloud里面常用的组件/">springcloud 里面常用的组件</a>
+      <a class="article-title" href="/2025/05/15/MySQL%E6%AD%BB%E9%94%81%E4%B8%8E%E9%94%81%E7%AD%89%E5%BE%85%E6%8E%92%E6%9F%A5%EF%BC%9A%E5%85%A5%E5%BA%93%E4%B8%8A%E6%9E%B6%E5%92%8C%E5%BA%93%E5%AD%98%E6%B5%81%E6%B0%B4%E6%A1%88%E4%BE%8B/">MySQL死锁与锁等待排查：入库上架和库存流水案例</a>
     </h1>
   
 
@@ -463,99 +308,76 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>Spring Cloud 不是一个单独的框架，而是一组围绕微服务落地的工程组件。它解决的不是某一个业务功能，而是微服务拆分之后必然出现的一组基础问题：服务在哪里、请求怎么进来、服务之间怎么调用、配置怎么管理、故障怎么隔离、链路怎么追踪。</p>
-<p>如果把一个供应链系统拆成订单服务、库存服务、采购服务、仓储服务、结算服务，每个服务都可以独立部署和扩容。拆分之后的好处是边界清晰、扩展灵活，但随之而来的问题是系统从一个进程变成了多个进程的协作。Spring Cloud 常用组件就是为了处理这些协作问题。</p>
-<p><img src="/images/tech-flowcharts/springcloud-components-flow.svg" alt="Spring Cloud 常用组件协作流程"></p>
-<h2 id="服务注册与发现：Eureka、Nacos、Consul"><a href="#服务注册与发现：Eureka、Nacos、Consul" class="headerlink" title="服务注册与发现：Eureka、Nacos、Consul"></a>服务注册与发现：Eureka、Nacos、Consul</h2><p>服务注册中心负责回答一个最基础的问题：服务在哪里。</p>
-<p>在单体系统里，方法调用发生在同一个进程内，不需要知道网络地址。拆成微服务之后，订单服务调用库存服务，需要知道库存服务当前有哪些实例、实例的 IP 和端口是什么、哪些实例健康、哪些实例已经下线。</p>
-<p>注册中心的工作方式通常是：</p>
-<ol>
-<li>服务启动时，把自己的服务名、地址、端口、健康状态注册到注册中心。</li>
-<li>服务运行期间，持续向注册中心发送心跳。</li>
-<li>调用方从注册中心拉取可用实例列表。</li>
-<li>注册中心根据心跳和健康检查剔除不可用实例。</li>
-</ol>
-<p>Eureka 是 Spring Cloud 早期常用的注册中心，强调 AP 思路，在短时间网络抖动时更倾向于保证服务发现可用。Nacos 同时支持服务发现和配置管理，在国内项目里使用较多。Consul 提供服务发现、健康检查和 KV 存储，也常用于基础设施统一管理。</p>
-<p>在供应链系统里，库存服务可能部署 6 个实例。订单服务不应该写死某一个库存服务地址，而是通过服务名 <code>inventory-service</code> 找到健康实例，再把请求分发过去。</p>
-<h2 id="配置中心：Spring-Cloud-Config、Nacos-Config"><a href="#配置中心：Spring-Cloud-Config、Nacos-Config" class="headerlink" title="配置中心：Spring Cloud Config、Nacos Config"></a>配置中心：Spring Cloud Config、Nacos Config</h2><p>配置中心负责回答另一个问题：配置怎么统一管理。</p>
-<p>微服务数量多了以后，如果每个服务都把数据库地址、开关配置、限流阈值、第三方接口地址写在本地配置文件里，修改一次配置就要重新打包和发布多个服务，风险很高。</p>
-<p>配置中心的工作原理是把配置从应用包里抽出来，集中存储和下发。服务启动时从配置中心读取配置，运行期间也可以通过刷新机制拿到最新配置。</p>
-<p>典型配置包括：</p>
+        <p>死锁不是 MySQL 的异常行为，而是并发系统的正常风险。只要多个事务以不同顺序持有资源并等待对方，就可能死锁。InnoDB 会自动检测死锁，并回滚其中一个事务。业务系统需要做的是降低死锁概率，并在发生死锁时能快速定位和恢复。</p>
+<p>供应链系统里，入库上架、库存转移、订单扣减都容易出现死锁，因为这些流程通常会同时更新库存主表、库存流水表、批次表和单据状态。</p>
+<h2 id="入库上架死锁案例"><a href="#入库上架死锁案例" class="headerlink" title="入库上架死锁案例"></a>入库上架死锁案例</h2><p>入库上架时，系统要把待上架数量转成可用库存：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span> scm_inventory</span><br><span class="line"><span class="keyword">SET</span> available_qty <span class="operator">=</span> available_qty <span class="operator">+</span> <span class="number">10</span></span><br><span class="line"><span class="keyword">WHERE</span> warehouse_id <span class="operator">=</span> <span class="number">8</span> <span class="keyword">AND</span> sku_id <span class="operator">=</span> <span class="number">1001</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">INSERT INTO</span> scm_inventory_log(...)</span><br><span class="line"><span class="keyword">VALUES</span> (...);</span><br><span class="line"></span><br><span class="line"><span class="keyword">UPDATE</span> scm_receipt_detail</span><br><span class="line"><span class="keyword">SET</span> putaway_qty <span class="operator">=</span> putaway_qty <span class="operator">+</span> <span class="number">10</span></span><br><span class="line"><span class="keyword">WHERE</span> receipt_id <span class="operator">=</span> <span class="number">5001</span> <span class="keyword">AND</span> sku_id <span class="operator">=</span> <span class="number">1001</span>;</span><br></pre></td></tr></table></figure>
+
+<p>另一个任务可能先更新入库明细，再更新库存：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span> scm_receipt_detail</span><br><span class="line"><span class="keyword">SET</span> checked_qty <span class="operator">=</span> checked_qty <span class="operator">+</span> <span class="number">10</span></span><br><span class="line"><span class="keyword">WHERE</span> receipt_id <span class="operator">=</span> <span class="number">5001</span> <span class="keyword">AND</span> sku_id <span class="operator">=</span> <span class="number">1001</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">UPDATE</span> scm_inventory</span><br><span class="line"><span class="keyword">SET</span> available_qty <span class="operator">=</span> available_qty <span class="operator">+</span> <span class="number">10</span></span><br><span class="line"><span class="keyword">WHERE</span> warehouse_id <span class="operator">=</span> <span class="number">8</span> <span class="keyword">AND</span> sku_id <span class="operator">=</span> <span class="number">1001</span>;</span><br></pre></td></tr></table></figure>
+
+<p>事务 A 持有库存记录，等待入库明细。事务 B 持有入库明细，等待库存记录。两边互相等待，就形成死锁。</p>
+<h2 id="死锁的四个条件"><a href="#死锁的四个条件" class="headerlink" title="死锁的四个条件"></a>死锁的四个条件</h2><p>死锁通常满足四个条件：</p>
 <ul>
-<li>数据库连接信息。</li>
-<li>Redis、MQ、搜索服务地址。</li>
-<li>业务开关，例如是否启用新的库存锁定策略。</li>
-<li>限流、超时、熔断阈值。</li>
-<li>不同环境的差异配置。</li>
+<li>互斥：资源一次只能被一个事务持有。</li>
+<li>持有并等待：事务持有一个锁，同时等待另一个锁。</li>
+<li>不可抢占：锁只能由持有者提交或回滚后释放。</li>
+<li>循环等待：多个事务形成等待环。</li>
 </ul>
-<p>例如采购系统要临时关闭自动补货功能，只需要在配置中心修改 <code>autoReplenish.enabled=false</code>，再让采购服务刷新配置，不需要重新发布服务。</p>
-<h2 id="网关：Spring-Cloud-Gateway、Zuul"><a href="#网关：Spring-Cloud-Gateway、Zuul" class="headerlink" title="网关：Spring Cloud Gateway、Zuul"></a>网关：Spring Cloud Gateway、Zuul</h2><p>网关是微服务系统的统一入口。</p>
-<p>如果没有网关，前端要直接知道订单服务、库存服务、报表服务、用户服务的地址，这会让前端和后端部署结构强耦合。网关把外部请求统一接进来，再根据路由规则转发到内部服务。</p>
-<p>网关常见职责包括：</p>
+<p>业务上最容易控制的是循环等待。只要固定加锁顺序，就能显著降低死锁概率。</p>
+<h2 id="固定加锁顺序"><a href="#固定加锁顺序" class="headerlink" title="固定加锁顺序"></a>固定加锁顺序</h2><p>对库存转移来说，要从 A 库位转到 B 库位。两个事务方向相反时容易死锁：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">事务 1：锁 A，再锁 B</span><br><span class="line">事务 2：锁 B，再锁 A</span><br></pre></td></tr></table></figure>
+
+<p>解决办法是按稳定规则排序，比如按库存记录 ID 升序加锁：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Transactional</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">transfer</span><span class="params">(<span class="type">long</span> fromInventoryId, <span class="type">long</span> toInventoryId, <span class="type">int</span> qty)</span> &#123;</span><br><span class="line">    List&lt;Long&gt; ids = Stream.of(fromInventoryId, toInventoryId)</span><br><span class="line">        .sorted()</span><br><span class="line">        .toList();</span><br><span class="line"></span><br><span class="line">    inventoryMapper.selectForUpdate(ids.get(<span class="number">0</span>));</span><br><span class="line">    inventoryMapper.selectForUpdate(ids.get(<span class="number">1</span>));</span><br><span class="line"></span><br><span class="line">    inventoryMapper.decrease(fromInventoryId, qty);</span><br><span class="line">    inventoryMapper.increase(toInventoryId, qty);</span><br><span class="line">    inventoryLogMapper.insertTransferLog(fromInventoryId, toInventoryId, qty);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>SQL：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> id</span><br><span class="line"><span class="keyword">FROM</span> scm_inventory</span><br><span class="line"><span class="keyword">WHERE</span> id <span class="operator">=</span> #&#123;id&#125;</span><br><span class="line"><span class="keyword">FOR</span> <span class="keyword">UPDATE</span>;</span><br></pre></td></tr></table></figure>
+
+<p>即使业务方向不同，底层锁顺序一致，死锁概率会低很多。</p>
+<h2 id="缩短事务范围"><a href="#缩短事务范围" class="headerlink" title="缩短事务范围"></a>缩短事务范围</h2><p>错误做法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Transactional</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">putaway</span><span class="params">(PutawayCommand command)</span> &#123;</span><br><span class="line">    inventoryMapper.lockInventory(command.skuId());</span><br><span class="line">    supplierClient.checkQuality(command.supplierId());</span><br><span class="line">    wmsClient.notifyPutaway(command.taskId());</span><br><span class="line">    inventoryMapper.increase(command.skuId(), command.qty());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这段代码在事务里做远程调用。远程调用期间数据库锁一直不释放，任何并发库存操作都可能等待。</p>
+<p>改进方式是把远程调用放在事务外，事务里只做核心数据变更：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">putaway</span><span class="params">(PutawayCommand command)</span> &#123;</span><br><span class="line">    supplierClient.checkQuality(command.supplierId());</span><br><span class="line">    doPutawayInTransaction(command);</span><br><span class="line">    eventPublisher.publishPutawayFinished(command.taskId());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Transactional</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">doPutawayInTransaction</span><span class="params">(PutawayCommand command)</span> &#123;</span><br><span class="line">    inventoryMapper.increase(command.skuId(), command.qty());</span><br><span class="line">    receiptMapper.markPutaway(command.receiptDetailId(), command.qty());</span><br><span class="line">    inventoryLogMapper.insertPutawayLog(command);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="如何排查锁等待"><a href="#如何排查锁等待" class="headerlink" title="如何排查锁等待"></a>如何排查锁等待</h2><p>第一步看当前连接：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> PROCESSLIST;</span><br></pre></td></tr></table></figure>
+
+<p>第二步看 InnoDB 状态：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> ENGINE INNODB STATUS;</span><br></pre></td></tr></table></figure>
+
+<p>重点找：</p>
 <ul>
-<li>路由转发：把 <code>/api/orders/**</code> 转发到订单服务。</li>
-<li>鉴权认证：统一校验 token、登录态、权限。</li>
-<li>限流降级：对高频接口做访问控制。</li>
-<li>日志审计：记录请求来源、耗时、状态码。</li>
-<li>协议适配：对外暴露统一 HTTP 接口，对内转发到多个服务。</li>
+<li><code>LATEST DETECTED DEADLOCK</code></li>
+<li>等待的锁类型。</li>
+<li>等待的索引。</li>
+<li>涉及的 SQL。</li>
+<li>哪个事务被回滚。</li>
 </ul>
-<p>Spring Cloud Gateway 基于响应式模型，性能和扩展性比早期 Zuul 1 更适合新项目。一个常见做法是把所有供应链后台请求都先打到网关，网关校验用户身份后，再转到订单、库存、采购等服务。</p>
-<h2 id="服务调用：OpenFeign、RestTemplate、WebClient"><a href="#服务调用：OpenFeign、RestTemplate、WebClient" class="headerlink" title="服务调用：OpenFeign、RestTemplate、WebClient"></a>服务调用：OpenFeign、RestTemplate、WebClient</h2><p>服务调用组件负责让一个服务更方便地调用另一个服务。</p>
-<p>OpenFeign 的价值是把远程 HTTP 调用写得像本地接口调用。开发者只需要定义接口、声明服务名和路径，Feign 会根据服务发现结果、负载均衡策略和 HTTP 编码规则发起请求。</p>
-<p>例如订单服务创建订单时，需要调用库存服务锁定库存：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@FeignClient</span>(name = <span class="string">"inventory-service"</span>)</span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">InventoryClient</span> </span>&#123;</span><br><span class="line">    <span class="meta">@PostMapping</span>(<span class="string">"/inventory/lock"</span>)</span><br><span class="line">    <span class="function">LockResult <span class="title">lock</span><span class="params">(@RequestBody LockInventoryCommand command)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>它背后的核心流程是：根据服务名找到实例列表，选择一个实例，组装 HTTP 请求，发送请求，解析响应，异常时交给重试、熔断或降级逻辑处理。</p>
-<p>RestTemplate 是较早的同步 HTTP 客户端，WebClient 支持响应式调用。对于大多数普通业务服务，OpenFeign 的声明式调用更容易维护。</p>
-<h2 id="负载均衡：Ribbon、Spring-Cloud-LoadBalancer"><a href="#负载均衡：Ribbon、Spring-Cloud-LoadBalancer" class="headerlink" title="负载均衡：Ribbon、Spring Cloud LoadBalancer"></a>负载均衡：Ribbon、Spring Cloud LoadBalancer</h2><p>负载均衡负责决定请求发给哪一个服务实例。</p>
-<p>当库存服务有多个实例时，订单服务不能永远调用同一个实例，否则这个实例会成为热点。客户端负载均衡会从注册中心拿到实例列表，然后根据策略选择一个实例。</p>
-<p>常见策略包括：</p>
-<ul>
-<li>轮询：请求依次分配给不同实例。</li>
-<li>随机：随机选择一个实例。</li>
-<li>权重：性能更强或权重更高的实例承担更多请求。</li>
-<li>最少连接或响应时间优先：尽量选择当前压力较小的实例。</li>
-</ul>
-<p>Ribbon 是早期常见组件，新版本 Spring Cloud 更推荐 Spring Cloud LoadBalancer。它们的核心目标一致：让调用方不用关心某个服务具体部署了多少实例。</p>
-<h2 id="熔断与限流：Hystrix、Resilience4j、Sentinel"><a href="#熔断与限流：Hystrix、Resilience4j、Sentinel" class="headerlink" title="熔断与限流：Hystrix、Resilience4j、Sentinel"></a>熔断与限流：Hystrix、Resilience4j、Sentinel</h2><p>熔断和限流负责防止局部故障拖垮整个系统。</p>
-<p>在分布式系统里，一个服务慢并不可怕，可怕的是调用它的服务都被拖慢。比如库存服务数据库异常，订单服务大量线程卡在库存锁定接口上，随后订单服务也无法响应，最终网关、前端和其他服务都受到影响。</p>
-<p>熔断器的工作原理类似电路保护：</p>
-<ol>
-<li>统计一段时间内的失败率、慢调用比例、异常数量。</li>
-<li>当指标超过阈值时，打开熔断器。</li>
-<li>熔断打开后，请求不再真实调用下游，而是直接失败或走降级结果。</li>
-<li>过一段时间进入半开状态，放少量请求试探下游是否恢复。</li>
-<li>如果试探成功，关闭熔断；如果失败，继续熔断。</li>
-</ol>
-<p>Hystrix 曾经是 Spring Cloud 里最常见的熔断组件，但已经进入维护状态。新项目更常见的是 Resilience4j 或 Sentinel。Sentinel 在限流、热点参数控制、系统自适应保护方面更完整。</p>
-<h2 id="消息总线和消息驱动：Spring-Cloud-Bus、Stream"><a href="#消息总线和消息驱动：Spring-Cloud-Bus、Stream" class="headerlink" title="消息总线和消息驱动：Spring Cloud Bus、Stream"></a>消息总线和消息驱动：Spring Cloud Bus、Stream</h2><p>微服务之间不一定都要同步调用。对于不要求立即返回结果的业务，异步消息更适合。</p>
-<p>Spring Cloud Stream 把消息中间件抽象成绑定模型，让业务代码不直接依赖 Kafka、RabbitMQ 等具体实现。Spring Cloud Bus 常用于配置刷新、服务间事件通知。</p>
-<p>供应链系统里的典型场景是订单创建成功后发送 <code>OrderCreatedEvent</code>。库存服务订阅事件后扣减可售库存，仓储服务订阅事件后准备出库任务，积分服务订阅事件后累计客户积分。这样订单服务不需要同步等待所有下游服务完成。</p>
-<p>异步消息的关键不是简单地把请求丢到 MQ，而是要处理幂等、重复消费、消息顺序、失败重试和最终一致性。</p>
-<h2 id="链路追踪：Sleuth、Zipkin、Micrometer-Tracing"><a href="#链路追踪：Sleuth、Zipkin、Micrometer-Tracing" class="headerlink" title="链路追踪：Sleuth、Zipkin、Micrometer Tracing"></a>链路追踪：Sleuth、Zipkin、Micrometer Tracing</h2><p>链路追踪负责回答线上排查时最痛苦的问题：一次请求到底经过了哪些服务，慢在哪里。</p>
-<p>当用户点击创建采购单，可能经过网关、采购服务、供应商服务、库存服务、审批服务、消息队列。没有链路追踪时，只能分别查多个服务日志，很难把它们串起来。</p>
-<p>链路追踪的工作方式是给每次请求生成 traceId，并在服务之间透传。每个服务再生成自己的 spanId，记录当前服务处理了什么、耗时多少、是否异常。Zipkin 或其他追踪平台负责收集和展示完整调用链。</p>
-<p>Spring Cloud Sleuth 曾经负责自动注入 traceId 和 spanId。新版本生态里，Micrometer Tracing 是更主流的观测方案。</p>
-<h2 id="监控与治理：Actuator、Admin、Prometheus"><a href="#监控与治理：Actuator、Admin、Prometheus" class="headerlink" title="监控与治理：Actuator、Admin、Prometheus"></a>监控与治理：Actuator、Admin、Prometheus</h2><p>服务能跑起来只是第一步，更重要的是知道它跑得怎么样。</p>
-<p>Spring Boot Actuator 提供健康检查、指标、线程、环境变量等端点。Spring Boot Admin 可以集中查看服务状态。Prometheus 和 Grafana 常用于采集指标和展示监控面板。</p>
-<p>供应链系统至少应该关注：</p>
-<ul>
-<li>接口成功率和 P95、P99 响应时间。</li>
-<li>数据库连接池使用率。</li>
-<li>MQ 积压数量。</li>
-<li>服务实例健康状态。</li>
-<li>线程池队列长度。</li>
-<li>熔断、限流、降级次数。</li>
-</ul>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Spring Cloud 常用组件本质上是在处理微服务运行期治理问题。注册中心解决服务在哪里，配置中心解决配置如何统一，网关解决入口治理，Feign 解决服务调用，负载均衡解决实例选择，熔断限流解决故障隔离，消息组件解决异步解耦，链路追踪和监控解决可观测性。</p>
-<p>真正落地时不要为了组件而组件。系统规模小的时候，可以先从注册中心、网关、配置中心、Feign、基础监控开始。等调用链复杂、流量变大、故障影响扩大时，再逐步引入熔断限流、链路追踪、消息驱动和更细的治理能力。</p>
+<p>MySQL 8 可以查询：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span></span><br><span class="line"><span class="keyword">FROM</span> performance_schema.data_locks;</span><br><span class="line"></span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span></span><br><span class="line"><span class="keyword">FROM</span> performance_schema.data_lock_waits;</span><br></pre></td></tr></table></figure>
+
+<p>结合事务表可以定位阻塞链：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> r.trx_id waiting_trx,</span><br><span class="line">       r.trx_mysql_thread_id waiting_thread,</span><br><span class="line">       b.trx_id blocking_trx,</span><br><span class="line">       b.trx_mysql_thread_id blocking_thread</span><br><span class="line"><span class="keyword">FROM</span> information_schema.innodb_lock_waits w</span><br><span class="line"><span class="keyword">JOIN</span> information_schema.innodb_trx b</span><br><span class="line">  <span class="keyword">ON</span> b.trx_id <span class="operator">=</span> w.blocking_trx_id</span><br><span class="line"><span class="keyword">JOIN</span> information_schema.innodb_trx r</span><br><span class="line">  <span class="keyword">ON</span> r.trx_id <span class="operator">=</span> w.requesting_trx_id;</span><br></pre></td></tr></table></figure>
+
+<p>不同版本系统表略有差异，核心思路是找到等待者、阻塞者和对应 SQL。</p>
+<h2 id="业务层重试"><a href="#业务层重试" class="headerlink" title="业务层重试"></a>业务层重试</h2><p>死锁发生时，InnoDB 会回滚一个事务。对于库存扣减、上架、状态流转这类短事务，可以做有限重试：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">putawayWithRetry</span><span class="params">(PutawayCommand command)</span> &#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; <span class="number">3</span>; i++) &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            putawayService.doPutawayInTransaction(command);</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (DeadlockLoserDataAccessException e) &#123;</span><br><span class="line">            sleep(<span class="number">50L</span> * (i + <span class="number">1</span>));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">BizException</span>(<span class="string">&quot;上架繁忙，请稍后重试&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>重试必须满足幂等。比如上架流水要有业务唯一键，避免第一次事务部分成功但应用误判后重复写入。通常建议给业务流水加唯一键：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UNIQUE</span> KEY uk_biz_event (biz_type, biz_id)</span><br></pre></td></tr></table></figure>
+
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>死锁排查不能只看异常栈，要回到事务里的 SQL 顺序、索引和持锁时间。供应链系统降低死锁的关键措施是：固定加锁顺序，缩短事务范围，避免事务内远程调用，保证 SQL 命中索引，对可重试短事务做有限幂等重试。</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2024/02/18/springcloud里面常用的组件/" data-id="cmq8scy6w000yjsqhcwentzul" class="article-share-link">Share</a>
+      <a data-url="https://guxingxianyue.github.io/2025/05/15/MySQL%E6%AD%BB%E9%94%81%E4%B8%8E%E9%94%81%E7%AD%89%E5%BE%85%E6%8E%92%E6%9F%A5%EF%BC%9A%E5%85%A5%E5%BA%93%E4%B8%8A%E6%9E%B6%E5%92%8C%E5%BA%93%E5%AD%98%E6%B5%81%E6%B0%B4%E6%A1%88%E4%BE%8B/" data-id="cuidd3Fe1ZNNAvHXqGQLMBXQK" class="article-share-link">Share</a>
       
       
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/">Java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Spring-Cloud/">Spring Cloud</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/分布式系统/">分布式系统</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/微服务/">微服务</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/InnoDB/" rel="tag">InnoDB</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%BB%93%E5%82%A8%E7%B3%BB%E7%BB%9F/" rel="tag">仓储系统</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%AD%BB%E9%94%81/" rel="tag">死锁</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%94%81%E7%AD%89%E5%BE%85/" rel="tag">锁等待</a></li></ul>
 
     </footer>
   </div>
@@ -564,10 +386,10 @@
 
 
   
-    <article id="post-redis锁有哪些" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Java ReentrantLock和Condition：波次拣货调度队列设计" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2023/11/23/redis锁有哪些/" class="article-date">
-  <time datetime="2023-11-23T03:10:00.000Z" itemprop="datePublished">2023-11-23</time>
+    <a href="/2025/05/08/Java%20ReentrantLock%E5%92%8CCondition%EF%BC%9A%E6%B3%A2%E6%AC%A1%E6%8B%A3%E8%B4%A7%E8%B0%83%E5%BA%A6%E9%98%9F%E5%88%97%E8%AE%BE%E8%AE%A1/" class="article-date">
+  <time datetime="2025-05-08T01:30:00.000Z" itemprop="datePublished">2025-05-08</time>
 </a>
     
   </div>
@@ -578,7 +400,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2023/11/23/redis锁有哪些/">redis锁有哪些</a>
+      <a class="article-title" href="/2025/05/08/Java%20ReentrantLock%E5%92%8CCondition%EF%BC%9A%E6%B3%A2%E6%AC%A1%E6%8B%A3%E8%B4%A7%E8%B0%83%E5%BA%A6%E9%98%9F%E5%88%97%E8%AE%BE%E8%AE%A1/">Java ReentrantLock和Condition：波次拣货调度队列设计</a>
     </h1>
   
 
@@ -586,61 +408,51 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="开场个人观察"><a href="#开场个人观察" class="headerlink" title="开场个人观察"></a>开场个人观察</h2><p>Redis 锁是很多 Java 项目都会遇到的话题。比如供应链系统里，多个服务同时扣减库存；ERP 里同一张单据不能被重复审核；定时任务在多台机器上部署，但同一批数据只能被一个节点处理。这些场景都需要某种“互斥”。</p>
-<p>但 Redis 锁也是容易写错的地方。很多人第一版会写成 <code>setnx lock 1</code>，看起来能用，线上一遇到超时、宕机、重试、主从切换，就会暴露问题。分布式锁不是“抢到 key 就完事”，它要考虑 owner、过期时间、释放原子性、业务幂等和异常恢复。</p>
-<p>这篇笔记按常见 Redis 锁类型梳理：简单 <code>SETNX</code> 锁、带过期时间的锁、带唯一标识和 Lua 释放的锁、可重入锁、Redisson 看门狗锁、RedLock 思路。重点还是落到项目里怎么避免锁丢失和死锁。</p>
-<p><img src="/images/tech-flowcharts/redis-lock-flow.svg" alt="Redis分布式锁安全流程"></p>
-<h2 id="核心观点"><a href="#核心观点" class="headerlink" title="核心观点"></a>核心观点</h2><p>一个相对安全的 Redis 锁，至少要满足四个条件。</p>
-<p>第一，加锁要原子。不能先 <code>SETNX</code> 再单独 <code>EXPIRE</code>，因为中间如果进程宕机，锁可能永不过期。</p>
-<p>第二，锁要有唯一 owner。释放锁时必须确认锁是自己加的，不能误删别人的锁。</p>
-<p>第三，释放要原子。检查 owner 和删除 key 要放在 Lua 脚本里执行，避免检查后锁过期、别人重新加锁、自己又误删。</p>
-<p>第四，业务要幂等。分布式环境里很难只靠锁保证绝对一次执行，业务本身也要能处理重复请求。</p>
-<h2 id="实践方法"><a href="#实践方法" class="headerlink" title="实践方法"></a>实践方法</h2><p>最朴素的锁是 <code>SETNX</code>：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SETNX order:lock:1001 1</span><br></pre></td></tr></table></figure>
-<p>它的优点是简单，缺点也明显：如果没有过期时间，持锁进程挂了就可能死锁。</p>
-<p>稍微好一点的写法是原子设置锁和值和过期时间：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SET order:lock:1001 requestId NX PX 30000</span><br></pre></td></tr></table></figure>
-<p>这里 <code>NX</code> 表示 key 不存在才设置，<code>PX 30000</code> 表示 30 秒过期，<code>requestId</code> 表示锁的持有者。这个写法解决了加锁和设置过期时间的原子性问题。</p>
-<p>释放锁时不要直接：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">DEL order:lock:1001</span><br></pre></td></tr></table></figure>
-<p>因为你的业务可能执行超过 30 秒，锁已经过期，另一个线程重新拿到锁。如果你这时直接删除，就会删掉别人的锁。</p>
-<p>更安全的释放方式是 Lua：</p>
-<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> redis.call(<span class="string">"GET"</span>, KEYS[<span class="number">1</span>]) == ARGV[<span class="number">1</span>] <span class="keyword">then</span></span><br><span class="line">  <span class="keyword">return</span> redis.call(<span class="string">"DEL"</span>, KEYS[<span class="number">1</span>])</span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
-<p>这段脚本把“判断 owner”和“删除 key”放到 Redis 单线程执行里，避免中间被打断。</p>
-<p>如果业务执行时间不确定，可以使用带看门狗机制的锁。Redisson 的思路是：加锁成功后，如果业务线程还活着，就定期延长锁过期时间；业务结束后主动释放。这样可以避免业务正常运行但锁提前过期。</p>
-<p>不过看门狗也不是万能的。如果任务本身可能跑几分钟甚至几十分钟，我更倾向于拆小任务，或者使用任务状态表控制流程，而不是让一个 Redis 锁长时间占着。</p>
-<p>可重入锁适合一个线程在同一调用链里重复进入同一把锁的场景。它一般会记录线程标识和重入次数。优点是符合 Java <code>ReentrantLock</code> 的使用习惯，缺点是实现复杂，依赖客户端框架管理。</p>
-<p>RedLock 是一种尝试在多个 Redis 节点上获取多数锁的算法。它的目标是减少单点 Redis 故障对锁安全性的影响。但它实现和时钟假设更复杂，业务上是否需要要谨慎评估。多数普通后台系统，用单 Redis 主节点加合理业务幂等，或者直接用数据库唯一约束/状态机，反而更容易解释和维护。</p>
-<h2 id="业务例子"><a href="#业务例子" class="headerlink" title="业务例子"></a>业务例子</h2><p>以供应链库存预占为例。用户下单后，系统要对 SKU 做库存预占，不能让两个请求同时把同一批库存扣成负数。</p>
-<p>可以按 SKU 加锁：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">stock:lock:sku1001</span><br></pre></td></tr></table></figure>
-<p>流程是：</p>
-<ol>
-<li>请求生成唯一 <code>requestId</code>。</li>
-<li>使用 <code>SET key requestId NX PX 30000</code> 加锁。</li>
-<li>查询库存可用量。</li>
-<li>写入库存流水和订单预占记录。</li>
-<li>更新库存。</li>
-<li>提交数据库事务。</li>
-<li>用 Lua 判断 owner 后释放锁。</li>
-</ol>
-<p>这里还要做一层幂等：订单号和 SKU 的预占记录要有唯一约束。如果请求重试，即使再次进入，也不会重复预占。</p>
-<p>再比如 ERP 单据审核，同一张采购单不能同时被两个人审核。可以用 <code>po:audit:lock:{poNo}</code> 做锁，但最终仍然要在数据库里校验单据状态：只有 <code>待审核</code> 才能流转到 <code>已审核</code>。Redis 锁减少并发冲突，数据库状态机保证最终正确。</p>
-<h2 id="踩坑提醒"><a href="#踩坑提醒" class="headerlink" title="踩坑提醒"></a>踩坑提醒</h2><p>第一个坑，是没有过期时间。没有 TTL 的锁，遇到进程宕机就可能永远释放不了。</p>
-<p>第二个坑，是锁过期时间太短。业务还没执行完，锁先没了，其他线程进来就会并发执行。过期时间要结合业务耗时和最大抖动设置。</p>
-<p>第三个坑，是直接删除锁。释放前不判断 owner，很容易误删别人的锁。</p>
-<p>第四个坑，是只依赖锁不做幂等。网络重试、消费者重复消费、接口超时重放都可能导致同一业务重复进入。锁只是降低并发概率，幂等才是最后防线。</p>
-<p>第五个坑，是大锁。比如用一个 <code>global:lock</code> 锁住所有库存操作，会严重影响吞吐量。锁粒度要尽量贴近业务资源，比如按 SKU、订单号、仓库维度拆分。</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Redis 锁常见形态从简单 <code>SETNX</code> 到带 TTL、带 owner、Lua 释放、可重入锁和 Redisson 看门狗锁。项目里最推荐的底线写法是：<code>SET key requestId NX PX ttl</code> 加锁，Lua 判断 owner 后释放，业务做好幂等和状态校验。</p>
-<p>锁不是越复杂越安全。真正可靠的方案，通常是“短锁 + 合理 TTL + 原子释放 + 业务幂等 + 监控告警”。只要这几件事到位，大多数后台系统就已经比裸 <code>SETNX</code> 稳很多。</p>
+        <p><code>ReentrantLock</code> 是 Java 显式锁。相比 <code>synchronized</code>，它提供了更丰富的控制能力：可以尝试加锁、可以响应中断、可以设置公平锁，还可以通过多个 <code>Condition</code> 管理不同等待条件。</p>
+<p>在供应链仓储系统里，波次拣货是一个很适合解释 <code>ReentrantLock</code> 的场景。订单进入仓库后，系统会把多个订单合并成拣货波次。波次生成线程负责投放任务，拣货线程负责消费任务。如果没有合适的等待和唤醒机制，要么线程空转浪费 CPU，要么任务延迟处理。</p>
+<h2 id="一个波次队列"><a href="#一个波次队列" class="headerlink" title="一个波次队列"></a>一个波次队列</h2><p>需求如下：</p>
+<ul>
+<li>波次生成器把 <code>PickWave</code> 放入队列。</li>
+<li>拣货工作线程从队列获取波次。</li>
+<li>队列满时，生成器等待。</li>
+<li>队列空时，拣货线程等待。</li>
+</ul>
+<p>这正是 <code>Condition</code> 的典型使用场景。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">PickWaveQueue</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">ReentrantLock</span> <span class="variable">lock</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ReentrantLock</span>();</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">Condition</span> <span class="variable">notEmpty</span> <span class="operator">=</span> lock.newCondition();</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">Condition</span> <span class="variable">notFull</span> <span class="operator">=</span> lock.newCondition();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Deque&lt;PickWave&gt; queue = <span class="keyword">new</span> <span class="title class_">ArrayDeque</span>&lt;&gt;();</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">int</span> capacity;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">PickWaveQueue</span><span class="params">(<span class="type">int</span> capacity)</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.capacity = capacity;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">put</span><span class="params">(PickWave wave)</span> <span class="keyword">throws</span> InterruptedException &#123;</span><br><span class="line">        lock.lockInterruptibly();</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">while</span> (queue.size() == capacity) &#123;</span><br><span class="line">                notFull.await();</span><br><span class="line">            &#125;</span><br><span class="line">            queue.addLast(wave);</span><br><span class="line">            notEmpty.signal();</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            lock.unlock();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> PickWave <span class="title function_">take</span><span class="params">()</span> <span class="keyword">throws</span> InterruptedException &#123;</span><br><span class="line">        lock.lockInterruptibly();</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">while</span> (queue.isEmpty()) &#123;</span><br><span class="line">                notEmpty.await();</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="type">PickWave</span> <span class="variable">wave</span> <span class="operator">=</span> queue.removeFirst();</span><br><span class="line">            notFull.signal();</span><br><span class="line">            <span class="keyword">return</span> wave;</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            lock.unlock();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个例子和 <code>BlockingQueue</code> 很像。真实项目中优先使用 JDK 的 <code>ArrayBlockingQueue</code> 或 <code>LinkedBlockingQueue</code>。这里手写是为了说明 <code>ReentrantLock</code> 和 <code>Condition</code> 的工作方式。</p>
+<h2 id="为什么用-while-而不是-if"><a href="#为什么用-while-而不是-if" class="headerlink" title="为什么用 while 而不是 if"></a>为什么用 while 而不是 if</h2><p>等待条件必须用 <code>while</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">while</span> (queue.isEmpty()) &#123;</span><br><span class="line">    notEmpty.await();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>原因有两个。第一，线程可能虚假唤醒。第二，线程被唤醒后不代表条件仍然成立。比如多个拣货线程都被唤醒，只有一个线程拿到了波次，其他线程再次检查时队列又空了。</p>
+<p>供应链任务调度里，如果这里用 <code>if</code>，可能出现空队列取任务、重复消费或异常退出。</p>
+<h2 id="tryLock-适合避免线程池耗尽"><a href="#tryLock-适合避免线程池耗尽" class="headerlink" title="tryLock 适合避免线程池耗尽"></a>tryLock 适合避免线程池耗尽</h2><p>有些业务不适合无限等待锁。比如波次重算任务需要锁住某个仓库的计划上下文，如果拿不到锁，可以返回“系统正在计算，请稍后重试”。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">rebuildWavePlan</span><span class="params">(<span class="type">long</span> warehouseId)</span> <span class="keyword">throws</span> InterruptedException &#123;</span><br><span class="line">    <span class="keyword">if</span> (!lock.tryLock(<span class="number">3</span>, TimeUnit.SECONDS)) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        loadOrders(warehouseId);</span><br><span class="line">        allocateBins(warehouseId);</span><br><span class="line">        savePlan(warehouseId);</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        lock.unlock();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>tryLock</code> 的价值是给系统退路。线程池里的线程不应该因为等待一把锁全部卡死。</p>
+<h2 id="公平锁和非公平锁"><a href="#公平锁和非公平锁" class="headerlink" title="公平锁和非公平锁"></a>公平锁和非公平锁</h2><p><code>ReentrantLock</code> 默认是非公平锁。新来的线程可能插队获取锁，吞吐通常更高。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> <span class="type">ReentrantLock</span> <span class="variable">lock</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ReentrantLock</span>();</span><br></pre></td></tr></table></figure>
+
+<p>公平锁按等待顺序获取锁：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> <span class="type">ReentrantLock</span> <span class="variable">fairLock</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ReentrantLock</span>(<span class="literal">true</span>);</span><br></pre></td></tr></table></figure>
+
+<p>供应链后台任务多数更关注吞吐，非公平锁更常用。只有在明确存在饥饿问题，比如某类低优先级补货任务长期拿不到锁，才需要评估公平锁。但公平锁会增加调度成本，不应该默认使用。</p>
+<h2 id="和数据库事务配合"><a href="#和数据库事务配合" class="headerlink" title="和数据库事务配合"></a>和数据库事务配合</h2><p>Java 锁保护的是内存队列，不保护数据库里的波次状态。真正创建波次时仍然要用数据库状态条件防重：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span> scm_pick_wave</span><br><span class="line"><span class="keyword">SET</span> status <span class="operator">=</span> <span class="string">&#x27;PROCESSING&#x27;</span></span><br><span class="line"><span class="keyword">WHERE</span> id <span class="operator">=</span> #&#123;waveId&#125;</span><br><span class="line">  <span class="keyword">AND</span> status <span class="operator">=</span> <span class="string">&#x27;WAIT_PROCESS&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>Java 工作线程拿到波次后：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Transactional</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">process</span><span class="params">(PickWave wave)</span> &#123;</span><br><span class="line">    <span class="type">int</span> <span class="variable">affected</span> <span class="operator">=</span> waveMapper.markProcessing(wave.id());</span><br><span class="line">    <span class="keyword">if</span> (affected != <span class="number">1</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    allocatePickTasks(wave);</span><br><span class="line">    waveMapper.markReady(wave.id());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>即使同一个波次因为重试被投递两次，数据库状态条件也能保证只有一个线程真正处理成功。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p><code>ReentrantLock</code> 适合需要超时、可中断、多个等待条件的并发控制。供应链系统里的波次队列、任务调度、仓库计划重算都能用它解释。但真实项目中，能用成熟并发容器就先用并发容器；数据库状态变更必须继续依赖条件更新，不能只靠 JVM 锁。</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2023/11/23/redis锁有哪些/" data-id="cmq8scy6v000tjsqh5t3hysvb" class="article-share-link">Share</a>
+      <a data-url="https://guxingxianyue.github.io/2025/05/08/Java%20ReentrantLock%E5%92%8CCondition%EF%BC%9A%E6%B3%A2%E6%AC%A1%E6%8B%A3%E8%B4%A7%E8%B0%83%E5%BA%A6%E9%98%9F%E5%88%97%E8%AE%BE%E8%AE%A1/" data-id="cuidKe-mNkjjzXqcx5OJXRr05" class="article-share-link">Share</a>
       
       
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Redis/">Redis</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/分布式锁/">分布式锁</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/并发控制/">并发控制</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/系统设计/">系统设计</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Condition/" rel="tag">Condition</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ReentrantLock/" rel="tag">ReentrantLock</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%BB%93%E5%82%A8%E7%B3%BB%E7%BB%9F/" rel="tag">仓储系统</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91%E9%98%9F%E5%88%97/" rel="tag">并发队列</a></li></ul>
 
     </footer>
   </div>
@@ -651,7 +463,7 @@
   
   
     <nav id="page-nav">
-      <a class="extend prev" rel="prev" href="/page/3/">&laquo; Prev</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="page-number current">4</span><a class="page-number" href="/page/5/">5</a><a class="page-number" href="/page/6/">6</a><a class="page-number" href="/page/7/">7</a><a class="extend next" rel="next" href="/page/5/">Next &raquo;</a>
+      <a class="extend prev" rel="prev" href="/page/3/">&laquo; Prev</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="page-number current">4</span><a class="page-number" href="/page/5/">5</a><a class="page-number" href="/page/6/">6</a><span class="space">&hellip;</span><a class="page-number" href="/page/10/">10</a><a class="extend next" rel="next" href="/page/5/">Next &raquo;</a>
     </nav>
   
 </section>
@@ -664,7 +476,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AGENTS-md/">AGENTS.md</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI/">AI</a><span class="tag-list-count">15</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Agent/">Agent</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CAP/">CAP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Claude-Code/">Claude Code</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Codex/">Codex</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ERP/">ERP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/">Java</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kafka/">Kafka</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Loop-Engineering/">Loop Engineering</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/">MySQL</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Redis/">Redis</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/">SQL</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL优化/">SQL优化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Skill/">Skill</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spec-Coding/">Spec Coding</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spring-Cloud/">Spring Cloud</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/事务/">事务</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/供应链系统/">供应链系统</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/分布式/">分布式</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/分布式系统/">分布式系统</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/分布式锁/">分布式锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/命令行/">命令行</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/工程实践/">工程实践</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/并发控制/">并发控制</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/微服务/">微服务</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/技术文章/">技术文章</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/报表统计/">报表统计</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据分析/">数据分析</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据库/">数据库</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据结构与算法/">数据结构与算法</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/架构设计/">架构设计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/消息队列/">消息队列</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/系统优化/">系统优化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/系统设计/">系统设计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/缓存/">缓存</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/编程效率/">编程效率</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/软件工程/">软件工程</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/锁/">锁</a><span class="tag-list-count">1</span></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AGENTS-md/" rel="tag">AGENTS.md</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI/" rel="tag">AI</a><span class="tag-list-count">15</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AQS/" rel="tag">AQS</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Agent/" rel="tag">Agent</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Atomic/" rel="tag">Atomic</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CAP/" rel="tag">CAP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CAS/" rel="tag">CAS</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Claude-Code/" rel="tag">Claude Code</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Codex/" rel="tag">Codex</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Condition/" rel="tag">Condition</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ERP/" rel="tag">ERP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/InnoDB/" rel="tag">InnoDB</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JMM/" rel="tag">JMM</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kafka/" rel="tag">Kafka</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LongAdder/" rel="tag">LongAdder</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Loop-Engineering/" rel="tag">Loop Engineering</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MVCC/" rel="tag">MVCC</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Monitor/" rel="tag">Monitor</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Next-Key-Lock/" rel="tag">Next-Key Lock</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ReadWriteLock/" rel="tag">ReadWriteLock</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Redis/" rel="tag">Redis</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ReentrantLock/" rel="tag">ReentrantLock</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/" rel="tag">SQL</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL%E4%BC%98%E5%8C%96/" rel="tag">SQL优化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Skill/" rel="tag">Skill</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spec-Coding/" rel="tag">Spec Coding</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spring-Cloud/" rel="tag">Spring Cloud</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/StampedLock/" rel="tag">StampedLock</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/synchronized/" rel="tag">synchronized</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/volatile/" rel="tag">volatile</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%B9%90%E8%A7%82%E9%94%81/" rel="tag">乐观锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8B%E5%8A%A1/" rel="tag">事务</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/" rel="tag">事务隔离级别</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BB%93%E5%82%A8%E7%B3%BB%E7%BB%9F/" rel="tag">仓储系统</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F/" rel="tag">供应链系统</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" rel="tag">分布式</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/" rel="tag">分布式系统</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" rel="tag">分布式锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8D%95%E6%8D%AE%E5%AE%A1%E6%A0%B8/" rel="tag">单据审核</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" rel="tag">可见性</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%91%BD%E4%BB%A4%E8%A1%8C/" rel="tag">命令行</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/" rel="tag">工程实践</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6/" rel="tag">并发控制</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" rel="tag">并发编程</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91%E9%98%9F%E5%88%97/" rel="tag">并发队列</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%BB%E8%AF%BB/" rel="tag">幻读</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BA%93%E5%AD%98%E7%B3%BB%E7%BB%9F/" rel="tag">库存系统</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/" rel="tag">微服务</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%82%B2%E8%A7%82%E9%94%81/" rel="tag">悲观锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8A%80%E6%9C%AF%E6%96%87%E7%AB%A0/" rel="tag">技术文章</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8A%A5%E8%A1%A8%E7%BB%9F%E8%AE%A1/" rel="tag">报表统计</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E5%88%86%E6%9E%90/" rel="tag">数据分析</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="tag">数据库</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/" rel="tag">数据结构与算法</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/" rel="tag">架构设计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%AD%BB%E9%94%81/" rel="tag">死锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" rel="tag">消息队列</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%B3%BB%E7%BB%9F%E4%BC%98%E5%8C%96/" rel="tag">系统优化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/" rel="tag">系统设计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%B4%A2%E5%BC%95/" rel="tag">索引</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BC%93%E5%AD%98/" rel="tag">缓存</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BC%96%E7%A8%8B%E6%95%88%E7%8E%87/" rel="tag">编程效率</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%A1%8C%E9%94%81/" rel="tag">行锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%A2%E5%8D%95%E7%B3%BB%E7%BB%9F/" rel="tag">订单系统</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%BD%AF%E4%BB%B6%E5%B7%A5%E7%A8%8B/" rel="tag">软件工程</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%87%87%E8%B4%AD%E7%B3%BB%E7%BB%9F/" rel="tag">采购系统</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%94%81/" rel="tag">锁</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%94%81%E7%AD%89%E5%BE%85/" rel="tag">锁等待</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%97%B4%E9%9A%99%E9%94%81/" rel="tag">间隙锁</a><span class="tag-list-count">1</span></li></ul>
     </div>
   </div>
 
@@ -673,7 +485,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tag Cloud</h3>
     <div class="widget tagcloud">
-      <a href="/tags/AGENTS-md/" style="font-size: 10px;">AGENTS.md</a> <a href="/tags/AI/" style="font-size: 20px;">AI</a> <a href="/tags/Agent/" style="font-size: 10px;">Agent</a> <a href="/tags/CAP/" style="font-size: 10px;">CAP</a> <a href="/tags/Claude-Code/" style="font-size: 13.75px;">Claude Code</a> <a href="/tags/Codex/" style="font-size: 18.75px;">Codex</a> <a href="/tags/ERP/" style="font-size: 10px;">ERP</a> <a href="/tags/Java/" style="font-size: 17.5px;">Java</a> <a href="/tags/Kafka/" style="font-size: 10px;">Kafka</a> <a href="/tags/Loop-Engineering/" style="font-size: 10px;">Loop Engineering</a> <a href="/tags/MySQL/" style="font-size: 11.25px;">MySQL</a> <a href="/tags/Redis/" style="font-size: 11.25px;">Redis</a> <a href="/tags/SQL/" style="font-size: 10px;">SQL</a> <a href="/tags/SQL优化/" style="font-size: 10px;">SQL优化</a> <a href="/tags/Skill/" style="font-size: 10px;">Skill</a> <a href="/tags/Spec-Coding/" style="font-size: 12.5px;">Spec Coding</a> <a href="/tags/Spring-Cloud/" style="font-size: 10px;">Spring Cloud</a> <a href="/tags/事务/" style="font-size: 10px;">事务</a> <a href="/tags/供应链系统/" style="font-size: 10px;">供应链系统</a> <a href="/tags/分布式/" style="font-size: 13.75px;">分布式</a> <a href="/tags/分布式系统/" style="font-size: 11.25px;">分布式系统</a> <a href="/tags/分布式锁/" style="font-size: 10px;">分布式锁</a> <a href="/tags/命令行/" style="font-size: 11.25px;">命令行</a> <a href="/tags/工程实践/" style="font-size: 12.5px;">工程实践</a> <a href="/tags/并发控制/" style="font-size: 10px;">并发控制</a> <a href="/tags/微服务/" style="font-size: 10px;">微服务</a> <a href="/tags/技术文章/" style="font-size: 16.25px;">技术文章</a> <a href="/tags/报表统计/" style="font-size: 10px;">报表统计</a> <a href="/tags/数据分析/" style="font-size: 10px;">数据分析</a> <a href="/tags/数据库/" style="font-size: 11.25px;">数据库</a> <a href="/tags/数据结构与算法/" style="font-size: 12.5px;">数据结构与算法</a> <a href="/tags/架构设计/" style="font-size: 11.25px;">架构设计</a> <a href="/tags/消息队列/" style="font-size: 10px;">消息队列</a> <a href="/tags/系统优化/" style="font-size: 10px;">系统优化</a> <a href="/tags/系统设计/" style="font-size: 11.25px;">系统设计</a> <a href="/tags/缓存/" style="font-size: 10px;">缓存</a> <a href="/tags/编程效率/" style="font-size: 16.25px;">编程效率</a> <a href="/tags/软件工程/" style="font-size: 15px;">软件工程</a> <a href="/tags/锁/" style="font-size: 10px;">锁</a>
+      <a href="/tags/AGENTS-md/" style="font-size: 10px;">AGENTS.md</a> <a href="/tags/AI/" style="font-size: 20px;">AI</a> <a href="/tags/AQS/" style="font-size: 10px;">AQS</a> <a href="/tags/Agent/" style="font-size: 10px;">Agent</a> <a href="/tags/Atomic/" style="font-size: 10px;">Atomic</a> <a href="/tags/CAP/" style="font-size: 10px;">CAP</a> <a href="/tags/CAS/" style="font-size: 10px;">CAS</a> <a href="/tags/Claude-Code/" style="font-size: 13.33px;">Claude Code</a> <a href="/tags/Codex/" style="font-size: 17.78px;">Codex</a> <a href="/tags/Condition/" style="font-size: 10px;">Condition</a> <a href="/tags/ERP/" style="font-size: 10px;">ERP</a> <a href="/tags/InnoDB/" style="font-size: 13.33px;">InnoDB</a> <a href="/tags/JMM/" style="font-size: 10px;">JMM</a> <a href="/tags/Java/" style="font-size: 18.89px;">Java</a> <a href="/tags/Kafka/" style="font-size: 10px;">Kafka</a> <a href="/tags/LongAdder/" style="font-size: 10px;">LongAdder</a> <a href="/tags/Loop-Engineering/" style="font-size: 10px;">Loop Engineering</a> <a href="/tags/MVCC/" style="font-size: 10px;">MVCC</a> <a href="/tags/Monitor/" style="font-size: 10px;">Monitor</a> <a href="/tags/MySQL/" style="font-size: 16.67px;">MySQL</a> <a href="/tags/Next-Key-Lock/" style="font-size: 10px;">Next-Key Lock</a> <a href="/tags/ReadWriteLock/" style="font-size: 10px;">ReadWriteLock</a> <a href="/tags/Redis/" style="font-size: 11.11px;">Redis</a> <a href="/tags/ReentrantLock/" style="font-size: 10px;">ReentrantLock</a> <a href="/tags/SQL/" style="font-size: 10px;">SQL</a> <a href="/tags/SQL%E4%BC%98%E5%8C%96/" style="font-size: 10px;">SQL优化</a> <a href="/tags/Skill/" style="font-size: 10px;">Skill</a> <a href="/tags/Spec-Coding/" style="font-size: 12.22px;">Spec Coding</a> <a href="/tags/Spring-Cloud/" style="font-size: 10px;">Spring Cloud</a> <a href="/tags/StampedLock/" style="font-size: 10px;">StampedLock</a> <a href="/tags/synchronized/" style="font-size: 10px;">synchronized</a> <a href="/tags/volatile/" style="font-size: 10px;">volatile</a> <a href="/tags/%E4%B9%90%E8%A7%82%E9%94%81/" style="font-size: 10px;">乐观锁</a> <a href="/tags/%E4%BA%8B%E5%8A%A1/" style="font-size: 11.11px;">事务</a> <a href="/tags/%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/" style="font-size: 10px;">事务隔离级别</a> <a href="/tags/%E4%BB%93%E5%82%A8%E7%B3%BB%E7%BB%9F/" style="font-size: 12.22px;">仓储系统</a> <a href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F/" style="font-size: 14.44px;">供应链系统</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" style="font-size: 13.33px;">分布式</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/" style="font-size: 11.11px;">分布式系统</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" style="font-size: 10px;">分布式锁</a> <a href="/tags/%E5%8D%95%E6%8D%AE%E5%AE%A1%E6%A0%B8/" style="font-size: 10px;">单据审核</a> <a href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" style="font-size: 10px;">可见性</a> <a href="/tags/%E5%91%BD%E4%BB%A4%E8%A1%8C/" style="font-size: 11.11px;">命令行</a> <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/" style="font-size: 12.22px;">工程实践</a> <a href="/tags/%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6/" style="font-size: 10px;">并发控制</a> <a href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" style="font-size: 12.22px;">并发编程</a> <a href="/tags/%E5%B9%B6%E5%8F%91%E9%98%9F%E5%88%97/" style="font-size: 10px;">并发队列</a> <a href="/tags/%E5%B9%BB%E8%AF%BB/" style="font-size: 10px;">幻读</a> <a href="/tags/%E5%BA%93%E5%AD%98%E7%B3%BB%E7%BB%9F/" style="font-size: 11.11px;">库存系统</a> <a href="/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/" style="font-size: 10px;">微服务</a> <a href="/tags/%E6%82%B2%E8%A7%82%E9%94%81/" style="font-size: 10px;">悲观锁</a> <a href="/tags/%E6%8A%80%E6%9C%AF%E6%96%87%E7%AB%A0/" style="font-size: 15.56px;">技术文章</a> <a href="/tags/%E6%8A%A5%E8%A1%A8%E7%BB%9F%E8%AE%A1/" style="font-size: 10px;">报表统计</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E5%88%86%E6%9E%90/" style="font-size: 10px;">数据分析</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 11.11px;">数据库</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/" style="font-size: 12.22px;">数据结构与算法</a> <a href="/tags/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/" style="font-size: 11.11px;">架构设计</a> <a href="/tags/%E6%AD%BB%E9%94%81/" style="font-size: 10px;">死锁</a> <a href="/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" style="font-size: 10px;">消息队列</a> <a href="/tags/%E7%B3%BB%E7%BB%9F%E4%BC%98%E5%8C%96/" style="font-size: 10px;">系统优化</a> <a href="/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/" style="font-size: 11.11px;">系统设计</a> <a href="/tags/%E7%B4%A2%E5%BC%95/" style="font-size: 10px;">索引</a> <a href="/tags/%E7%BC%93%E5%AD%98/" style="font-size: 11.11px;">缓存</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E6%95%88%E7%8E%87/" style="font-size: 15.56px;">编程效率</a> <a href="/tags/%E8%A1%8C%E9%94%81/" style="font-size: 10px;">行锁</a> <a href="/tags/%E8%AE%A2%E5%8D%95%E7%B3%BB%E7%BB%9F/" style="font-size: 10px;">订单系统</a> <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%B7%A5%E7%A8%8B/" style="font-size: 14.44px;">软件工程</a> <a href="/tags/%E9%87%87%E8%B4%AD%E7%B3%BB%E7%BB%9F/" style="font-size: 10px;">采购系统</a> <a href="/tags/%E9%94%81/" style="font-size: 12.22px;">锁</a> <a href="/tags/%E9%94%81%E7%AD%89%E5%BE%85/" style="font-size: 10px;">锁等待</a> <a href="/tags/%E9%97%B4%E9%9A%99%E9%94%81/" style="font-size: 10px;">间隙锁</a>
     </div>
   </div>
 
@@ -682,7 +494,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/06/">六月 2026</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/05/">五月 2026</a><span class="archive-list-count">9</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">十一月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">八月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/05/">五月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">二月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">十一月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/07/">七月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">三月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">六月 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">四月 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">三月 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">一月 2016</a><span class="archive-list-count">1</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/06/">六月 2026</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/05/">五月 2026</a><span class="archive-list-count">9</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/06/">六月 2025</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/05/">五月 2025</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/04/">四月 2025</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/03/">三月 2025</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">十一月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">八月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/05/">五月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">二月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">十一月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/07/">七月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">三月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">六月 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">四月 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">三月 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">一月 2016</a><span class="archive-list-count">1</span></li></ul>
     </div>
   </div>
 
@@ -698,19 +510,19 @@
           </li>
         
           <li>
-            <a href="/2026/06/10/Codex提高软件编程效率的10个技巧/">Codex提高软件编程效率的10个技巧</a>
+            <a href="/2026/06/10/Codex%E6%8F%90%E9%AB%98%E8%BD%AF%E4%BB%B6%E7%BC%96%E7%A8%8B%E6%95%88%E7%8E%87%E7%9A%8410%E4%B8%AA%E6%8A%80%E5%B7%A7/">Codex提高软件编程效率的10个技巧</a>
           </li>
         
           <li>
-            <a href="/2026/06/10/普通开发者使用AI的三条边界/">普通开发者使用AI的三条边界</a>
+            <a href="/2026/06/10/%E6%99%AE%E9%80%9A%E5%BC%80%E5%8F%91%E8%80%85%E4%BD%BF%E7%94%A8AI%E7%9A%84%E4%B8%89%E6%9D%A1%E8%BE%B9%E7%95%8C/">普通开发者使用AI的三条边界</a>
           </li>
         
           <li>
-            <a href="/2026/06/10/AI-Agent时代的开发工作流/">AI Agent时代的开发工作流</a>
+            <a href="/2026/06/10/AI-Agent%E6%97%B6%E4%BB%A3%E7%9A%84%E5%BC%80%E5%8F%91%E5%B7%A5%E4%BD%9C%E6%B5%81/">AI Agent时代的开发工作流</a>
           </li>
         
           <li>
-            <a href="/2026/06/10/2026年重新理解AI编程助手/">2026年，重新理解AI编程助手</a>
+            <a href="/2026/06/10/2026%E5%B9%B4%E9%87%8D%E6%96%B0%E7%90%86%E8%A7%A3AI%E7%BC%96%E7%A8%8B%E5%8A%A9%E6%89%8B/">2026年，重新理解AI编程助手</a>
           </li>
         
       </ul>
@@ -745,11 +557,17 @@
 <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
 
 
-  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
-  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
 
 
 <script src="/js/script.js"></script>
+
 
   </div>
 </body>

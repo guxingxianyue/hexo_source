@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-<head><meta name="generator" content="Hexo 3.9.0">
+<head>
   <meta charset="utf-8">
   
   <title>陈金星写字的地方</title>
@@ -11,10 +11,9 @@
 <meta property="og:url" content="https://guxingxianyue.github.io/page/7/index.html">
 <meta property="og:site_name" content="陈金星写字的地方">
 <meta property="og:description" content="less is more">
-<meta property="og:locale" content="zh-CN">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:author" content="Jinxing Chen">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="陈金星写字的地方">
-<meta name="twitter:description" content="less is more">
   
     <link rel="alternative" href="/atom.xml" title="陈金星写字的地方" type="application/atom+xml">
   
@@ -22,10 +21,12 @@
     <link rel="icon" href="/favicon.png">
   
   <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
-  <link rel="stylesheet" href="/css/style.css">
+  
+<link rel="stylesheet" href="/css/style.css">
+
   
 
-</head></html>
+<meta name="generator" content="Hexo 8.1.2"></head>
 <body>
   <div id="container">
     <div id="wrap">
@@ -36,10 +37,6 @@
       <h1 id="logo-wrap">
         <a href="/" id="logo">陈金星写字的地方</a>
       </h1>
-      
-        <h2 id="subtitle-wrap">
-          <a href="/" id="subtitle">less is more</a>
-        </h2>
       
     </div>
     <div id="header-inner" class="inner">
@@ -68,10 +65,10 @@
       <div class="outer">
         <section id="main">
   
-    <article id="post-spring【入门】" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-springcloud里面常用的组件" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2016/04/02/spring【入门】/" class="article-date">
-  <time datetime="2016-04-02T11:21:08.000Z" itemprop="datePublished">2016-04-02</time>
+    <a href="/2024/02/18/springcloud%E9%87%8C%E9%9D%A2%E5%B8%B8%E7%94%A8%E7%9A%84%E7%BB%84%E4%BB%B6/" class="article-date">
+  <time datetime="2024-02-18T01:30:00.000Z" itemprop="datePublished">2024-02-18</time>
 </a>
     
   </div>
@@ -82,7 +79,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2016/04/02/spring【入门】/">spring【入门】</a>
+      <a class="article-title" href="/2024/02/18/springcloud%E9%87%8C%E9%9D%A2%E5%B8%B8%E7%94%A8%E7%9A%84%E7%BB%84%E4%BB%B6/">springcloud 里面常用的组件</a>
     </h1>
   
 
@@ -90,533 +87,100 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="spring介绍："><a href="#spring介绍：" class="headerlink" title="spring介绍："></a>spring介绍：</h2><p>Spring是一个开源框架，它由Rod Johnson创建。它是为了解决企业应用开发的复杂性而创建的。</p>
-<p>   Spring使用基本的JavaBean来完成以前只可能由EJB完成的事情。<br>  然而，Spring的用途不仅限于服务器端的开发。从简单性、可测试性和松耦合的角度而言，任何Java应用都可以从Spring中受益。</p>
+        <p>Spring Cloud 不是一个单独的框架，而是一组围绕微服务落地的工程组件。它解决的不是某一个业务功能，而是微服务拆分之后必然出现的一组基础问题：服务在哪里、请求怎么进来、服务之间怎么调用、配置怎么管理、故障怎么隔离、链路怎么追踪。</p>
+<p>如果把一个供应链系统拆成订单服务、库存服务、采购服务、仓储服务、结算服务，每个服务都可以独立部署和扩容。拆分之后的好处是边界清晰、扩展灵活，但随之而来的问题是系统从一个进程变成了多个进程的协作。Spring Cloud 常用组件就是为了处理这些协作问题。</p>
+<p><img src="/images/tech-flowcharts/springcloud-components-flow.svg" alt="Spring Cloud 常用组件协作流程"></p>
+<h2 id="服务注册与发现：Eureka、Nacos、Consul"><a href="#服务注册与发现：Eureka、Nacos、Consul" class="headerlink" title="服务注册与发现：Eureka、Nacos、Consul"></a>服务注册与发现：Eureka、Nacos、Consul</h2><p>服务注册中心负责回答一个最基础的问题：服务在哪里。</p>
+<p>在单体系统里，方法调用发生在同一个进程内，不需要知道网络地址。拆成微服务之后，订单服务调用库存服务，需要知道库存服务当前有哪些实例、实例的 IP 和端口是什么、哪些实例健康、哪些实例已经下线。</p>
+<p>注册中心的工作方式通常是：</p>
+<ol>
+<li>服务启动时，把自己的服务名、地址、端口、健康状态注册到注册中心。</li>
+<li>服务运行期间，持续向注册中心发送心跳。</li>
+<li>调用方从注册中心拉取可用实例列表。</li>
+<li>注册中心根据心跳和健康检查剔除不可用实例。</li>
+</ol>
+<p>Eureka 是 Spring Cloud 早期常用的注册中心，强调 AP 思路，在短时间网络抖动时更倾向于保证服务发现可用。Nacos 同时支持服务发现和配置管理，在国内项目里使用较多。Consul 提供服务发现、健康检查和 KV 存储，也常用于基础设施统一管理。</p>
+<p>在供应链系统里，库存服务可能部署 6 个实例。订单服务不应该写死某一个库存服务地址，而是通过服务名 <code>inventory-service</code> 找到健康实例，再把请求分发过去。</p>
+<h2 id="配置中心：Spring-Cloud-Config、Nacos-Config"><a href="#配置中心：Spring-Cloud-Config、Nacos-Config" class="headerlink" title="配置中心：Spring Cloud Config、Nacos Config"></a>配置中心：Spring Cloud Config、Nacos Config</h2><p>配置中心负责回答另一个问题：配置怎么统一管理。</p>
+<p>微服务数量多了以后，如果每个服务都把数据库地址、开关配置、限流阈值、第三方接口地址写在本地配置文件里，修改一次配置就要重新打包和发布多个服务，风险很高。</p>
+<p>配置中心的工作原理是把配置从应用包里抽出来，集中存储和下发。服务启动时从配置中心读取配置，运行期间也可以通过刷新机制拿到最新配置。</p>
+<p>典型配置包括：</p>
 <ul>
-<li>目的：简化Java的开发<ul>
-<li>基于POJO轻量级和最小侵入式开发</li>
-<li>通过依赖注入和面向接口实现松耦合</li>
-<li>基于切面和惯例进行声明式编程</li>
-<li>通过切面和模板<strong>减少样板式代码 </strong></li>
+<li>数据库连接信息。</li>
+<li>Redis、MQ、搜索服务地址。</li>
+<li>业务开关，例如是否启用新的库存锁定策略。</li>
+<li>限流、超时、熔断阈值。</li>
+<li>不同环境的差异配置。</li>
 </ul>
-</li>
-<li>功能：使用基本的JavaBean代替EJB，并提供了更多的企业应用功能</li>
-<li>范围：任何Java应用</li>
-</ul>
-<p>它是一个容器框架，用来装javabean（java对象），中间层框架（万能胶）可以起一个连接作用，比如说把springMVC和Mybatis粘合在一起运用。简单来说，Spring是一个轻量级的控制反转(IoC)和面向切面(AOP)的容器框架。</p>
-<h4 id="侵入式概念"><a href="#侵入式概念" class="headerlink" title="侵入式概念"></a>侵入式概念</h4><p>Spring是一种非侵入式的框架…</p>
-<p>侵入式</p>
+<p>例如采购系统要临时关闭自动补货功能，只需要在配置中心修改 <code>autoReplenish.enabled=false</code>，再让采购服务刷新配置，不需要重新发布服务。</p>
+<h2 id="网关：Spring-Cloud-Gateway、Zuul"><a href="#网关：Spring-Cloud-Gateway、Zuul" class="headerlink" title="网关：Spring Cloud Gateway、Zuul"></a>网关：Spring Cloud Gateway、Zuul</h2><p>网关是微服务系统的统一入口。</p>
+<p>如果没有网关，前端要直接知道订单服务、库存服务、报表服务、用户服务的地址，这会让前端和后端部署结构强耦合。网关把外部请求统一接进来，再根据路由规则转发到内部服务。</p>
+<p>网关常见职责包括：</p>
 <ul>
-<li><p>对于EJB、Struts2等一些传统的框架，通常是要实现特定的接口，继承特定的类才能增强功能</p>
+<li>路由转发：把 <code>/api/orders/**</code> 转发到订单服务。</li>
+<li>鉴权认证：统一校验 token、登录态、权限。</li>
+<li>限流降级：对高频接口做访问控制。</li>
+<li>日志审计：记录请求来源、耗时、状态码。</li>
+<li>协议适配：对外暴露统一 HTTP 接口，对内转发到多个服务。</li>
+</ul>
+<p>Spring Cloud Gateway 基于响应式模型，性能和扩展性比早期 Zuul 1 更适合新项目。一个常见做法是把所有供应链后台请求都先打到网关，网关校验用户身份后，再转到订单、库存、采购等服务。</p>
+<h2 id="服务调用：OpenFeign、RestTemplate、WebClient"><a href="#服务调用：OpenFeign、RestTemplate、WebClient" class="headerlink" title="服务调用：OpenFeign、RestTemplate、WebClient"></a>服务调用：OpenFeign、RestTemplate、WebClient</h2><p>服务调用组件负责让一个服务更方便地调用另一个服务。</p>
+<p>OpenFeign 的价值是把远程 HTTP 调用写得像本地接口调用。开发者只需要定义接口、声明服务名和路径，Feign 会根据服务发现结果、负载均衡策略和 HTTP 编码规则发起请求。</p>
+<p>例如订单服务创建订单时，需要调用库存服务锁定库存：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@FeignClient(name = &quot;inventory-service&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">InventoryClient</span> &#123;</span><br><span class="line">    <span class="meta">@PostMapping(&quot;/inventory/lock&quot;)</span></span><br><span class="line">    LockResult <span class="title function_">lock</span><span class="params">(<span class="meta">@RequestBody</span> LockInventoryCommand command)</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>它背后的核心流程是：根据服务名找到实例列表，选择一个实例，组装 HTTP 请求，发送请求，解析响应，异常时交给重试、熔断或降级逻辑处理。</p>
+<p>RestTemplate 是较早的同步 HTTP 客户端，WebClient 支持响应式调用。对于大多数普通业务服务，OpenFeign 的声明式调用更容易维护。</p>
+<h2 id="负载均衡：Ribbon、Spring-Cloud-LoadBalancer"><a href="#负载均衡：Ribbon、Spring-Cloud-LoadBalancer" class="headerlink" title="负载均衡：Ribbon、Spring Cloud LoadBalancer"></a>负载均衡：Ribbon、Spring Cloud LoadBalancer</h2><p>负载均衡负责决定请求发给哪一个服务实例。</p>
+<p>当库存服务有多个实例时，订单服务不能永远调用同一个实例，否则这个实例会成为热点。客户端负载均衡会从注册中心拿到实例列表，然后根据策略选择一个实例。</p>
+<p>常见策略包括：</p>
 <ul>
-<li>改变了java类的结构</li>
+<li>轮询：请求依次分配给不同实例。</li>
+<li>随机：随机选择一个实例。</li>
+<li>权重：性能更强或权重更高的实例承担更多请求。</li>
+<li>最少连接或响应时间优先：尽量选择当前压力较小的实例。</li>
 </ul>
-<p>非侵入式</p>
+<p>Ribbon 是早期常见组件，新版本 Spring Cloud 更推荐 Spring Cloud LoadBalancer。它们的核心目标一致：让调用方不用关心某个服务具体部署了多少实例。</p>
+<h2 id="熔断与限流：Hystrix、Resilience4j、Sentinel"><a href="#熔断与限流：Hystrix、Resilience4j、Sentinel" class="headerlink" title="熔断与限流：Hystrix、Resilience4j、Sentinel"></a>熔断与限流：Hystrix、Resilience4j、Sentinel</h2><p>熔断和限流负责防止局部故障拖垮整个系统。</p>
+<p>在分布式系统里，一个服务慢并不可怕，可怕的是调用它的服务都被拖慢。比如库存服务数据库异常，订单服务大量线程卡在库存锁定接口上，随后订单服务也无法响应，最终网关、前端和其他服务都受到影响。</p>
+<p>熔断器的工作原理类似电路保护：</p>
+<ol>
+<li>统计一段时间内的失败率、慢调用比例、异常数量。</li>
+<li>当指标超过阈值时，打开熔断器。</li>
+<li>熔断打开后，请求不再真实调用下游，而是直接失败或走降级结果。</li>
+<li>过一段时间进入半开状态，放少量请求试探下游是否恢复。</li>
+<li>如果试探成功，关闭熔断；如果失败，继续熔断。</li>
+</ol>
+<p>Hystrix 曾经是 Spring Cloud 里最常见的熔断组件，但已经进入维护状态。新项目更常见的是 Resilience4j 或 Sentinel。Sentinel 在限流、热点参数控制、系统自适应保护方面更完整。</p>
+<h2 id="消息总线和消息驱动：Spring-Cloud-Bus、Stream"><a href="#消息总线和消息驱动：Spring-Cloud-Bus、Stream" class="headerlink" title="消息总线和消息驱动：Spring Cloud Bus、Stream"></a>消息总线和消息驱动：Spring Cloud Bus、Stream</h2><p>微服务之间不一定都要同步调用。对于不要求立即返回结果的业务，异步消息更适合。</p>
+<p>Spring Cloud Stream 把消息中间件抽象成绑定模型，让业务代码不直接依赖 Kafka、RabbitMQ 等具体实现。Spring Cloud Bus 常用于配置刷新、服务间事件通知。</p>
+<p>供应链系统里的典型场景是订单创建成功后发送 <code>OrderCreatedEvent</code>。库存服务订阅事件后扣减可售库存，仓储服务订阅事件后准备出库任务，积分服务订阅事件后累计客户积分。这样订单服务不需要同步等待所有下游服务完成。</p>
+<p>异步消息的关键不是简单地把请求丢到 MQ，而是要处理幂等、重复消费、消息顺序、失败重试和最终一致性。</p>
+<h2 id="链路追踪：Sleuth、Zipkin、Micrometer-Tracing"><a href="#链路追踪：Sleuth、Zipkin、Micrometer-Tracing" class="headerlink" title="链路追踪：Sleuth、Zipkin、Micrometer Tracing"></a>链路追踪：Sleuth、Zipkin、Micrometer Tracing</h2><p>链路追踪负责回答线上排查时最痛苦的问题：一次请求到底经过了哪些服务，慢在哪里。</p>
+<p>当用户点击创建采购单，可能经过网关、采购服务、供应商服务、库存服务、审批服务、消息队列。没有链路追踪时，只能分别查多个服务日志，很难把它们串起来。</p>
+<p>链路追踪的工作方式是给每次请求生成 traceId，并在服务之间透传。每个服务再生成自己的 spanId，记录当前服务处理了什么、耗时多少、是否异常。Zipkin 或其他追踪平台负责收集和展示完整调用链。</p>
+<p>Spring Cloud Sleuth 曾经负责自动注入 traceId 和 spanId。新版本生态里，Micrometer Tracing 是更主流的观测方案。</p>
+<h2 id="监控与治理：Actuator、Admin、Prometheus"><a href="#监控与治理：Actuator、Admin、Prometheus" class="headerlink" title="监控与治理：Actuator、Admin、Prometheus"></a>监控与治理：Actuator、Admin、Prometheus</h2><p>服务能跑起来只是第一步，更重要的是知道它跑得怎么样。</p>
+<p>Spring Boot Actuator 提供健康检查、指标、线程、环境变量等端点。Spring Boot Admin 可以集中查看服务状态。Prometheus 和 Grafana 常用于采集指标和展示监控面板。</p>
+<p>供应链系统至少应该关注：</p>
 <ul>
-<li>对于Hibernate、Spring等框架，对现有的类结构没有影响，就能够增强JavaBean的功能</li>
-<li></li>
+<li>接口成功率和 P95、P99 响应时间。</li>
+<li>数据库连接池使用率。</li>
+<li>MQ 积压数量。</li>
+<li>服务实例健康状态。</li>
+<li>线程池队列长度。</li>
+<li>熔断、限流、降级次数。</li>
 </ul>
-</li>
-</ul>
-<h4 id="松耦合"><a href="#松耦合" class="headerlink" title="松耦合"></a>松耦合</h4><p>一般我们在写程序的时候，都是面向接口编程，通过DaoFactroy等方法来实现松耦合</p>
-<pre><code>private CategoryDao categoryDao = DaoFactory.getInstance().createDao(&quot;zhongfucheng.dao.impl.CategoryDAOImpl&quot;, CategoryDao.class);
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Spring Cloud 常用组件本质上是在处理微服务运行期治理问题。注册中心解决服务在哪里，配置中心解决配置如何统一，网关解决入口治理，Feign 解决服务调用，负载均衡解决实例选择，熔断限流解决故障隔离，消息组件解决异步解耦，链路追踪和监控解决可观测性。</p>
+<p>真正落地时不要为了组件而组件。系统规模小的时候，可以先从注册中心、网关、配置中心、Feign、基础监控开始。等调用链复杂、流量变大、故障影响扩大时，再逐步引入熔断限流、链路追踪、消息驱动和更细的治理能力。</p>
 
-private BookDao bookDao = DaoFactory.getInstance().createDao(&quot;zhongfucheng.dao.impl.BookDaoImpl&quot;, BookDao.class);
-
-private UserDao userDao = DaoFactory.getInstance().createDao(&quot;zhongfucheng.dao.impl.UserDaoImpl&quot;, UserDao.class);
-
-private OrderDao orderDao = DaoFactory.getInstance().createDao(&quot;zhongfucheng.dao.impl.OrderDaoImpl&quot;, OrderDao.class);
-</code></pre><p>DAO层和Service层通过DaoFactory来实现松耦合</p>
-<ul>
-<li>如果Serivce层直接new DaoBook()，那么DAO和Service就紧耦合了【Service层依赖紧紧依赖于Dao】</li>
-</ul>
-<p>而Spring给我们更加合适的方法来实现松耦合，并且更加灵活、功能更加强大！-&gt;IOC控制反转 </p>
-<h4 id="切面编程"><a href="#切面编程" class="headerlink" title="切面编程"></a>切面编程</h4><p>切面编程也就是AOP编程，其实我们在也接触过，动态代理就是一种切面编程了。</p>
-<p>AOP编程可以简单理解成：在执行某些代码前，执行另外的代码</p>
-<ul>
-<li>Struts2的拦截器也是面向切面编程【在执行Action业务方法之前执行拦截器】</li>
-</ul>
-<p>Spring也为我们提供更好地方式来实现面向切面编程！</p>
-<h2 id="引出Spring"><a href="#引出Spring" class="headerlink" title="引出Spring"></a>引出Spring</h2><p>我们试着回顾一下没学Spring的时候，是怎么开发Web项目的</p>
-<ul>
-<li><p>实体类—&gt;class User{ }</p>
-</li>
-<li><p>dao–&gt;  UserDao{  .. 访问db}</p>
-</li>
-<li><p>service—&gt;  UserService{  UserDao userDao = new UserDao();}</p>
-</li>
-<li><p>controller—&gt; UserControler{UserService userService = new UserService();}</p>
-</li>
-</ul>
-<p>用户访问：</p>
-<ul>
-<li>Tomcat-&gt;action-&gt;service-&gt;dao</li>
-</ul>
-<p>我们来思考几个问题：</p>
-<ul>
-<li><p>1、对象创建创建能否写死？</p>
-</li>
-<li><p>2、对象创建细节</p>
-<ul>
-<li><p>controller    访问时候创建</p>
-</li>
-<li><p>service   启动时候创建</p>
-</li>
-<li><p>dao       启动时候创建</p>
-</li>
-<li><p>controller  多个 </p>
-</li>
-<li><p>service 一个   </p>
-</li>
-<li><p>dao     一个   </p>
-</li>
-<li><p>对象数量</p>
-</li>
-<li><p>创建时间</p>
-</li>
-</ul>
-</li>
-<li><p>3、对象的依赖关系</p>
-<ul>
-<li><p>controller 依赖 service</p>
-</li>
-<li><p>service依赖 dao</p>
-</li>
-</ul>
-</li>
-</ul>
-<p>对于第一个问题和第三个问题，我们可以通过DaoFactory解决掉</p>
-<p>对于第二个问题，我们要控制对象的数量和创建事件就有点麻烦了</p>
-<p>而Spring框架通过IOC就很好地可以解决上面的问题</p>
-<h4 id="IOC控制反转"><a href="#IOC控制反转" class="headerlink" title="IOC控制反转"></a>IOC控制反转</h4><p><strong>Spring的核心思想之一：Inversion of Control , 控制反转 IOC</strong></p>
-<p>那么控制反转是什么意思呢？？？对象的创建交给外部容器完成，这个就做控制反转。</p>
-<ul>
-<li><p>Spring使用控制反转来实现对象不用在程序中写死</p>
-</li>
-<li><p>控制反转解决对象处理问题【把对象交给别人创建】</p>
-</li>
-</ul>
-<p>那么对象的对象之间的依赖关系Spring是怎么做的呢？？<strong>依赖注入，dependency injection.</strong></p>
-<ul>
-<li><p>Spring使用依赖注入来实现对象之间的依赖关系</p>
-</li>
-<li><p>在创建完对象之后，对象的关系处理就是依赖注入</p>
-</li>
-<li>上面已经说了，控制反转是通过外部容器完成的，而Spring又为我们提供了这么一个容器，我们一般将这个容器叫做：<strong>IOC容器.</strong></li>
-</ul>
-<p>无论是创建对象、处理对象之间的依赖关系、对象创建的时间还是对象的数量，我们都是在Spring为我们提供的IOC容器上配置对象的信息就好了。</p>
-<p>那么使用IOC控制反转这一思想有什么作用呢？</p>
-<p>摘取一下来自知乎的部分解释：</p>
-<blockquote>
-<p>ioc的思想最核心的地方在于，资源不由使用资源的双方管理，而由不使用资源的第三方管理，这可以带来很多好处。第一，资源集中管理，实现资源的可配置和易管理。第二，降低了使用资源双方的依赖程度，也就是我们说的耦合度。也就是说  ，甲方要达成某种目的不需要直接依赖乙方，它只需要达到的目的告诉第三方机构就可以了，比如甲方需要一双袜子，而乙方它卖一双袜子，它要把袜子卖出去，并不需要自己去直接找到一个卖家来完成袜子的卖出。它也只需要找第三方，告诉别人我要卖一双袜子。这下好了，甲乙双方进行交易活动，都不需要自己直接去找卖家，相当于程序内部开放接口，卖家由第三方作为参数传入。甲乙互相不依赖，而且只有在进行交易活动的时候，甲才和乙产生联系。反之亦然。这样做什么好处么呢，甲乙可以在对方不真实存在的情况下独立存在，而且保证不交易时候无联系，想交易的时候可以很容易的产生联系。甲乙交易活动不需要双方见面，避免了双方的互不信任造成交易失败的问题。因为交易由第三方来负责联系，而且甲乙都认为第三方可靠。那么交易就能很可靠很灵活的产生和进行了。这就是ioc的核心思想。生活中这种例子比比皆是，支付宝在整个淘宝体系里就是庞大的ioc容器，交易双方之外的第三方，提供可靠性可依赖可灵活变更交易方的资源管理中心。另外人事代理也是，雇佣机构和个人之外的第三方。<br>==========================update===========================<br>在以上的描述中，诞生了两个专业词汇，依赖注入和控制反转所谓的依赖注入，则是，甲方开放接口，在它需要的时候，能够讲乙方传递进来(注入)所谓的控制反转，甲乙双方不相互依赖，交易活动的进行不依赖于甲乙任何一方，整个活动的进行由第三方负责管理。</p>
-</blockquote>
-<ul>
-<li><p>不用自己组装，拿来就用。</p>
-</li>
-<li><p>享受单例的好处，效率高，不浪费空间。</p>
-</li>
-<li><p>便于单元测试，方便切换mock组件。</p>
-</li>
-<li><p>便于进行AOP操作，对于使用者是透明的。</p>
-</li>
-<li><p>统一配置，便于修改。</p>
-</li>
-</ul>
-<h4 id="Spring模块"><a href="#Spring模块" class="headerlink" title="Spring模块"></a>Spring模块</h4><p>Spring可以分为6大模块：</p>
-<ul>
-<li><p>Spring Core  spring的核心功能： IOC容器, 解决对象创建及依赖关系</p>
-</li>
-<li><p>Spring Web  Spring对web模块的支持。</p>
-<ul>
-<li><p>可以与struts整合,让struts的action创建交给spring</p>
-</li>
-<li><p>spring mvc模块</p>
-</li>
-</ul>
-</li>
-<li><p>Spring DAO  Spring 对jdbc操作的支持  【JdbcTemplate模板工具类】</p>
-</li>
-<li><p>Spring ORM  spring对orm的支持：</p>
-<ul>
-<li><p>既可以与hibernate整合，【session】</p>
-</li>
-<li><p>也可以使用spring的对hibernate操作的封装</p>
-</li>
-</ul>
-</li>
-<li><p>Spring AOP  切面编程</p>
-</li>
-<li><p>SpringEE   spring 对javaEE其他模块的支持</p>
-</li>
-</ul>
-<p><img src="https://i.imgur.com/jRfjJiS.jpg" alt=""> </p>
-<p>上面文主要引出了为啥我们需要使用Spring框架，以及大致了解了Spring是分为六大模块的….下面主要讲解Spring的core模块！</p>
-<h2 id="Core模块快速入门"><a href="#Core模块快速入门" class="headerlink" title="Core模块快速入门"></a>Core模块快速入门</h2><h4 id="搭建配置环境"><a href="#搭建配置环境" class="headerlink" title="搭建配置环境"></a>搭建配置环境</h4><p>引入jar包:</p>
-<p>本博文主要是core模块的内容，涉及到Spring core的开发jar包有五个：</p>
-<ul>
-<li><p>commons-logging-1.1.3.jar           日志</p>
-</li>
-<li><p>spring-beans-3.2.5.RELEASE.jar        bean节点</p>
-</li>
-<li><p>spring-context-3.2.5.RELEASE.jar       spring上下文节点</p>
-</li>
-<li><p>spring-core-3.2.5.RELEASE.jar         spring核心功能</p>
-</li>
-<li><p>spring-expression-3.2.5.RELEASE.jar    spring表达式相关表</p>
-</li>
-</ul>
-<p>主要使用的是Spring3.2版本</p>
-<p>编写配置文件:</p>
-<p>Spring核心的配置文件applicationContext.xml</p>
-<p>那这个配置文件怎么写呢？？一般地，我们都知道框架的配置文件都是有约束的…我们可以在spring-framework-3.2.5.RELEASE\docs\spring-framework-reference\htmlsingle\index.html找到XML配置文件的约束</p>
-<pre><code>&lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot;
-    xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
-    xmlns:p=&quot;http://www.springframework.org/schema/p&quot;
-    xmlns:context=&quot;http://www.springframework.org/schema/context&quot;
-    xsi:schemaLocation=&quot;
-        http://www.springframework.org/schema/beans
-        http://www.springframework.org/schema/beans/spring-beans.xsd
-        http://www.springframework.org/schema/context
-        http://www.springframework.org/schema/context/spring-context.xsd&quot;&gt;
-
-&lt;/beans&gt;  
-</code></pre><p>我是使用Intellij Idea集成开发工具的，可以选择自带的Spring配置文件,它长的是这样：</p>
-<pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
-&lt;beans xmlns=&quot;http://www.springframework.org/schema/beans&quot;
-       xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
-       xsi:schemaLocation=&quot;http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd&quot;&gt;
-
-&lt;/beans&gt;
-</code></pre><p>前面在介绍Spring模块的时候已经说了，Core模块是：<strong>IOC容器，解决对象创建和之间的依赖关系。</strong></p>
-<p>因此<strong>Core模块主要是学习如何得到IOC容器，通过IOC容器来创建对象、解决对象之间的依赖关系、IOC细节。</strong></p>
-<h4 id="得到Spring容器对象【IOC容器】"><a href="#得到Spring容器对象【IOC容器】" class="headerlink" title="得到Spring容器对象【IOC容器】"></a>得到Spring容器对象【IOC容器】</h4><p>Spring容器不单单只有一个，可以归为两种类型</p>
-<ul>
-<li><p><strong>Bean工厂，BeanFactory【功能简单</strong></p>
-</li>
-<li><p><strong>应用上下文，ApplicationContext【功能强大，一般我们使用这个】</strong></p>
-</li>
-</ul>
-<p>==<strong>通过Resource获取BeanFactory</strong>==</p>
-<ul>
-<li>加载Spring配置文件</li>
-<li><p>通过XmlBeanFactory+配置文件来创建IOC容器</p>
-<pre><code>//加载Spring的资源文件
-Resource resource = new ClassPathResource(&quot;applicationContext.xml&quot;);
-
-//创建IOC容器对象【IOC容器=工厂类+applicationContext.xml】
-BeanFactory beanFactory = new XmlBeanFactory(resource);
-</code></pre></li>
-</ul>
-<p>==<strong>类路径下XML获取ApplicationContext</strong>==</p>
-<ul>
-<li><p>直接通过ClassPathXmlApplicationContext对象来获取</p>
-<pre><code>// 得到IOC容器对象
-ApplicationContext ac = new ClassPathXmlApplicationContext(&quot;applicationContext.xml&quot;);
-
-System.out.println(ac);
-</code></pre></li>
-</ul>
-<p>在Spring中总体来看可以通过三种方式来配置对象:</p>
-<ul>
-<li>使用XML文件配置</li>
-<li>使用注解来配置</li>
-</ul>
-<h4 id="XML配置方式"><a href="#XML配置方式" class="headerlink" title="XML配置方式"></a>XML配置方式</h4><p>在上面我们已经可以得到IOC容器对象了。接下来就是在applicationContext.xml文件中配置信息【让IOC容器根据applicationContext.xml文件来创建对象】</p>
-<pre><code>* 首先我们先有个JavaBean的类
-
-/**
- * Created by ozc on 2017/5/10.
- */
-public class User {
-
-    private String id;
-    private String username;
-
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-}
-</code></pre><p>以前我们是通过new User的方法创建对象</p>
-<p>现在我们有了IOC容器，可以让IOC容器帮我们创建对象了。在applicationContext.xml文件中配置对应的信息就行了</p>
-<pre><code>   &lt;!--
-使用bean节点来创建对象
-id属性标识着对象
-name属性代表着要创建对象的类全名
---&gt;
-&lt;bean id=&quot;user&quot; class=&quot;User&quot;/&gt;
-</code></pre><p><strong>通过IOC容器对象获取对象:</strong></p>
-<ul>
-<li><p>在外界通过IOC容器对象得到User对象</p>
-<pre><code>// 得到IOC容器对象
-ApplicationContext ac = new ClassPathXmlApplicationContext(&quot;applicationContext.xml&quot;);
-
-User user = (User) ac.getBean(&quot;user&quot;);
-
-System.out.println(user);
-</code></pre></li>
-</ul>
-<p>上面我们使用的是IOC通过无参构造函数来创建对象，我们来回顾一下一般有几种创建对象的方式：</p>
-<ul>
-<li>无参构造函数创建对象</li>
-<li>带参数的构造函数创建对象</li>
-<li>工厂创建对象<ul>
-<li>静态方法创建对象</li>
-<li>非静态方法创建对象</li>
-</ul>
-</li>
-</ul>
-<p>使用无参的构造函数创建对象我们已经会了，接下来我们看看使用剩下的IOC容器是怎么创建对象的。</p>
-<p>==<strong>带参数的构造函数创建对象</strong>==</p>
-<p>首先，JavaBean就要提供带参数的构造函数：</p>
-<pre><code>public User(String id, String username) {
-    this.id = id;
-    this.username = username;
-}
-</code></pre><p>接下来，关键是怎么配置applicationContext.xml文件了。</p>
-<pre><code>&lt;bean id=&quot;user&quot; class=&quot;User&quot;&gt;
-    &lt;!--通过constructor这个节点来指定构造函数的参数类型、名称、第几个--&gt;
-    &lt;constructor-arg index=&quot;0&quot; name=&quot;id&quot; type=&quot;java.lang.String&quot; value=&quot;1&quot;&gt;&lt;/constructor-arg&gt;
-    &lt;constructor-arg index=&quot;1&quot; name=&quot;username&quot; type=&quot;java.lang.String&quot; value=&quot;zhongfucheng&quot;&gt;&lt;/constructor-arg&gt;
-&lt;/bean&gt;
-</code></pre><p>在constructor上如果构造函数的值是一个对象，而不是一个普通类型的值，我们就需要用到ref属性了，而不是value属性</p>
-<p>比如说：我在User对象上维护了Person对象的值，想要在构造函数中初始化它。因此，就需要用到ref属性了</p>
-<pre><code>&lt;bean id=&quot;person&quot; class=&quot;Person&quot;&gt;&lt;/bean&gt; 
-
-&lt;bean id=&quot;user&quot; class=&quot;User&quot; &gt;
-
-    &lt;!--通过constructor这个节点来指定构造函数的参数类型、名称、第几个--&gt;
-    &lt;constructor-arg index=&quot;0&quot; name=&quot;id&quot; type=&quot;java.lang.String&quot; value=&quot;1&quot;&gt;&lt;/constructor-arg&gt;
-    &lt;constructor-arg index=&quot;1&quot; name=&quot;username&quot; type=&quot;java.lang.String&quot; ref=&quot;person&quot;&gt;&lt;/constructor-arg&gt;
-&lt;/bean&gt;
-</code></pre><p><strong>==工厂静态方法创建对象==</strong></p>
-<p>首先，使用一个工厂的静态方法返回一个对象</p>
-<pre><code>public class Factory {
-
-    public static User getBean() {
-
-        return new User();
-    }
-
-}
-</code></pre><p>配置文件中使用工厂的静态方法返回对象</p>
-<pre><code>&lt;!--工厂静态方法创建对象，直接使用class指向静态类，指定静态方法就行了--&gt;
-&lt;bean id=&quot;user&quot; class=&quot;Factory&quot; factory-method=&quot;getBean&quot; &gt;
-
-&lt;/bean&gt;
-</code></pre><p><strong>==工厂非静态方法创建对象==</strong></p>
-<p>首先，也是通过工厂的非静态方法来得到一个对象</p>
-<pre><code>public class Factory {
-
-
-    public User getBean() {
-
-        return new User();
-    }
-
-
-}
-</code></pre><p>配置文件中使用工厂的非静态方法返回对象</p>
-<pre><code>&lt;!--首先创建工厂对象--&gt;
-&lt;bean id=&quot;factory&quot; class=&quot;Factory&quot;/&gt;
-
-&lt;!--指定工厂对象和工厂方法--&gt;
-&lt;bean id=&quot;user&quot; class=&quot;User&quot; factory-bean=&quot;factory&quot; factory-method=&quot;getBean&quot;/&gt;
-</code></pre><h4 id="注解方式"><a href="#注解方式" class="headerlink" title="注解方式"></a>注解方式</h4><p>通过注解来配置信息就是为了简化IOC容器的配置，注解可以把对象添加到IOC容器中、处理对象依赖关系</p>
-<p>使用注解步骤：</p>
-<ul>
-<li>1）先引入context名称空间<ul>
-<li>xmlns:context=”<a href="http://www.springframework.org/schema/context&quot;" target="_blank" rel="noopener">http://www.springframework.org/schema/context&quot;</a></li>
-</ul>
-</li>
-<li>2）开启注解扫描器<ul>
-<li>&lt;context:component-scan base-package=””&gt;&lt;/context:component-scan&gt;</li>
-</ul>
-</li>
-</ul>
-<p>创建对象以及处理对象依赖关系，相关的注解：</p>
-<ul>
-<li>@ComponentScan扫描器</li>
-<li>@Configuration表明该类是配置类</li>
-<li>@Component   指定把一个对象加入IOC容器—&gt;@Name也可以实现相同的效果【一般少用】</li>
-<li>@Repository   作用同@Component； 在持久层使用</li>
-<li>@Service      作用同@Component； 在业务逻辑层使用</li>
-<li>@Controller    作用同@Component； 在控制层使用</li>
-<li>@Resource  依赖关系<ul>
-<li>如果@Resource不指定值，那么就根据类型来找，相同的类型在IOC容器中不能有两个</li>
-<li>如果@Resource指定了值，那么就根据名字来找</li>
-</ul>
-</li>
-</ul>
-<p>测试代码:</p>
-<ul>
-<li><p>UserDao</p>
-<pre><code>package aa;
-
-import org.springframework.stereotype.Repository;
-
-/**
- * Created by ozc on 2017/5/10.
- */
-
-//把对象添加到容器中,首字母会小写
-@Repository
-public class UserDao {
-
-    public void save() {
-        System.out.println(&quot;DB:保存用户&quot;);
-    }
-</code></pre></li>
-</ul>
-<pre><code>}
-</code></pre><ul>
-<li><p>userService</p>
-<pre><code>package aa;
-
-import org.springframework.stereotype.Service;
-
-import javax.annotation.Resource;
-</code></pre></li>
-</ul>
-<pre><code>//把UserService对象添加到IOC容器中,首字母会小写
-@Service
-public class UserService {
-
-    //如果@Resource不指定值，那么就根据类型来找---&gt;UserDao....当然了，IOC容器不能有两个UserDao类型的对象
-    //@Resource
-
-    //如果指定了值，那么Spring就在IOC容器找有没有id为userDao的对象。
-    @Resource(name = &quot;userDao&quot;)
-    private UserDao userDao;
-
-    public void save() {
-        userDao.save();
-    }
-}
-</code></pre><ul>
-<li>userController</li>
-<li><pre><code>package aa;
-
-import org.springframework.stereotype.Controller;
-
-import javax.annotation.Resource;
-
-/**
- * Created by ozc on 2017/5/10.
- */
-
-//把对象添加到IOC容器中,首字母会小写
-@Controller
-public class UserController {
-
-    @Resource(name = &quot;userService&quot;)
-    private UserService userService;
-
-    public String execute() {
-        userService.save();
-        return null;
-    }
-}
-</code></pre></li>
-<li><p>测试</p>
-<pre><code>package aa;
-
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
-
-/**
- * Created by ozc on 2017/5/10.
- */
-public class App {
-
-    public static void main(String[] args) {
-
-        // 创建容器对象
-        ApplicationContext ac = new ClassPathXmlApplicationContext(&quot;aa/applicationContext.xml&quot;);
-
-        UserAv userController = (UserController) ac.getBean(&quot;userController&quot;);
-
-        userController.execute();
-    }
-}
-</code></pre></li>
-</ul>
-<h4 id="bean对象创建细节"><a href="#bean对象创建细节" class="headerlink" title="bean对象创建细节"></a>bean对象创建细节</h4><p>在Spring第一篇中，我们为什么要引入Spring提出了这么一些问题：</p>
-<ul>
-<li>对象创建能否写死？</li>
-<li>对象创建细节<ul>
-<li>对象数量<ul>
-<li>controller多个</li>
-<li>service一个</li>
-<li>dao一个</li>
-</ul>
-</li>
-<li>创建时间<ul>
-<li>controller访问时创建</li>
-<li>service启动时创建</li>
-<li>dao启动时创建</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-<p>既然我们现在已经初步了解IOC容器了，那么这些问题我们都是可以解决的。并且是十分简单【对象写死问题已经解决了，IOC容器就是控制反转创建对象】</p>
-<p><strong>==scope属性==</strong></p>
-<p>指定scope属性，IOC容器就知道创建对象的时候是单例还是多例的了。</p>
-<p>属性的值就只有两个：单例/多例</p>
-<ul>
-<li>当我们使用singleton【单例】的时候，从IOC容器获取的对象都是同一个</li>
-<li>当我们使用prototype【多例】的时候，从IOC容器获取的对象都是不同的</li>
-</ul>
-<p>scope属性除了控制对象是单例还是多例的，还控制着对象创建的时间！</p>
-<ul>
-<li>当使用singleton的时候，对象在IOC容器之前就已经创建了</li>
-<li>当使用prototype的时候，对象在使用的时候才创建</li>
-</ul>
-<p><strong>==lazy==-init属性</strong> </p>
-<p>lazy-init属性只对singleton【单例】的对象有效…..lazy-init默认为false….</p>
-<p>有的时候，可能我们想要对象在使用的时候才创建，那么将lazy-init设置为ture就行了</p>
-<p><strong>==init==-method和destroy-method</strong></p>
-<p>如果我们想要对象在创建后，执行某个方法，我们指定为init-method属性就行了。。</p>
-<p>如果我们想要IOC容器销毁后，执行某个方法，我们指定destroy-method属性就行了。</p>
-<pre><code>&lt;bean id=&quot;user&quot; class=&quot;User&quot; scope=&quot;singleton&quot; lazy-init=&quot;true&quot; init-method=&quot;&quot; destroy-method=&quot;&quot;/&gt;
-</code></pre><p>==<strong>Bean创建细节总结</strong>==</p>
-<pre><code>/**
- * 1) 对象创建： 单例/多例
- *  scope=&quot;singleton&quot;, 默认值， 即 默认是单例 【service/dao/工具类】
- *  scope=&quot;prototype&quot;, 多例；              【Action对象】
- * 
- * 2) 什么时候创建?
- *    scope=&quot;prototype&quot;  在用到对象的时候，才创建对象。
- *    scope=&quot;singleton&quot;  在启动(容器初始化之前)， 就已经创建了bean，且整个应用只有一个。
- * 3)是否延迟创建
- *    lazy-init=&quot;false&quot;  默认为false,  不延迟创建，即在启动时候就创建对象
- *    lazy-init=&quot;true&quot;   延迟初始化， 在用到对象的时候才创建对象
- *    （只对单例有效）
- * 4) 创建对象之后，初始化/销毁
- *    init-method=&quot;init_user&quot;       【对应对象的init_user方法，在对象创建之后执行 】
- *    destroy-method=&quot;destroy_user&quot;  【在调用容器对象的destroy方法时候执行，(容器用实现类)】
- */
-</code></pre>
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2016/04/02/spring【入门】/" data-id="cmq8scy6y0013jsqhml0m2sd7" class="article-share-link">Share</a>
+      <a data-url="https://guxingxianyue.github.io/2024/02/18/springcloud%E9%87%8C%E9%9D%A2%E5%B8%B8%E7%94%A8%E7%9A%84%E7%BB%84%E4%BB%B6/" data-id="cuidWShpN6LJ-hcxUe-YgLxo4" class="article-share-link">Share</a>
       
       
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/技术文章/">技术文章</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Spring-Cloud/" rel="tag">Spring Cloud</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/" rel="tag">分布式系统</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/" rel="tag">微服务</a></li></ul>
 
     </footer>
   </div>
@@ -625,10 +189,10 @@ public class App {
 
 
   
-    <article id="post-JAVA多线程的应用场景和目的" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-redis锁有哪些" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2016/03/20/JAVA多线程的应用场景和目的/" class="article-date">
-  <time datetime="2016-03-20T13:03:08.000Z" itemprop="datePublished">2016-03-20</time>
+    <a href="/2023/11/23/redis%E9%94%81%E6%9C%89%E5%93%AA%E4%BA%9B/" class="article-date">
+  <time datetime="2023-11-23T03:10:00.000Z" itemprop="datePublished">2023-11-23</time>
 </a>
     
   </div>
@@ -639,7 +203,7 @@ public class App {
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2016/03/20/JAVA多线程的应用场景和目的/">JAVA多线程的应用场景和目的</a>
+      <a class="article-title" href="/2023/11/23/redis%E9%94%81%E6%9C%89%E5%93%AA%E4%BA%9B/">redis锁有哪些</a>
     </h1>
   
 
@@ -647,138 +211,66 @@ public class App {
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h4 id="多线程使用的主要目的在于："><a href="#多线程使用的主要目的在于：" class="headerlink" title="多线程使用的主要目的在于："></a>多线程使用的主要目的在于：</h4><ul>
-<li><p>吞吐量：你做WEB，容器帮你做了多线程，但是他只能帮你做请求层面的。简单的说，可能就是一个请求一个线程。或多个请求一个线程。如果是单线程，那同时只能处理一个用户的请求。</p>
-</li>
-<li><p>伸缩性：也就是说，你可以通过增加CPU核数来提升性能。如果是单线程，那程序执行到死也就利用了单核，肯定没办法通过增加CPU核数来提升性能。</p>
-</li>
-</ul>
-<p>鉴于是做WEB的，第1点可能你几乎不涉及。这里就讲第二点。</p>
-<p>举个简单的例子：<br>假设有个请求，这个请求服务端的处理需要执行3个很缓慢的IO操作（比如数据库查询或文件查询），那么正常的顺序可能是（括号里面代表执行时间）：</p>
-<ul>
-<li>a读取文件1  （10ms）</li>
-<li>b处理1的数据（1ms）</li>
-<li>c读取文件2  （10ms）</li>
-<li>d处理2的数据（1ms）</li>
-<li>e读取文件3  （10ms）</li>
-<li>f处理3的数据（1ms）</li>
-<li>g整合1、2、3的数据结果 （1ms）</li>
-</ul>
-<p>单线程总共就需要34ms。<br>那如果你在这个请求内，把ab、cd、ef分别分给3个线程去做，就只需要12ms了。</p>
-<p>所以多线程不是没怎么用，而是，你平常要善于发现一些可优化的点。然后评估方案是否应该使用。<br>假设还是上面那个相同的问题：但是每个步骤的执行时间不一样了。</p>
-<ul>
-<li>a读取文件1  （1ms）</li>
-<li>b处理1的数据（1ms）</li>
-<li>c读取文件2  （1ms）</li>
-<li>d处理2的数据（1ms）</li>
-<li>e读取文件3  （28ms）</li>
-<li>f处理3的数据（1ms）</li>
-<li>g整合1、2、3的数据结果 （1ms）</li>
-</ul>
-<p>单线程总共就需要34ms。<br>如果还是按上面的划分方案（上面方案和木桶原理一样，耗时取决于最慢的那个线程的执行速度），在这个例子中是第三个线程，执行29ms。<br>那么最后这个请求耗时是30ms。比起不用单线程，就节省了4ms。但是有可能线程调度切换也要花费个1、2ms。因此，这个方案显得优势就不明显了，<br>还带来程序复杂度提升。不太值得。</p>
-<p>那么现在优化的点，就不是第一个例子那样的任务分割多线程完成。而是优化文件3的读取速度。<br>可能是采用缓存和减少一些重复读取。<br>首先，假设有一种情况，所有用户都请求这个请求，那其实相当于所有用户都需要读取文件3。那你想想，100个人进行了这个请求，相当于你花在读取<br>这个文件上的时间就是28×100=2800ms了。那么，如果你把文件缓存起来，那只要第一个用户的请求读取了，第二个用户不需要读取了，从内存取是很<br>快速的，可能1ms都不到。</p>
-<p>伪代码：</p>
-<pre><code>public class MyServlet extends Servlet{
-    private static Map&lt;String, String&gt; fileName2Data = new HashMap&lt;String, String&gt;();
-    private void processFile3(String fName){
-        String data = fileName2Data.get(fName);
-        if(data==null){
-            data = readFromFile(fName);    //耗时28ms
-            fileName2Data.put(fName, data);
-        }
-        //process with data
-    }
-}
-</code></pre><p>看起来好像还不错，建立一个文件名和文件数据的映射。如果读取一个map中已经存在的数据，那么就不不用读取文件了。<br>可是问题在于，Servlet是并发，上面会导致一个很严重的问题，死循环。因为，HashMap在并发修改的时候，可能是导致循环链表的构成！！！<br>（具体你可以自行阅读HashMap源码）如果你没接触过多线程，可能到时候发现服务器没请求也巨卡，也不知道什么情况！<br>好的，那就用ConcurrentHashMap，正如他的名字一样，他是一个线程安全的HashMap，这样能轻松解决问题。</p>
-<pre><code>public class MyServlet extends Servlet{
-    private static ConcurrentHashMap&lt;String, String&gt; fileName2Data = new ConcurrentHashMap&lt;String, String&gt;();
-    private void processFile3(String fName){
-        String data = fileName2Data.get(fName);
-        if(data==null){
-            data = readFromFile(fName);    //耗时28ms
-            fileName2Data.put(fName, data);
-        }
-        //process with data
-    }
-}
-</code></pre><p>这样真的解决问题了吗，这样虽然只要有用户访问过文件a，那另一个用户想访问文件a，也会从fileName2Data中拿数据，然后也不会引起死循环。</p>
-<p>可是，如果你觉得这样就已经完了，那你把多线程也想的太简单了，骚年！<br>你会发现，1000个用户首次访问同一个文件的时候，居然读取了1000次文件（这是最极端的，可能只有几百）。What the fuckin hell!!!</p>
-<p>难道代码错了吗！</p>
-<p>好好分析下。Servlet是多线程的，那么</p>
-<pre><code>public class MyServlet extends Servlet{
-    private static ConcurrentHashMap&lt;String, String&gt; fileName2Data = new ConcurrentHashMap&lt;String, String&gt;();
-    private void processFile3(String fName){
-        String data = fileName2Data.get(fName);
-        //“偶然”-- 1000个线程同时到这里，同时发现data为null
-        if(data==null){
-            data = readFromFile(fName);    //耗时28ms
-            fileName2Data.put(fName, data);
-        }
-        //process with data
-    }
-}
-</code></pre><p>上面注释的“偶然”，这是完全有可能的，因此，这样做还是有问题。</p>
-<p>因此，可以自己简单的封装一个任务来处理。</p>
-<pre><code>public class MyServlet extends Servlet{
+        <h2 id="开场个人观察"><a href="#开场个人观察" class="headerlink" title="开场个人观察"></a>开场个人观察</h2><p>Redis 锁是很多 Java 项目都会遇到的话题。比如供应链系统里，多个服务同时扣减库存；ERP 里同一张单据不能被重复审核；定时任务在多台机器上部署，但同一批数据只能被一个节点处理。这些场景都需要某种“互斥”。</p>
+<p>但 Redis 锁也是容易写错的地方。很多人第一版会写成 <code>setnx lock 1</code>，看起来能用，线上一遇到超时、宕机、重试、主从切换，就会暴露问题。分布式锁不是“抢到 key 就完事”，它要考虑 owner、过期时间、释放原子性、业务幂等和异常恢复。</p>
+<p>这篇笔记按常见 Redis 锁类型梳理：简单 <code>SETNX</code> 锁、带过期时间的锁、带唯一标识和 Lua 释放的锁、可重入锁、Redisson 看门狗锁、RedLock 思路。重点还是落到项目里怎么避免锁丢失和死锁。</p>
+<p><img src="/images/tech-flowcharts/redis-lock-flow.svg" alt="Redis分布式锁安全流程"></p>
+<h2 id="核心观点"><a href="#核心观点" class="headerlink" title="核心观点"></a>核心观点</h2><p>一个相对安全的 Redis 锁，至少要满足四个条件。</p>
+<p>第一，加锁要原子。不能先 <code>SETNX</code> 再单独 <code>EXPIRE</code>，因为中间如果进程宕机，锁可能永不过期。</p>
+<p>第二，锁要有唯一 owner。释放锁时必须确认锁是自己加的，不能误删别人的锁。</p>
+<p>第三，释放要原子。检查 owner 和删除 key 要放在 Lua 脚本里执行，避免检查后锁过期、别人重新加锁、自己又误删。</p>
+<p>第四，业务要幂等。分布式环境里很难只靠锁保证绝对一次执行，业务本身也要能处理重复请求。</p>
+<h2 id="实践方法"><a href="#实践方法" class="headerlink" title="实践方法"></a>实践方法</h2><p>最朴素的锁是 <code>SETNX</code>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SETNX order:lock:1001 1</span><br></pre></td></tr></table></figure>
 
-    private static ConcurrentHashMap&lt;String, FutureTask&lt;String&gt;&gt; fileName2Data = new ConcurrentHashMap&lt;String, FutureTask&lt;String&gt;&gt;();
+<p>它的优点是简单，缺点也明显：如果没有过期时间，持锁进程挂了就可能死锁。</p>
+<p>稍微好一点的写法是原子设置锁和值和过期时间：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SET order:lock:1001 requestId NX PX 30000</span><br></pre></td></tr></table></figure>
 
-    private static ExecutorService exec = Executors.newCachedThreadPool();
+<p>这里 <code>NX</code> 表示 key 不存在才设置，<code>PX 30000</code> 表示 30 秒过期，<code>requestId</code> 表示锁的持有者。这个写法解决了加锁和设置过期时间的原子性问题。</p>
+<p>释放锁时不要直接：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">DEL order:lock:1001</span><br></pre></td></tr></table></figure>
 
+<p>因为你的业务可能执行超过 30 秒，锁已经过期，另一个线程重新拿到锁。如果你这时直接删除，就会删掉别人的锁。</p>
+<p>更安全的释放方式是 Lua：</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> redis.call(<span class="string">&quot;GET&quot;</span>, KEYS[<span class="number">1</span>]) == ARGV[<span class="number">1</span>] <span class="keyword">then</span></span><br><span class="line">  <span class="keyword">return</span> redis.call(<span class="string">&quot;DEL&quot;</span>, KEYS[<span class="number">1</span>])</span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">  <span class="keyword">return</span> <span class="number">0</span></span><br><span class="line"><span class="keyword">end</span></span><br></pre></td></tr></table></figure>
 
-    private void processFile3(String fName){
-        FutureTask&lt;String&gt; data = fileName2Data.get(fName);
-        //“偶然”-- 1000个线程同时到这里，同时发现data为null
-        if(data == null){
-            data = newFutureTask(fName);
-            FutureTask&lt;String&gt; old = fileName2Data.putIfAbsent(fName, data);
-            if(old == null){
-                exec.execute(data);
-            }else{
-                data = old;
-            }
-        }
-        Object d = null ;
-        try {
-            d = data.get();
-        } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        System.out.println(Thread.currentThread().getName() + &quot;method-&gt;processFile3&quot; + d);
-    }
+<p>这段脚本把“判断 owner”和“删除 key”放到 Redis 单线程执行里，避免中间被打断。</p>
+<p>如果业务执行时间不确定，可以使用带看门狗机制的锁。Redisson 的思路是：加锁成功后，如果业务线程还活着，就定期延长锁过期时间；业务结束后主动释放。这样可以避免业务正常运行但锁提前过期。</p>
+<p>不过看门狗也不是万能的。如果任务本身可能跑几分钟甚至几十分钟，我更倾向于拆小任务，或者使用任务状态表控制流程，而不是让一个 Redis 锁长时间占着。</p>
+<p>可重入锁适合一个线程在同一调用链里重复进入同一把锁的场景。它一般会记录线程标识和重入次数。优点是符合 Java <code>ReentrantLock</code> 的使用习惯，缺点是实现复杂，依赖客户端框架管理。</p>
+<p>RedLock 是一种尝试在多个 Redis 节点上获取多数锁的算法。它的目标是减少单点 Redis 故障对锁安全性的影响。但它实现和时钟假设更复杂，业务上是否需要要谨慎评估。多数普通后台系统，用单 Redis 主节点加合理业务幂等，或者直接用数据库唯一约束&#x2F;状态机，反而更容易解释和维护。</p>
+<h2 id="业务例子"><a href="#业务例子" class="headerlink" title="业务例子"></a>业务例子</h2><p>以供应链库存预占为例。用户下单后，系统要对 SKU 做库存预占，不能让两个请求同时把同一批库存扣成负数。</p>
+<p>可以按 SKU 加锁：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">stock:lock:sku1001</span><br></pre></td></tr></table></figure>
 
-    private FutureTask&lt;String&gt; newFutureTask(final String file){
-        return  new FutureTask&lt;String&gt;(new Callable&lt;String&gt;(){
-            public String call(){
-                return readFromFile(file);
-            }
-
-            private String readFromFile(String file){
-                System.out.println(Thread.currentThread().getName() + &quot;method-&gt;readFromFile,do readFromFile&quot;);
-                return &quot; do readFromFile&quot;;
-            }
-        });
-    }
-}
-</code></pre><p>多线程最多的场景：web服务器本身；各种专用服务器（如游戏服务器）；</p>
-<p>多线程的常见应用场景：</p>
-<ul>
-<li>后台任务，例如：定时向大量（100w以上）的用户发送邮件；</li>
-<li>异步处理，例如：发微博、记录日志等；</li>
-<li>分布式计算</li>
-</ul>
+<p>流程是：</p>
+<ol>
+<li>请求生成唯一 <code>requestId</code>。</li>
+<li>使用 <code>SET key requestId NX PX 30000</code> 加锁。</li>
+<li>查询库存可用量。</li>
+<li>写入库存流水和订单预占记录。</li>
+<li>更新库存。</li>
+<li>提交数据库事务。</li>
+<li>用 Lua 判断 owner 后释放锁。</li>
+</ol>
+<p>这里还要做一层幂等：订单号和 SKU 的预占记录要有唯一约束。如果请求重试，即使再次进入，也不会重复预占。</p>
+<p>再比如 ERP 单据审核，同一张采购单不能同时被两个人审核。可以用 <code>po:audit:lock:{poNo}</code> 做锁，但最终仍然要在数据库里校验单据状态：只有 <code>待审核</code> 才能流转到 <code>已审核</code>。Redis 锁减少并发冲突，数据库状态机保证最终正确。</p>
+<h2 id="踩坑提醒"><a href="#踩坑提醒" class="headerlink" title="踩坑提醒"></a>踩坑提醒</h2><p>第一个坑，是没有过期时间。没有 TTL 的锁，遇到进程宕机就可能永远释放不了。</p>
+<p>第二个坑，是锁过期时间太短。业务还没执行完，锁先没了，其他线程进来就会并发执行。过期时间要结合业务耗时和最大抖动设置。</p>
+<p>第三个坑，是直接删除锁。释放前不判断 owner，很容易误删别人的锁。</p>
+<p>第四个坑，是只依赖锁不做幂等。网络重试、消费者重复消费、接口超时重放都可能导致同一业务重复进入。锁只是降低并发概率，幂等才是最后防线。</p>
+<p>第五个坑，是大锁。比如用一个 <code>global:lock</code> 锁住所有库存操作，会严重影响吞吐量。锁粒度要尽量贴近业务资源，比如按 SKU、订单号、仓库维度拆分。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Redis 锁常见形态从简单 <code>SETNX</code> 到带 TTL、带 owner、Lua 释放、可重入锁和 Redisson 看门狗锁。项目里最推荐的底线写法是：<code>SET key requestId NX PX ttl</code> 加锁，Lua 判断 owner 后释放，业务做好幂等和状态校验。</p>
+<p>锁不是越复杂越安全。真正可靠的方案，通常是“短锁 + 合理 TTL + 原子释放 + 业务幂等 + 监控告警”。只要这几件事到位，大多数后台系统就已经比裸 <code>SETNX</code> 稳很多。</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2016/03/20/JAVA多线程的应用场景和目的/" data-id="cmq8scy6l0006jsqhsl7dyht4" class="article-share-link">Share</a>
+      <a data-url="https://guxingxianyue.github.io/2023/11/23/redis%E9%94%81%E6%9C%89%E5%93%AA%E4%BA%9B/" data-id="cuid4DgW1lQaXEOGApIXyELO4" class="article-share-link">Share</a>
       
       
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/技术文章/">技术文章</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Redis/" rel="tag">Redis</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" rel="tag">分布式锁</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6/" rel="tag">并发控制</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/" rel="tag">系统设计</a></li></ul>
 
     </footer>
   </div>
@@ -787,10 +279,10 @@ public class App {
 
 
   
-    <article id="post-关于对java多线程的一些基础认识" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-redis的集群模式有哪些" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2016/03/05/关于对java多线程的一些基础认识/" class="article-date">
-  <time datetime="2016-03-05T12:47:08.000Z" itemprop="datePublished">2016-03-05</time>
+    <a href="/2023/07/09/redis%E7%9A%84%E9%9B%86%E7%BE%A4%E6%A8%A1%E5%BC%8F%E6%9C%89%E5%93%AA%E4%BA%9B/" class="article-date">
+  <time datetime="2023-07-09T02:20:00.000Z" itemprop="datePublished">2023-07-09</time>
 </a>
     
   </div>
@@ -801,7 +293,7 @@ public class App {
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2016/03/05/关于对java多线程的一些基础认识/">关于对java多线程的一些基础认识</a>
+      <a class="article-title" href="/2023/07/09/redis%E7%9A%84%E9%9B%86%E7%BE%A4%E6%A8%A1%E5%BC%8F%E6%9C%89%E5%93%AA%E4%BA%9B/">redis的集群模式有哪些</a>
     </h1>
   
 
@@ -809,253 +301,52 @@ public class App {
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="一-线程的生命周期及五种基本状态"><a href="#一-线程的生命周期及五种基本状态" class="headerlink" title="一.线程的生命周期及五种基本状态"></a>一.线程的生命周期及五种基本状态</h2><p><img src="https://i.imgur.com/IE4s56r.jpg" alt="五种基本状态"></p>
-<p>上图中基本上囊括了Java中多线程各重要知识点。掌握了上图中的各知识点，Java中的多线程也就基本上掌握了。主要包括：</p>
-<h4 id="Java线程具有五中基本状态"><a href="#Java线程具有五中基本状态" class="headerlink" title="Java线程具有五中基本状态"></a>Java线程具有五中基本状态</h4><ul>
-<li><p>新建状态（New）：当线程对象对创建后，即进入了新建状态，如：Thread t = new MyThread();</p>
-</li>
-<li><p>就绪状态（Runnable）：当调用线程对象的start()方法（t.start();），线程即进入就绪状态。处于就绪状态的线程，只是说明此线程已经做好了准备，随时等待CPU调度执行，并不是说执行了t.start()此线程立即就会执行；</p>
-</li>
-<li><p>运行状态（Running）：当CPU开始调度处于就绪状态的线程时，此时线程才得以真正执行，即进入到运行状态。注：就     绪状态是进入到运行状态的唯一入口，也就是说，线程要想进入运行状态执行，首先必须处于就绪状态中；</p>
-</li>
-<li><p>阻塞状态（Blocked）：处于运行状态中的线程由于某种原因，暂时放弃对CPU的使用权，停止执行，此时进入阻塞状态，直到其进入到就绪状态，才 有机会再次被CPU调用以进入到运行状态。根据阻塞产生的原因不同，阻塞状态又可以分为三种：</p>
-<ul>
-<li><p>等待阻塞：运行状态中的线程执行wait()方法，使本线程进入到等待阻塞状态；</p>
-</li>
-<li><p>同步阻塞 – 线程在获取synchronized同步锁失败(因为锁被其它线程所占用)，它会进入同步阻塞状态；</p>
-</li>
-<li><p>其他阻塞 – 通过调用线程的sleep()或join()或发出了I/O请求时，线程会进入到阻塞状态。当sleep()状态超时、join()等待线程终止或者超时、或者I/O处理完毕时，线程重新转入就绪状态。</p>
-</li>
-</ul>
-</li>
-<li><p>死亡状态（Dead）：线程执行完了或者因异常退出了run()方法，该线程结束生命周期。</p>
-</li>
-</ul>
-<h2 id="二-Java多线程的创建及启动"><a href="#二-Java多线程的创建及启动" class="headerlink" title="二. Java多线程的创建及启动"></a>二. Java多线程的创建及启动</h2><h6 id="Java中线程的创建常见有如三种基本形式"><a href="#Java中线程的创建常见有如三种基本形式" class="headerlink" title="Java中线程的创建常见有如三种基本形式"></a>Java中线程的创建常见有如三种基本形式</h6><h4 id="1-继承Thread类，重写该类的run-方法。"><a href="#1-继承Thread类，重写该类的run-方法。" class="headerlink" title="1.继承Thread类，重写该类的run()方法。"></a>1.继承Thread类，重写该类的run()方法。</h4><pre><code>class MyThread extends Thread {
+        <h2 id="开场个人观察"><a href="#开场个人观察" class="headerlink" title="开场个人观察"></a>开场个人观察</h2><p>Redis 一开始通常是从单机用起的：缓存商品详情、存登录 token、做计数器、做分布式锁。等系统访问量上来以后，问题就来了：单机内存不够怎么办？主节点挂了怎么办？读压力太高怎么办？业务需要更高可用时怎么做？</p>
+<p>这时就要考虑 Redis 的集群模式。这里的“集群”不只是 Redis Cluster 一种，而是一组部署方式：主从复制、哨兵模式、Redis Cluster、代理分片，以及云托管 Redis。每种方式解决的问题不一样，优缺点也不一样。</p>
+<p>项目选型时不要先问“哪种最先进”，而要先问：我的数据量有多大？QPS 有多高？能不能接受短暂不可用？团队有没有 Redis 运维经验？业务是否依赖跨 key 操作？</p>
+<p><img src="/images/tech-flowcharts/redis-cluster-selection-flow.svg" alt="Redis集群模式选型流程"></p>
+<h2 id="核心观点"><a href="#核心观点" class="headerlink" title="核心观点"></a>核心观点</h2><p>Redis 常见部署方式可以按能力逐层理解。</p>
+<p>单机模式最简单，适合开发环境、小系统、低风险缓存。但单点故障明显，内存和吞吐也受单机限制。</p>
+<p>主从复制解决的是读扩展和数据备份。主节点负责写，从节点复制数据，可以承担部分读请求。但主节点挂了以后，是否自动切换取决于外部机制。</p>
+<p>哨兵模式解决的是高可用。Sentinel 会监控主从节点，主节点异常时自动选举新的主节点，并通知客户端切换。它适合数据量还没有大到必须分片，但又需要自动故障转移的系统。</p>
+<p>Redis Cluster 解决的是水平扩展。它把 key 映射到 16384 个 hash slot，再把 slot 分布到多个主节点上。容量和吞吐可以通过增加节点扩展，但客户端、跨 slot 操作和运维复杂度都会提高。</p>
+<p>代理分片和云托管 Redis 解决的是工程复杂度。代理可以屏蔽后端分片，云托管可以减少运维成本。但要关注命令兼容性、网络延迟、成本和故障透明度。</p>
+<h2 id="实践方法"><a href="#实践方法" class="headerlink" title="实践方法"></a>实践方法</h2><p>如果是一个普通后台系统，Redis 只用来缓存字典、商品详情、用户权限，数据量不大，故障后可以短暂回源数据库，那么主从或哨兵模式通常就够了。</p>
+<p>例如 ERP 系统里，商品基础资料、供应商列表、组织架构权限可以放 Redis 缓存。即使 Redis 短暂不可用，也可以降级查数据库，只是慢一点。这种场景不一定要上 Redis Cluster。</p>
+<p>如果系统对可用性要求高，但数据量还在单机内存范围内，可以选择 Sentinel。比如登录 token、会话信息、限流计数这类数据，业务希望节点故障后能自动切换，哨兵模式就比较合适。</p>
+<p>如果数据量和访问量都明显增长，比如电商商品缓存、库存热点、活动库存、推荐结果缓存，单机内存和 QPS 已经吃紧，就要考虑 Redis Cluster。Cluster 的好处是容量可以横向扩展，坏处是开发要注意 hash slot。</p>
+<p>比如下面这种多 key 操作：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">MGET product:1001 product:1002 product:1003</span><br></pre></td></tr></table></figure>
 
-    private int i = 0;
+<p>在 Cluster 下，如果这些 key 落在不同 slot，可能无法像单机那样直接执行。可以通过 hash tag 把相关 key 放到同一个 slot：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">stock:&#123;sku1001&#125;:available</span><br><span class="line">stock:&#123;sku1001&#125;:locked</span><br></pre></td></tr></table></figure>
 
-    @Override
-    public void run() {
-        for (i = 0; i &lt; 100; i++) {
-            System.out.println(Thread.currentThread().getName() + &quot; &quot; + i);
-        }
-    }
-}
+<p>但 hash tag 也不能乱用。如果所有 key 都强行放到一个 slot，分片就失去意义。</p>
+<p>如果团队 Redis 运维能力弱，又不想自己处理扩容、备份、故障切换，可以考虑云托管 Redis。云服务能减少大量运维工作，但成本、规格限制、网络链路、版本兼容要提前评估。</p>
+<p>我做选型时一般按这个顺序问：</p>
+<ol>
+<li>Redis 只是缓存，还是承载关键状态？</li>
+<li>单机内存能不能装下未来一年数据？</li>
+<li>读写 QPS 是否需要水平扩展？</li>
+<li>是否大量使用 Lua、多 key、事务、pipeline？</li>
+<li>团队是否有能力处理故障切换和扩容？</li>
+<li>可接受的成本和可用性目标是什么？</li>
+</ol>
+<h2 id="踩坑提醒"><a href="#踩坑提醒" class="headerlink" title="踩坑提醒"></a>踩坑提醒</h2><p>第一个坑，是一上来就上 Cluster。Cluster 能扩容，但复杂度也高。小系统如果只是缓存几万条基础资料，用 Cluster 反而会增加开发和运维负担。</p>
+<p>第二个坑，是把主从当高可用。主从复制不等于自动故障切换。没有哨兵或外部切换机制，主节点挂了仍然需要人工处理。</p>
+<p>第三个坑，是忽略数据一致性。Redis 复制通常是异步的，主节点刚写入还没同步给从节点时发生故障，可能会丢一小段数据。关键业务不能把 Redis 当唯一事实来源。</p>
+<p>第四个坑，是跨 slot 操作太多。Cluster 选型前要盘点代码里是否大量使用 <code>MGET</code>、<code>MSET</code>、Lua、事务和批量删除。否则上线后会发现很多命令不再好用。</p>
+<p>第五个坑，是只看 QPS 不看热点 key。即使是 Cluster，如果大量请求集中在一个超级热点 key 上，也可能打爆单个节点。热点数据要考虑本地缓存、拆 key、限流或预计算。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Redis 集群模式没有绝对最好，只有适合当前阶段。数据量小、风险低，用单机或主从；需要自动故障切换，用 Sentinel；容量和吞吐需要横向扩展，用 Redis Cluster；团队想减少运维，可以考虑云托管。</p>
+<p>选型时最重要的是把 Redis 在系统里的角色想清楚。它是缓存、锁、队列、会话，还是关键状态存储？角色不同，容灾、持久化、扩容和一致性要求也完全不同。</p>
 
-public class ThreadTest {
-
-    public static void main(String[] args) {
-        for (int i = 0; i &lt; 100; i++) {
-            System.out.println(Thread.currentThread().getName() + &quot; &quot; + i);
-            if (i == 30) {
-                Thread myThread1 = new MyThread();     // 创建一个新的线程  myThread1  此线程进入新建状态
-                Thread myThread2 = new MyThread();     // 创建一个新的线程 myThread2 此线程进入新建状态
-                myThread1.start();                     // 调用start()方法使得线程进入就绪状态
-                myThread2.start();                     // 调用start()方法使得线程进入就绪状态
-            }
-        }
-    }
-}
-</code></pre><p>如上所示，继承Thread类，通过重写run()方法定义了一个新的线程类MyThread，其中run()方法的方法体代表了线程需要完成的任务，称之为线程执行体。当创建此线程类对象时一个新的线程得以创建，并进入到线程新建状态。通过调用线程对象引用的start()方法，使得该线程进入到就绪状态，此时此线程并不一定会马上得以执行，这取决于CPU调度时机。</p>
-<h4 id="2-实现Runnable接口，并重写该接口的run-方法，该run-方法同样是线程执行体，创建Runnable实现类的实例，并以此实例作为Thread类的target来创建Thread对象，该Thread对象才是真正的线程对象。"><a href="#2-实现Runnable接口，并重写该接口的run-方法，该run-方法同样是线程执行体，创建Runnable实现类的实例，并以此实例作为Thread类的target来创建Thread对象，该Thread对象才是真正的线程对象。" class="headerlink" title="2.实现Runnable接口，并重写该接口的run()方法，该run()方法同样是线程执行体，创建Runnable实现类的实例，并以此实例作为Thread类的target来创建Thread对象，该Thread对象才是真正的线程对象。"></a>2.实现Runnable接口，并重写该接口的run()方法，该run()方法同样是线程执行体，创建Runnable实现类的实例，并以此实例作为Thread类的target来创建Thread对象，该Thread对象才是真正的线程对象。</h4><pre><code>class MyRunnable implements Runnable {
-    private int i = 0;
-
-    @Override
-    public void run() {
-        for (i = 0; i &lt; 100; i++) {
-            System.out.println(Thread.currentThread().getName() + &quot; &quot; + i);
-        }
-    }
-}
-
-
-public class ThreadTest {
-
-    public static void main(String[] args) {
-        for (int i = 0; i &lt; 100; i++) {
-            System.out.println(Thread.currentThread().getName() + &quot; &quot; + i);
-            if (i == 30) {
-                Runnable myRunnable = new MyRunnable(); // 创建一个Runnable实现类的对象
-                Thread thread1 = new Thread(myRunnable); // 将myRunnable作为Thread target创建新的线程
-                Thread thread2 = new Thread(myRunnable);
-                thread1.start(); // 调用start()方法使得线程进入就绪状态
-                thread2.start();
-            }
-        }
-    }
-}
-</code></pre><p>相信以上两种创建新线程的方式大家都很熟悉了，那么Thread和Runnable之间到底是什么关系呢？我们首先来看一下下面这个例子。</p>
-<pre><code>public class ThreadTest {
-
-    public static void main(String[] args) {
-        for (int i = 0; i &lt; 100; i++) {
-            System.out.println(Thread.currentThread().getName() + &quot; &quot; + i);
-            if (i == 30) {
-                Runnable myRunnable = new MyRunnable();
-                Thread thread = new MyThread(myRunnable);
-                thread.start();
-            }
-        }
-    }
-}
-
-class MyRunnable implements Runnable {
-    private int i = 0;
-
-    @Override
-    public void run() {
-        System.out.println(&quot;in MyRunnable run&quot;);
-        for (i = 0; i &lt; 100; i++) {
-            System.out.println(Thread.currentThread().getName() + &quot; &quot; + i);
-        }
-    }
-}
-
-class MyThread extends Thread {
-
-    private int i = 0;
-
-    public MyThread(Runnable runnable){
-        super(runnable);
-    }
-
-    @Override
-    public void run() {
-        System.out.println(&quot;in MyThread run&quot;);
-        for (i = 0; i &lt; 100; i++) {
-            System.out.println(Thread.currentThread().getName() + &quot; &quot; + i);
-        }
-    }
-}
-</code></pre><p>同样的，与实现Runnable接口创建线程方式相似，不同的地方在于</p>
-<pre><code>Thread thread = new MyThread(myRunnable);
-</code></pre><p>那么这种方式可以顺利创建出一个新的线程么？答案是肯定的。至于此时的线程执行体到底是MyRunnable接口中的run()方法还是MyThread类中的run()方法呢？通过输出我们知道线程执行体是MyThread类中的run()方法。其实原因很简单，因为Thread类本身也是实现了Runnable接口，而run()方法最先是在Runnable接口中定义的方法。</p>
-<pre><code>public interface Runnable {
-
-    public abstract void run();
-
-}    
-</code></pre><p>我们看一下Thread类中对Runnable接口中run()方法的实现：</p>
-<pre><code>@Override
-public void run() {
-    if (target != null) {
-        target.run();
-    }
-}
-</code></pre><p>也就是说，当执行到Thread类中的run()方法时，会首先判断target是否存在，存在则执行target中的run()方法，也就是实现了Runnable接口并重写了run()方法的类中的run()方法。但是上述给到的列子中，由于多态的存在，根本就没有执行到Thread类中的run()方法，而是直接先执行了运行时类型即MyThread类中的run()方法。</p>
-<h4 id="3-使用Callable和Future接口创建线程。具体是创建Callable接口的实现类，并实现clall-方法。并使用FutureTask类来包装Callable实现类的对象，且以此FutureTask对象作为Thread对象的target来创建线程。"><a href="#3-使用Callable和Future接口创建线程。具体是创建Callable接口的实现类，并实现clall-方法。并使用FutureTask类来包装Callable实现类的对象，且以此FutureTask对象作为Thread对象的target来创建线程。" class="headerlink" title="3.使用Callable和Future接口创建线程。具体是创建Callable接口的实现类，并实现clall()方法。并使用FutureTask类来包装Callable实现类的对象，且以此FutureTask对象作为Thread对象的target来创建线程。"></a>3.使用Callable和Future接口创建线程。具体是创建Callable接口的实现类，并实现clall()方法。并使用FutureTask类来包装Callable实现类的对象，且以此FutureTask对象作为Thread对象的target来创建线程。</h4><p>看着好像有点复杂，直接来看一个例子就清晰了。</p>
-<pre><code>public class ThreadTest {
-
-    public static void main(String[] args) {
-
-        Callable&lt;Integer&gt; myCallable = new MyCallable();    // 创建MyCallable对象
-        FutureTask&lt;Integer&gt; ft = new FutureTask&lt;Integer&gt;(myCallable); //使用FutureTask来包装MyCallable对象
-
-        for (int i = 0; i &lt; 100; i++) {
-            System.out.println(Thread.currentThread().getName() + &quot; &quot; + i);
-            if (i == 30) {
-                Thread thread = new Thread(ft);   //FutureTask对象作为Thread对象的target创建新的线程
-                thread.start();                      //线程进入到就绪状态
-            }
-        }
-
-        System.out.println(&quot;主线程for循环执行完毕..&quot;);
-
-        try {
-            int sum = ft.get();            //取得新创建的新线程中的call()方法返回的结果
-            System.out.println(&quot;sum = &quot; + sum);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        }
-
-    }
-}
-
-
-class MyCallable implements Callable&lt;Integer&gt; {
-
-    private int i = 0;
-
-    // 与run()方法不同的是，call()方法具有返回值
-    @Override
-    public Integer call() {
-        int sum = 0;
-        for (; i &lt; 100; i++) {
-            System.out.println(Thread.currentThread().getName() + &quot; &quot; + i);
-            sum += i;
-        }
-        return sum;
-    }
-
-}
-</code></pre><p>首先，我们发现，在实现Callable接口中，此时不再是run()方法了，而是call()方法，此call()方法作为线程执行体，同时还具有返回值！在创建新的线程时，是通过FutureTask来包装MyCallable对象，同时作为了Thread对象的target。那么看下FutureTask类的定义：</p>
-<pre><code>public class FutureTask&lt;V&gt; implements RunnableFuture&lt;V&gt; {
-    //....
-}
-
-public interface RunnableFuture&lt;V&gt; extends Runnable, Future&lt;V&gt; {
-    void run();
-}
-</code></pre><p>于是，我们发现FutureTask类实际上是同时实现了Runnable和Future接口，由此才使得其具有Future和Runnable双重特性。通过Runnable特性，可以作为Thread对象的target，而Future特性，使得其可以取得新创建线程中的call()方法的返回值。</p>
-<p>执行下此程序，我们发现sum = 4950永远都是最后输出的。而“主线程for循环执行完毕..”则很可能是在子线程循环中间输出。由CPU的线程调度机制，我们知道，“主线程for循环执行完毕..”的输出时机是没有任何问题的，那么为什么sum =4950会永远最后输出呢？</p>
-<p>原因在于通过ft.get()方法获取子线程call()方法的返回值时，当子线程此方法还未执行完毕，ft.get()方法会一直阻塞，直到call()方法执行完毕才能取到返回值。</p>
-<p>上述主要讲解了三种常见的线程创建方式，对于线程的启动而言，都是调用线程对象的start()方法，需要特别注意的是：<br>不能对同一线程对象两次调用start()方法。</p>
-<h2 id="三-Java多线程的就绪、运行和死亡状态"><a href="#三-Java多线程的就绪、运行和死亡状态" class="headerlink" title="三. Java多线程的就绪、运行和死亡状态"></a>三. Java多线程的就绪、运行和死亡状态</h2><ul>
-<li><p>就绪状态转换为运行状态：当此线程得到处理器资源；</p>
-</li>
-<li><p>运行状态转换为就绪状态：当此线程主动调用yield()方法或在运行过程中失去处理器资源。</p>
-</li>
-<li><p>运行状态转换为死亡状态：当此线程线程执行体执行完毕或发生了异常。</p>
-</li>
-</ul>
-<p>此处需要特别注意的是：当调用线程的yield()方法时，线程从运行状态转换为就绪状态，但接下来CPU调度就绪状态中的哪个线程具有一定的随机性，因此，可能会出现A线程调用了yield()方法后，接下来CPU仍然调度了A线程的情况。</p>
-<p>由于实际的业务需要，常常会遇到需要在特定时机终止某一线程的运行，使其进入到死亡状态。目前最通用的做法是设置一boolean型的变量，当条件满足时，使线程执行体快速执行完毕。如：</p>
-<pre><code>public class ThreadTest {
-
-    public static void main(String[] args) {
-
-        MyRunnable myRunnable = new MyRunnable();
-        Thread thread = new Thread(myRunnable);
-
-        for (int i = 0; i &lt; 100; i++) {
-            System.out.println(Thread.currentThread().getName() + &quot; &quot; + i);
-            if (i == 30) {
-                thread.start();
-            }
-            if(i == 40){
-                myRunnable.stopThread();
-            }
-        }
-    }
-}
-
-class MyRunnable implements Runnable {
-
-    private boolean stop;
-
-    @Override
-    public void run() {
-        for (int i = 0; i &lt; 100 &amp;&amp; !stop; i++) {
-            System.out.println(Thread.currentThread().getName() + &quot; &quot; + i);
-        }
-    }
-
-    public void stopThread() {
-        this.stop = true;
-    }
-
-}
-</code></pre>
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2016/03/05/关于对java多线程的一些基础认识/" data-id="cmq8scy700017jsqhcipezb8i" class="article-share-link">Share</a>
+      <a data-url="https://guxingxianyue.github.io/2023/07/09/redis%E7%9A%84%E9%9B%86%E7%BE%A4%E6%A8%A1%E5%BC%8F%E6%9C%89%E5%93%AA%E4%BA%9B/" data-id="cuidDaGWgn_EichHqVkJQcdXK" class="article-share-link">Share</a>
       
       
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/技术文章/">技术文章</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Redis/" rel="tag">Redis</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" rel="tag">分布式</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/" rel="tag">架构设计</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%BC%93%E5%AD%98/" rel="tag">缓存</a></li></ul>
 
     </footer>
   </div>
@@ -1064,10 +355,10 @@ class MyRunnable implements Runnable {
 
 
   
-    <article id="post-my-new-post" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-kafka组件里面生产者和消费者的原理" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2016/01/05/my-new-post/" class="article-date">
-  <time datetime="2016-01-05T15:47:08.000Z" itemprop="datePublished">2016-01-05</time>
+    <a href="/2023/03/18/kafka%E7%BB%84%E4%BB%B6%E9%87%8C%E9%9D%A2%E7%94%9F%E4%BA%A7%E8%80%85%E5%92%8C%E6%B6%88%E8%B4%B9%E8%80%85%E7%9A%84%E5%8E%9F%E7%90%86/" class="article-date">
+  <time datetime="2023-03-18T01:30:00.000Z" itemprop="datePublished">2023-03-18</time>
 </a>
     
   </div>
@@ -1078,7 +369,7 @@ class MyRunnable implements Runnable {
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2016/01/05/my-new-post/">Github+hexo 搭建个人独立博客</a>
+      <a class="article-title" href="/2023/03/18/kafka%E7%BB%84%E4%BB%B6%E9%87%8C%E9%9D%A2%E7%94%9F%E4%BA%A7%E8%80%85%E5%92%8C%E6%B6%88%E8%B4%B9%E8%80%85%E7%9A%84%E5%8E%9F%E7%90%86/">kafka组件里面生产者和消费者的原理</a>
     </h1>
   
 
@@ -1086,70 +377,256 @@ class MyRunnable implements Runnable {
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="关于自建独立博客"><a href="#关于自建独立博客" class="headerlink" title="关于自建独立博客"></a>关于自建独立博客</h2><hr>
-<p>这里引用某位知友的原话：</p>
-<pre><code>自主权比较高，博客平台的话会有这样那样的限制，技术上，可能会限制插件的代码使用，内容上，各种审查以防触雷以及广告等等。
-</code></pre><p>作为一个技术宅，没有比“show me the code”“show me the writings”更有说服力。当然这话是我说的。</p>
-<h2 id="什么是hexo"><a href="#什么是hexo" class="headerlink" title="什么是hexo"></a>什么是hexo</h2><hr>
-<p>一个基于Node.js的静态博客程序，可以方便的生成静态网页托管在github上，可以绑定自己的域名，用markdown写文章（简直不要太爽）。</p>
-<pre><code>快速、简单且功能强大的 Node.js 博客框架。
-A fast, simple &amp; powerful blog framework, powered by Node.js.
-</code></pre><h2 id="为什么要用hexo"><a href="#为什么要用hexo" class="headerlink" title="为什么要用hexo"></a>为什么要用hexo</h2><hr>
-<ul>
-<li>不可思议的快速，眨眼即可完成</li>
-<li>支持markdown，支持markdown，支持markdown，重要的话说三遍</li>
-<li>一道指令即可将文章部署到 GitHub Pages</li>
-<li>高扩展性、自定义性</li>
-<li>兼容于 Windows &amp; Mac &amp; Linux</li>
-<li>易用。不仅部署简单，平时使用中仅需要hexo new、hexo generate、hexo server、hexo deploy四个命令。</li>
-<li>轻、文件少、小，易理解，方便自定义，</li>
-</ul>
-<h2 id="谁能使用hexo"><a href="#谁能使用hexo" class="headerlink" title="谁能使用hexo"></a>谁能使用hexo</h2><hr>
-<p>这是一个免费开源的博客程序，任何人都可以使用和修改，整个独立博客搭建过程仅需要用到Github,Git,Markdown,Node.js这样的工具。好多插件、widget都需要自己安装、设置。比较适合那些有一定计算机基础，喜欢折腾的人。下面我们开始吧!</p>
-<h2 id="搭建hexo博客（一）"><a href="#搭建hexo博客（一）" class="headerlink" title="搭建hexo博客（一）"></a>搭建hexo博客（一）</h2><hr>
-<p><strong>注意：本节教程只针对Windows用户，Linux和Mac用户请移步</strong></p>
-<h3 id="安装Git"><a href="#安装Git" class="headerlink" title="安装Git"></a>安装Git</h3><hr>
-<p>下载<a href="http://pan.baidu.com/s/1bcsvP8" title="git" target="_blank" rel="noopener">msysgit</a>,版本最好不要用高于1.8.5，有bug，至少截至2015-12-7年为止，这个bug是有的，此处用的是1.8.4。</p>
-<h3 id="安装Node-js"><a href="#安装Node-js" class="headerlink" title="安装Node.js"></a>安装Node.js</h3><hr>
-<p>在 Windows 环境下安装 Node.js很简单，仅须<a href="http://pan.baidu.com/s/1dDYO1w9" target="_blank" rel="noopener">点此下载</a>安装文件并一步一步往下执行即可完成安装。</p>
-<h3 id="安装hexo"><a href="#安装hexo" class="headerlink" title="安装hexo"></a>安装hexo</h3><hr>
-<p>利用 npm 命令即可安装。（在任意位置点击鼠标右键，选择Git bash）</p>
-<pre><code>npm install -g hexo
-</code></pre><h3 id="创建hexo文件夹"><a href="#创建hexo文件夹" class="headerlink" title="创建hexo文件夹"></a>创建hexo文件夹</h3><hr>
-<p>安装完成后，在你喜爱的文件夹下（如H:\hexo），执行以下指令(在H:\hexo内点击鼠标右键，选择Git bash)，Hexo 即会自动在目标文件夹建立网站所需要的所有文件。</p>
-<pre><code>hexo init
-</code></pre><h3 id="安装依赖包"><a href="#安装依赖包" class="headerlink" title="安装依赖包"></a>安装依赖包</h3><hr>
-<pre><code>npm install
-</code></pre><h3 id="本地查看"><a href="#本地查看" class="headerlink" title="本地查看"></a>本地查看</h3><hr>
-<p>现在我们已经搭建起本地的hexo博客了，执行以下命令(在H:\hexo)，然后到浏览器输入<code>localhost:4000</code>看看。</p>
-<pre><code>hexo generate
-hexo server
-</code></pre><p>至此，本地博客已经搭建起来了，嘘~~~现在只有你自己能看到，别人是看不到的。下面，我们要部署到Github，让所有人都能看到你的博客。</p>
-<h3 id="注册Github账号"><a href="#注册Github账号" class="headerlink" title="注册Github账号"></a>注册Github账号</h3><hr>
-<p>已有账号可以跳过，没有的，<a href="https://www.github.com" target="_blank" rel="noopener">请在此进行注册</a>，很简单，这里就不介绍了。</p>
-<h3 id="创建repository"><a href="#创建repository" class="headerlink" title="创建repository"></a>创建repository</h3><hr>
-<p>在自己Github主页右下角，创建一个新的repository。比如我的Github账号是guxingxianyue，那么我应该创建的repository名字应该是guxingxianyue.github.io。</p>
-<h3 id="部署到Github"><a href="#部署到Github" class="headerlink" title="部署到Github"></a>部署到Github</h3><hr>
-<p>编辑_config.yml(在H:\hexo下)。你在部署时，要把下面的guxingxianyue都换成你的账号名。</p>
-<pre><code>deploy:
-  type: git
-  repository: https://github.com/guxingxianyue/guxingxianyue.github.io.git
-  branch: master
-</code></pre><h3 id="执行下列指令即可完成部署。"><a href="#执行下列指令即可完成部署。" class="headerlink" title="执行下列指令即可完成部署。"></a>执行下列指令即可完成部署。</h3><hr>
-<pre><code>npm install hexo-deployer-git --save(有的哥们竟然不需要这个指令也能部署成功)
-hexo generate
-hexo deploy
-</code></pre><p><strong>注意：</strong>有些新用户需要设置ssh，否则上述命令会失败。ssh 的介绍和设置方法请看<a href="https://help.github.com/articles/generating-ssh-keys/" target="_blank" rel="noopener">官方教程</a>不用担心，很简单。</p>
-<p><strong>记住：</strong>每次修改本地文件后，需要hexo generate才能保存。每次使用命令时，都要在H:\hexo目录下右键选择Git Bash指令窗口。</p>
-<p>Okay,至此博客已经完全搭建起来了，在浏览器访问guxingxianyue.github.io就能看到你的成就了！Good luck。</p>
+        <h2 id="开场个人观察"><a href="#开场个人观察" class="headerlink" title="开场个人观察"></a>开场个人观察</h2><p>Kafka 这种组件，刚开始学的时候很容易记成几个名词：Producer、Consumer、Topic、Partition、Broker、Offset。真正用到项目里以后才会发现，Kafka 的难点不在于“会不会发消息”，而在于吞吐量、顺序性、可靠性和消费进度之间的取舍。</p>
+<p>在供应链、订单、库存、ERP 同步这类系统里，Kafka 很常见。比如订单创建后通知库存系统预占库存，采购单状态变化后通知财务系统生成应付记录，仓库出库后通知报表系统刷新数据。这些业务都有一个共同点：消息量可能很大，但业务又不能随便丢。</p>
+<p>所以理解 Kafka，不能只看 API，要看完整链路：生产者怎么把消息写进去，Broker 怎么存，消费者怎么拉取，offset 怎么提交，失败时怎么恢复。</p>
+<p><img src="/images/tech-flowcharts/kafka-producer-consumer-flow.svg" alt="Kafka生产者消费者工作流程"></p>
+<h2 id="核心观点"><a href="#核心观点" class="headerlink" title="核心观点"></a>核心观点</h2><p>Kafka 的核心设计可以概括成三句话。</p>
+<p>第一，生产者不是一条一条傻发，而是会把消息按 topic 和 partition 组织起来，经过序列化、分区选择、批量缓存后再发送给 Broker。</p>
+<p>第二，Broker 不是把消息存在一个普通队列里，而是把消息追加到分区日志中。分区是 Kafka 并行能力的基础，日志追加是它高吞吐的基础。</p>
+<p>第三，消费者不是等 Broker 推消息，而是主动 poll 拉取。消费者属于某个 consumer group，同一个 group 里一个分区同一时刻通常只会分给一个消费者处理，处理进度通过 offset 记录。</p>
+<p>Kafka 的吞吐量来自批量、顺序写、分区并行和零拷贝等机制；可靠性来自副本、ack、幂等、事务和 offset 提交策略。项目里真正要做的，是根据业务重要性选择合适参数，而不是一味追求“最快”。</p>
+<h2 id="实践方法"><a href="#实践方法" class="headerlink" title="实践方法"></a>实践方法</h2><p>先看生产者。生产者发送一条消息时，大致会经历这些步骤：</p>
+<ol>
+<li>业务代码构造消息，比如订单号、业务类型、变更时间。</li>
+<li>序列化，把对象转成字节。</li>
+<li>选择分区，如果指定 key，通常会根据 key hash 到固定 partition。</li>
+<li>放入本地缓冲区，按 batch 组织。</li>
+<li>Sender 线程把 batch 发给对应 Broker。</li>
+<li>Broker 追加日志并根据 ack 策略返回结果。</li>
+</ol>
+<p>如果要增大生产吞吐量，常见方向有几个。</p>
+<p><code>batch.size</code> 可以调大，让更多消息合并成一个批次。批量越充分，网络请求次数越少。</p>
+<p><code>linger.ms</code> 可以适当增加，让生产者多等几毫秒凑批次。它会牺牲一点延迟，换更高吞吐。</p>
+<p><code>compression.type</code> 可以使用 <code>lz4</code>、<code>snappy</code> 或 <code>zstd</code>，减少网络传输和磁盘占用。消息体较大时效果明显。</p>
+<p>分区数要足够。一个 topic 如果只有一个 partition，再多消费者也无法在同一个 consumer group 内并行消费这个 topic。</p>
+<p>生产者可以设置 <code>acks=all</code>、开启幂等 <code>enable.idempotence=true</code>，并合理配置重试。这样可以在 Broker 短暂失败时自动恢复，同时避免重试造成重复写入。</p>
+<p>再看消费者。消费者是通过 poll 拉取消息，处理后提交 offset。这里最关键的是 offset 提交时机。</p>
+<p>如果先提交 offset 再处理业务，消费者宕机后这批消息可能永远不会再处理，容易丢消息。</p>
+<p>如果先处理业务再提交 offset，宕机后可能重复消费，但至少消息不会丢。大多数核心业务更接受“重复但可幂等”，而不是“直接丢”。</p>
+<p>所以在订单、库存这类场景里，我更倾向于手动提交 offset：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">poll 消息</span><br><span class="line">执行业务处理</span><br><span class="line">写入业务库或幂等表</span><br><span class="line">处理成功后 commit offset</span><br></pre></td></tr></table></figure>
+
+<p>为了防止重复消费，业务侧要做幂等。比如用消息唯一 ID 建一张消费记录表，或者让订单状态流转本身具备幂等判断：已经处理过的状态不再重复扣减库存。</p>
+<h2 id="踩坑提醒"><a href="#踩坑提醒" class="headerlink" title="踩坑提醒"></a>踩坑提醒</h2><p>第一个坑，是只调大分区数，不看消费者处理能力。分区数增加能提高并行度，但也会带来更多文件句柄、更多 leader 选举和更复杂的再均衡。分区不是越多越好。</p>
+<p>第二个坑，是为了吞吐把 <code>acks</code> 调成 0。这样生产者发出去就不管了，速度很快，但 Broker 是否收到并不确定。日志、埋点可以这么考虑，订单状态、库存变更就不应该这么随意。</p>
+<p>第三个坑，是自动提交 offset。自动提交很方便，但它提交的是消费进度，不是业务成功。只要业务处理和 offset 提交之间没有绑定，就要接受消息丢失或重复的风险。</p>
+<p>第四个坑，是忽略 rebalance。消费者数量变化、心跳超时、poll 时间过长，都可能触发再均衡。处理单条消息耗时很长时，要注意 <code>max.poll.interval.ms</code> 和批量大小，避免消费者被踢出 group。</p>
+<p>第五个坑，是把 Kafka 当数据库。Kafka 适合做日志流和消息流，不适合承担复杂查询。业务状态仍然要落到数据库、缓存或搜索系统中。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Kafka 的生产者负责高效、可靠地把消息写入分区日志；消费者负责按分区拉取消息、处理业务并提交 offset。吞吐量靠批量、压缩、分区和顺序写；可靠性靠副本、ack、幂等、事务和手动提交。</p>
+<p>在真实项目里，我会按业务重要性分层：日志类消息可以优先吞吐，核心业务消息优先可靠；允许重复，但不能无声丢失。只要这条原则清楚，Kafka 参数就不会乱调。</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2016/01/05/my-new-post/" data-id="cmq8scy6s000njsqh656ivuvr" class="article-share-link">Share</a>
+      <a data-url="https://guxingxianyue.github.io/2023/03/18/kafka%E7%BB%84%E4%BB%B6%E9%87%8C%E9%9D%A2%E7%94%9F%E4%BA%A7%E8%80%85%E5%92%8C%E6%B6%88%E8%B4%B9%E8%80%85%E7%9A%84%E5%8E%9F%E7%90%86/" data-id="cuidjIaAv4LTT3LyBX4BahZ80" class="article-share-link">Share</a>
       
       
-  <ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/技术文章/">技术文章</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Kafka/" rel="tag">Kafka</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" rel="tag">分布式</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" rel="tag">消息队列</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/" rel="tag">系统设计</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-SQL里面各种锁的原理" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2022/09/17/SQL%E9%87%8C%E9%9D%A2%E5%90%84%E7%A7%8D%E9%94%81%E7%9A%84%E5%8E%9F%E7%90%86/" class="article-date">
+  <time datetime="2022-09-17T03:25:00.000Z" itemprop="datePublished">2022-09-17</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2022/09/17/SQL%E9%87%8C%E9%9D%A2%E5%90%84%E7%A7%8D%E9%94%81%E7%9A%84%E5%8E%9F%E7%90%86/">SQL里面各种锁的原理</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>SQL 里面的锁，表面上看是数据库为了防止并发冲突做的限制，实际本质是数据库在并发读写之间做秩序管理。只要系统里存在多个事务同时读写同一批数据，就一定会遇到锁。锁设计得好，系统可以同时保证数据正确和较高吞吐；锁用得不好，轻则接口变慢，重则死锁、阻塞、库存扣错、订单状态错乱。</p>
+<p>很多开发者第一次接触锁，是因为线上出现了 <code>Lock wait timeout exceeded</code> 或 <code>Deadlock found</code>。但真正理解锁，不能只背“共享锁、排他锁、行锁、表锁”这些名称，而要看清楚三个问题：锁保护的对象是什么、锁之间是否兼容、锁在事务什么时候加上和释放。</p>
+<p><img src="/images/tech-flowcharts/sql-locks-principle-flow.svg" alt="SQL 锁类型和事务执行流程"></p>
+<h2 id="为什么数据库需要锁"><a href="#为什么数据库需要锁" class="headerlink" title="为什么数据库需要锁"></a>为什么数据库需要锁</h2><p>数据库锁要解决的核心问题是并发一致性。</p>
+<p>假设供应链系统里有一条库存记录：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sku_id <span class="operator">=</span> <span class="number">1001</span></span><br><span class="line">warehouse_id <span class="operator">=</span> <span class="number">8</span></span><br><span class="line">available_qty <span class="operator">=</span> <span class="number">10</span></span><br></pre></td></tr></table></figure>
+
+<p>现在两个订单同时提交，每个订单都要锁定 8 件库存。如果两个事务都先读到 <code>available_qty = 10</code>，然后都认为库存足够，再分别把库存更新为 2，就会出现超卖。数据库必须让这两个更新按某种顺序执行，或者让其中一个事务发现条件已经不满足。</p>
+<p>锁就是这个顺序的基础。它告诉数据库：某个事务正在读或写某个资源，其他事务能不能同时读、能不能同时写、要不要等待。</p>
+<h2 id="共享锁和排他锁"><a href="#共享锁和排他锁" class="headerlink" title="共享锁和排他锁"></a>共享锁和排他锁</h2><p>共享锁也叫 S 锁，英文是 Shared Lock。它表示当前事务要读取数据，并且希望读取期间数据不要被别人修改。</p>
+<p>排他锁也叫 X 锁，英文是 Exclusive Lock。它表示当前事务要修改数据，其他事务不能同时修改，也通常不能再加共享锁读取同一行。</p>
+<p>它们的兼容关系可以简单理解为：</p>
+<table>
+<thead>
+<tr>
+<th>已有锁</th>
+<th>新申请共享锁</th>
+<th>新申请排他锁</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>共享锁</td>
+<td>兼容</td>
+<td>不兼容</td>
+</tr>
+<tr>
+<td>排他锁</td>
+<td>不兼容</td>
+<td>不兼容</td>
+</tr>
+</tbody></table>
+<p>共享锁之间兼容，是因为多个事务同时读同一行数据不会破坏数据。排他锁和任何锁都不兼容，是因为写操作必须独占资源。</p>
+<p>在 MySQL InnoDB 中，可以通过下面的方式显式加锁：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> inventory</span><br><span class="line"><span class="keyword">WHERE</span> sku_id <span class="operator">=</span> <span class="number">1001</span></span><br><span class="line">LOCK <span class="keyword">IN</span> SHARE MODE;</span><br></pre></td></tr></table></figure>
+
+<p>或者：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> inventory</span><br><span class="line"><span class="keyword">WHERE</span> sku_id <span class="operator">=</span> <span class="number">1001</span></span><br><span class="line"><span class="keyword">FOR</span> <span class="keyword">UPDATE</span>;</span><br></pre></td></tr></table></figure>
+
+<p><code>LOCK IN SHARE MODE</code> 倾向于加共享锁，<code>FOR UPDATE</code> 会对命中的记录加排他锁。业务里更常见的是更新语句自动加排他锁：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span> inventory</span><br><span class="line"><span class="keyword">SET</span> available_qty <span class="operator">=</span> available_qty <span class="operator">-</span> <span class="number">8</span></span><br><span class="line"><span class="keyword">WHERE</span> sku_id <span class="operator">=</span> <span class="number">1001</span></span><br><span class="line">  <span class="keyword">AND</span> available_qty <span class="operator">&gt;=</span> <span class="number">8</span>;</span><br></pre></td></tr></table></figure>
+
+<p>这条 SQL 在更新命中的记录时，会自动对相关记录加排他锁。</p>
+<h2 id="表锁和行锁"><a href="#表锁和行锁" class="headerlink" title="表锁和行锁"></a>表锁和行锁</h2><p>表锁保护的是整张表。一个事务锁住表以后，其他事务对这张表的读写可能都会受到影响。表锁粒度大，管理简单，但并发能力弱。</p>
+<p>行锁保护的是某一行或某个索引范围。行锁粒度小，并发能力强，但实现复杂，也更容易出现死锁。</p>
+<p>举个例子，ERP 系统里有一张 <code>order</code> 表。如果系统对整张订单表加表锁，那么一个用户修改订单时，其他用户可能连其他订单也无法修改。这对高并发系统非常不友好。</p>
+<p>如果使用行锁，一个用户修改订单 <code>A001</code>，另一个用户修改订单 <code>A002</code>，两者互不影响。只有两个事务同时修改同一张订单时，才需要等待。</p>
+<p>InnoDB 支持行级锁，但有一个非常重要的前提：行锁通常是加在索引上的。如果查询条件没有命中索引，数据库可能扫描大量记录，锁范围也会扩大，甚至表现得像锁了很多行。</p>
+<p>例如：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span> order_info</span><br><span class="line"><span class="keyword">SET</span> status <span class="operator">=</span> <span class="string">&#x27;CLOSED&#x27;</span></span><br><span class="line"><span class="keyword">WHERE</span> order_no <span class="operator">=</span> <span class="string">&#x27;SO20220917001&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>如果 <code>order_no</code> 有唯一索引，InnoDB 可以精准锁住这一行。如果 <code>order_no</code> 没有索引，数据库需要扫描全表判断哪些行满足条件，锁冲突风险就会明显增加。</p>
+<h2 id="意向锁"><a href="#意向锁" class="headerlink" title="意向锁"></a>意向锁</h2><p>意向锁是很多人容易忽略的一类锁。它不是直接锁某一行业务数据，而是用来协调表锁和行锁。</p>
+<p>假设事务 A 已经对订单表中的某一行加了排他行锁。此时事务 B 想对整张订单表加表级排他锁。数据库必须知道表里是否已经有行锁，否则就要扫描整张表逐行检查，成本很高。</p>
+<p>意向锁就是一个提示：某个事务打算在这张表里的某些行上加锁。</p>
+<p>常见意向锁有：</p>
+<ul>
+<li>IS，意向共享锁，表示事务准备在某些行上加共享锁。</li>
+<li>IX，意向排他锁，表示事务准备在某些行上加排他锁。</li>
+</ul>
+<p>当事务要给某行加共享锁时，会先在表上加 IS 锁。当事务要给某行加排他锁时，会先在表上加 IX 锁。</p>
+<p>意向锁的价值是让表级锁判断冲突更快。它像是在表门口挂了一个牌子：里面已经有人在某些行上操作，整表加锁前先看看是否兼容。</p>
+<h2 id="记录锁"><a href="#记录锁" class="headerlink" title="记录锁"></a>记录锁</h2><p>记录锁是 InnoDB 最容易理解的行锁，它锁住的是索引上的一条记录。</p>
+<p>例如库存表有唯一索引：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UNIQUE</span> KEY uk_sku_warehouse (sku_id, warehouse_id)</span><br></pre></td></tr></table></figure>
+
+<p>执行：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span></span><br><span class="line"><span class="keyword">FROM</span> inventory</span><br><span class="line"><span class="keyword">WHERE</span> sku_id <span class="operator">=</span> <span class="number">1001</span></span><br><span class="line">  <span class="keyword">AND</span> warehouse_id <span class="operator">=</span> <span class="number">8</span></span><br><span class="line"><span class="keyword">FOR</span> <span class="keyword">UPDATE</span>;</span><br></pre></td></tr></table></figure>
+
+<p>如果命中一条记录，InnoDB 会对这条索引记录加排他记录锁。其他事务再想更新同一条库存记录，就必须等待当前事务提交或回滚。</p>
+<p>记录锁适合解决“同一行业务数据不能被并发修改”的问题，例如订单状态流转、库存数量变更、账户余额扣减。</p>
+<h2 id="间隙锁"><a href="#间隙锁" class="headerlink" title="间隙锁"></a>间隙锁</h2><p>间隙锁锁住的不是已经存在的记录，而是索引记录之间的空隙。它的目的主要是防止幻读。</p>
+<p>假设库存预警表里已有预警阈值：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">threshold: 10, 20, 50</span><br></pre></td></tr></table></figure>
+
+<p>一个事务执行范围查询：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span></span><br><span class="line"><span class="keyword">FROM</span> stock_warning_rule</span><br><span class="line"><span class="keyword">WHERE</span> threshold <span class="keyword">BETWEEN</span> <span class="number">10</span> <span class="keyword">AND</span> <span class="number">50</span></span><br><span class="line"><span class="keyword">FOR</span> <span class="keyword">UPDATE</span>;</span><br></pre></td></tr></table></figure>
+
+<p>如果数据库只锁住 10、20、50 这几条已经存在的记录，另一个事务仍然可以插入 <code>threshold = 30</code> 的新记录。第一个事务再次查询时，就会发现多了一条之前不存在的数据，这就是幻读。</p>
+<p>间隙锁会锁住索引范围中的空隙，让其他事务不能在这个范围里插入新记录。它牺牲了一部分并发能力，换取范围查询的一致性。</p>
+<p>需要注意，间隙锁依赖索引范围。如果 SQL 没有合适索引，锁范围可能比预期大很多。</p>
+<h2 id="Next-Key-Lock"><a href="#Next-Key-Lock" class="headerlink" title="Next-Key Lock"></a>Next-Key Lock</h2><p>Next-Key Lock 可以理解为记录锁加间隙锁。它既锁住已经存在的索引记录，也锁住记录前后的范围。</p>
+<p>在 InnoDB 的可重复读隔离级别下，范围查询加锁时经常会使用 Next-Key Lock 来防止幻读。</p>
+<p>例如：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span></span><br><span class="line"><span class="keyword">FROM</span> purchase_order</span><br><span class="line"><span class="keyword">WHERE</span> supplier_id <span class="operator">=</span> <span class="number">88</span></span><br><span class="line">  <span class="keyword">AND</span> amount <span class="keyword">BETWEEN</span> <span class="number">10000</span> <span class="keyword">AND</span> <span class="number">50000</span></span><br><span class="line"><span class="keyword">FOR</span> <span class="keyword">UPDATE</span>;</span><br></pre></td></tr></table></figure>
+
+<p>如果 <code>supplier_id, amount</code> 上有联合索引，InnoDB 会锁定这个索引范围内的记录和间隙。其他事务不能随便插入符合这个范围的新采购单。</p>
+<p>Next-Key Lock 的好处是一致性强，坏处是容易让范围更新、范围查询变得更容易互相阻塞。因此业务 SQL 要尽量让范围条件走合适索引，避免锁住过大的范围。</p>
+<h2 id="乐观锁"><a href="#乐观锁" class="headerlink" title="乐观锁"></a>乐观锁</h2><p>乐观锁不是数据库引擎内部固定的一种锁，而是一种并发控制思想。它假设冲突不常发生，所以不提前阻塞别人，而是在提交更新时检查数据有没有被别人改过。</p>
+<p>最常见实现是版本号字段：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span> inventory</span><br><span class="line"><span class="keyword">SET</span> available_qty <span class="operator">=</span> available_qty <span class="operator">-</span> <span class="number">8</span>,</span><br><span class="line">    version <span class="operator">=</span> version <span class="operator">+</span> <span class="number">1</span></span><br><span class="line"><span class="keyword">WHERE</span> sku_id <span class="operator">=</span> <span class="number">1001</span></span><br><span class="line">  <span class="keyword">AND</span> warehouse_id <span class="operator">=</span> <span class="number">8</span></span><br><span class="line">  <span class="keyword">AND</span> available_qty <span class="operator">&gt;=</span> <span class="number">8</span></span><br><span class="line">  <span class="keyword">AND</span> version <span class="operator">=</span> <span class="number">12</span>;</span><br></pre></td></tr></table></figure>
+
+<p>如果更新影响行数为 1，说明版本没变，扣减成功。如果影响行数为 0，说明数据已经被别人改过，当前事务需要重试或提示失败。</p>
+<p>乐观锁适合读多写少、冲突概率低的场景。例如商品资料编辑、客户档案修改、配置项更新。它的优点是不会长时间阻塞，缺点是冲突发生时需要业务处理重试和失败提示。</p>
+<h2 id="悲观锁"><a href="#悲观锁" class="headerlink" title="悲观锁"></a>悲观锁</h2><p>悲观锁也是一种思想。它假设冲突很可能发生，所以在操作前先把数据锁住。</p>
+<p>典型写法是：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span></span><br><span class="line"><span class="keyword">FROM</span> inventory</span><br><span class="line"><span class="keyword">WHERE</span> sku_id <span class="operator">=</span> <span class="number">1001</span></span><br><span class="line">  <span class="keyword">AND</span> warehouse_id <span class="operator">=</span> <span class="number">8</span></span><br><span class="line"><span class="keyword">FOR</span> <span class="keyword">UPDATE</span>;</span><br></pre></td></tr></table></figure>
+
+<p>当前事务拿到锁以后，再计算库存、写入订单、更新库存。其他事务想修改同一条库存记录，就必须等待。</p>
+<p>悲观锁适合写冲突高、数据不能错的场景，例如库存扣减、余额扣减、核心单据状态流转。缺点也明显：事务时间越长，等待越多，吞吐越低。</p>
+<p>所以悲观锁一定要控制事务范围。不要在持有锁期间调用外部接口、发送 MQ、请求第三方系统，也不要在事务里做复杂计算。</p>
+<h2 id="元数据锁"><a href="#元数据锁" class="headerlink" title="元数据锁"></a>元数据锁</h2><p>元数据锁也叫 MDL，Metadata Lock。它保护的是表结构，而不是具体业务行。</p>
+<p>当一个事务正在查询或修改某张表时，数据库会持有这张表的元数据锁，防止另一个会话同时修改表结构。否则就可能出现一个事务读表读到一半，另一个事务把字段删了。</p>
+<p>常见问题是：一个长事务一直不提交，导致 <code>ALTER TABLE</code> 等 DDL 操作被阻塞；DDL 又反过来阻塞后续普通查询，最后形成一串等待。</p>
+<p>例如：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">BEGIN</span>;</span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> order_info <span class="keyword">WHERE</span> id <span class="operator">=</span> <span class="number">1</span>;</span><br><span class="line"><span class="comment">-- 长时间不提交</span></span><br></pre></td></tr></table></figure>
+
+<p>此时另一个会话执行：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">ALTER TABLE</span> order_info <span class="keyword">ADD</span> <span class="keyword">COLUMN</span> source_type <span class="type">varchar</span>(<span class="number">32</span>);</span><br></pre></td></tr></table></figure>
+
+<p>DDL 可能会等待前面的事务释放 MDL。后续新的查询又可能排在 DDL 后面，导致业务接口突然大面积变慢。</p>
+<p>线上做 DDL 时，必须关注长事务和元数据锁等待。大表变更最好使用在线 DDL 工具或低峰期执行。</p>
+<h2 id="自增锁"><a href="#自增锁" class="headerlink" title="自增锁"></a>自增锁</h2><p>自增锁用于处理自增主键分配。多个事务同时插入数据时，数据库要保证自增 ID 不重复。</p>
+<p>InnoDB 对自增锁做过很多优化，不同配置下表现不同。简单理解，普通插入通常可以较快分配自增值；批量插入、<code>INSERT ... SELECT</code> 这类语句可能持有自增相关锁更久。</p>
+<p>业务上不建议依赖自增 ID 的连续性。事务回滚、插入失败、并发插入都可能造成 ID 跳号。自增 ID 的目标是唯一和大体递增，不是绝对连续。</p>
+<h2 id="死锁是怎么发生的"><a href="#死锁是怎么发生的" class="headerlink" title="死锁是怎么发生的"></a>死锁是怎么发生的</h2><p>死锁是两个或多个事务互相等待对方释放锁。</p>
+<p>例如供应链系统里同时更新订单和库存：</p>
+<p>事务 A：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">1. 锁订单 O1001</span><br><span class="line">2. 再锁库存 S1001</span><br></pre></td></tr></table></figure>
+
+<p>事务 B：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">1. 锁库存 S1001</span><br><span class="line">2. 再锁订单 O1001</span><br></pre></td></tr></table></figure>
+
+<p>事务 A 拿到了订单锁，等待库存锁。事务 B 拿到了库存锁，等待订单锁。双方都不释放，就形成死锁。</p>
+<p>数据库通常会检测死锁，并主动回滚其中一个事务。业务系统看到的就是死锁异常。</p>
+<p>减少死锁的关键方法是：</p>
+<ul>
+<li>多表更新保持固定顺序。</li>
+<li>批量更新时按主键排序。</li>
+<li>事务尽量短。</li>
+<li>查询条件命中索引，减少锁范围。</li>
+<li>避免在事务中做远程调用。</li>
+<li>捕获死锁异常，对幂等操作做有限重试。</li>
+</ul>
+<h2 id="怎么排查锁等待"><a href="#怎么排查锁等待" class="headerlink" title="怎么排查锁等待"></a>怎么排查锁等待</h2><p>线上出现锁等待时，不要只盯着慢 SQL。要看谁在等锁，谁持有锁，事务已经执行了多久。</p>
+<p>MySQL 里常用的排查方向包括：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> PROCESSLIST;</span><br></pre></td></tr></table></figure>
+
+<p>查看当前连接状态。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> ENGINE INNODB STATUS;</span><br></pre></td></tr></table></figure>
+
+<p>查看最近死锁、锁等待、事务信息。</p>
+<p>在 MySQL 8 中，也可以通过 <code>performance_schema</code> 和 <code>sys</code> 库查看锁等待关系。</p>
+<p>排查时重点看：</p>
+<ul>
+<li>哪个事务持有锁。</li>
+<li>持锁事务执行了多久。</li>
+<li>等待的 SQL 是什么。</li>
+<li>是否存在未提交长事务。</li>
+<li>SQL 是否走了索引。</li>
+<li>是否有 DDL 和普通业务 SQL 互相阻塞。</li>
+</ul>
+<h2 id="实际开发里的用锁建议"><a href="#实际开发里的用锁建议" class="headerlink" title="实际开发里的用锁建议"></a>实际开发里的用锁建议</h2><p>第一，能用一条原子 SQL 解决的，不要拆成先查再改。</p>
+<p>库存扣减推荐写成：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span> inventory</span><br><span class="line"><span class="keyword">SET</span> available_qty <span class="operator">=</span> available_qty <span class="operator">-</span> <span class="number">8</span>,</span><br><span class="line">    locked_qty <span class="operator">=</span> locked_qty <span class="operator">+</span> <span class="number">8</span></span><br><span class="line"><span class="keyword">WHERE</span> sku_id <span class="operator">=</span> <span class="number">1001</span></span><br><span class="line">  <span class="keyword">AND</span> warehouse_id <span class="operator">=</span> <span class="number">8</span></span><br><span class="line">  <span class="keyword">AND</span> available_qty <span class="operator">&gt;=</span> <span class="number">8</span>;</span><br></pre></td></tr></table></figure>
+
+<p>然后根据影响行数判断是否成功。</p>
+<p>第二，加锁查询必须有合适索引。</p>
+<p><code>FOR UPDATE</code> 不是魔法。如果条件没有索引，锁范围会扩大，性能和并发都会出问题。</p>
+<p>第三，事务里只放必须保持一致的操作。</p>
+<p>订单创建、库存锁定、订单主表写入可以放在事务里；短信通知、日志上报、消息推送应该放到事务提交后。</p>
+<p>第四，统一更新顺序。</p>
+<p>如果业务规定先锁订单，再锁库存，再锁财务单据，那么所有代码都要遵守这个顺序。不要一个接口先锁订单，另一个接口先锁库存。</p>
+<p>第五，锁冲突高的热点数据要做业务拆分。</p>
+<p>例如某个爆款 SKU 的库存行成为热点，可以按仓库、批次、库存桶拆分，降低单行竞争。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>SQL 里的锁不是孤立概念，而是一套并发控制体系。共享锁和排他锁决定读写是否兼容，表锁和行锁决定锁粒度，意向锁协调表级和行级锁，记录锁保护已有记录，间隙锁和 Next-Key Lock 保护索引范围，乐观锁和悲观锁是两种业务并发控制思想，元数据锁保护表结构，自增锁保证自增值分配。</p>
+<p>真正写业务代码时，最重要的不是记住所有锁名，而是控制三个东西：索引、事务范围、更新顺序。索引决定锁得准不准，事务范围决定锁持有多久，更新顺序决定是否容易死锁。把这三点做好，绝大多数 SQL 锁问题都会少很多。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://guxingxianyue.github.io/2022/09/17/SQL%E9%87%8C%E9%9D%A2%E5%90%84%E7%A7%8D%E9%94%81%E7%9A%84%E5%8E%9F%E7%90%86/" data-id="cuidhkuybdsQ2DKfK_h6LsGOt" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SQL/" rel="tag">SQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%BA%8B%E5%8A%A1/" rel="tag">事务</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="tag">数据库</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%94%81/" rel="tag">锁</a></li></ul>
 
     </footer>
   </div>
@@ -1160,7 +637,7 @@ hexo deploy
   
   
     <nav id="page-nav">
-      <a class="extend prev" rel="prev" href="/page/6/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/5/">5</a><a class="page-number" href="/page/6/">6</a><span class="page-number current">7</span>
+      <a class="extend prev" rel="prev" href="/page/6/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/5/">5</a><a class="page-number" href="/page/6/">6</a><span class="page-number current">7</span><a class="page-number" href="/page/8/">8</a><a class="page-number" href="/page/9/">9</a><a class="page-number" href="/page/10/">10</a><a class="extend next" rel="next" href="/page/8/">Next &raquo;</a>
     </nav>
   
 </section>
@@ -1173,7 +650,7 @@ hexo deploy
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AGENTS-md/">AGENTS.md</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI/">AI</a><span class="tag-list-count">15</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Agent/">Agent</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CAP/">CAP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Claude-Code/">Claude Code</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Codex/">Codex</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ERP/">ERP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/">Java</a><span class="tag-list-count">7</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kafka/">Kafka</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Loop-Engineering/">Loop Engineering</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/">MySQL</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Redis/">Redis</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/">SQL</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL优化/">SQL优化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Skill/">Skill</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spec-Coding/">Spec Coding</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spring-Cloud/">Spring Cloud</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/事务/">事务</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/供应链系统/">供应链系统</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/分布式/">分布式</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/分布式系统/">分布式系统</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/分布式锁/">分布式锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/命令行/">命令行</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/工程实践/">工程实践</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/并发控制/">并发控制</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/微服务/">微服务</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/技术文章/">技术文章</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/报表统计/">报表统计</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据分析/">数据分析</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据库/">数据库</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/数据结构与算法/">数据结构与算法</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/架构设计/">架构设计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/消息队列/">消息队列</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/系统优化/">系统优化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/系统设计/">系统设计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/缓存/">缓存</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/编程效率/">编程效率</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/软件工程/">软件工程</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/锁/">锁</a><span class="tag-list-count">1</span></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AGENTS-md/" rel="tag">AGENTS.md</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI/" rel="tag">AI</a><span class="tag-list-count">15</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AQS/" rel="tag">AQS</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Agent/" rel="tag">Agent</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Atomic/" rel="tag">Atomic</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CAP/" rel="tag">CAP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CAS/" rel="tag">CAS</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Claude-Code/" rel="tag">Claude Code</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Codex/" rel="tag">Codex</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Condition/" rel="tag">Condition</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ERP/" rel="tag">ERP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/InnoDB/" rel="tag">InnoDB</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JMM/" rel="tag">JMM</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kafka/" rel="tag">Kafka</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LongAdder/" rel="tag">LongAdder</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Loop-Engineering/" rel="tag">Loop Engineering</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MVCC/" rel="tag">MVCC</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Monitor/" rel="tag">Monitor</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Next-Key-Lock/" rel="tag">Next-Key Lock</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ReadWriteLock/" rel="tag">ReadWriteLock</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Redis/" rel="tag">Redis</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ReentrantLock/" rel="tag">ReentrantLock</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/" rel="tag">SQL</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL%E4%BC%98%E5%8C%96/" rel="tag">SQL优化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Skill/" rel="tag">Skill</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spec-Coding/" rel="tag">Spec Coding</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spring-Cloud/" rel="tag">Spring Cloud</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/StampedLock/" rel="tag">StampedLock</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/synchronized/" rel="tag">synchronized</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/volatile/" rel="tag">volatile</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%B9%90%E8%A7%82%E9%94%81/" rel="tag">乐观锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8B%E5%8A%A1/" rel="tag">事务</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/" rel="tag">事务隔离级别</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BB%93%E5%82%A8%E7%B3%BB%E7%BB%9F/" rel="tag">仓储系统</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F/" rel="tag">供应链系统</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" rel="tag">分布式</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/" rel="tag">分布式系统</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" rel="tag">分布式锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8D%95%E6%8D%AE%E5%AE%A1%E6%A0%B8/" rel="tag">单据审核</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" rel="tag">可见性</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%91%BD%E4%BB%A4%E8%A1%8C/" rel="tag">命令行</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/" rel="tag">工程实践</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6/" rel="tag">并发控制</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" rel="tag">并发编程</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91%E9%98%9F%E5%88%97/" rel="tag">并发队列</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%BB%E8%AF%BB/" rel="tag">幻读</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BA%93%E5%AD%98%E7%B3%BB%E7%BB%9F/" rel="tag">库存系统</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/" rel="tag">微服务</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%82%B2%E8%A7%82%E9%94%81/" rel="tag">悲观锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8A%80%E6%9C%AF%E6%96%87%E7%AB%A0/" rel="tag">技术文章</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8A%A5%E8%A1%A8%E7%BB%9F%E8%AE%A1/" rel="tag">报表统计</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E5%88%86%E6%9E%90/" rel="tag">数据分析</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="tag">数据库</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/" rel="tag">数据结构与算法</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/" rel="tag">架构设计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%AD%BB%E9%94%81/" rel="tag">死锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" rel="tag">消息队列</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%B3%BB%E7%BB%9F%E4%BC%98%E5%8C%96/" rel="tag">系统优化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/" rel="tag">系统设计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%B4%A2%E5%BC%95/" rel="tag">索引</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BC%93%E5%AD%98/" rel="tag">缓存</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BC%96%E7%A8%8B%E6%95%88%E7%8E%87/" rel="tag">编程效率</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%A1%8C%E9%94%81/" rel="tag">行锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%A2%E5%8D%95%E7%B3%BB%E7%BB%9F/" rel="tag">订单系统</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%BD%AF%E4%BB%B6%E5%B7%A5%E7%A8%8B/" rel="tag">软件工程</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%87%87%E8%B4%AD%E7%B3%BB%E7%BB%9F/" rel="tag">采购系统</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%94%81/" rel="tag">锁</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%94%81%E7%AD%89%E5%BE%85/" rel="tag">锁等待</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%97%B4%E9%9A%99%E9%94%81/" rel="tag">间隙锁</a><span class="tag-list-count">1</span></li></ul>
     </div>
   </div>
 
@@ -1182,7 +659,7 @@ hexo deploy
   <div class="widget-wrap">
     <h3 class="widget-title">Tag Cloud</h3>
     <div class="widget tagcloud">
-      <a href="/tags/AGENTS-md/" style="font-size: 10px;">AGENTS.md</a> <a href="/tags/AI/" style="font-size: 20px;">AI</a> <a href="/tags/Agent/" style="font-size: 10px;">Agent</a> <a href="/tags/CAP/" style="font-size: 10px;">CAP</a> <a href="/tags/Claude-Code/" style="font-size: 13.75px;">Claude Code</a> <a href="/tags/Codex/" style="font-size: 18.75px;">Codex</a> <a href="/tags/ERP/" style="font-size: 10px;">ERP</a> <a href="/tags/Java/" style="font-size: 17.5px;">Java</a> <a href="/tags/Kafka/" style="font-size: 10px;">Kafka</a> <a href="/tags/Loop-Engineering/" style="font-size: 10px;">Loop Engineering</a> <a href="/tags/MySQL/" style="font-size: 11.25px;">MySQL</a> <a href="/tags/Redis/" style="font-size: 11.25px;">Redis</a> <a href="/tags/SQL/" style="font-size: 10px;">SQL</a> <a href="/tags/SQL优化/" style="font-size: 10px;">SQL优化</a> <a href="/tags/Skill/" style="font-size: 10px;">Skill</a> <a href="/tags/Spec-Coding/" style="font-size: 12.5px;">Spec Coding</a> <a href="/tags/Spring-Cloud/" style="font-size: 10px;">Spring Cloud</a> <a href="/tags/事务/" style="font-size: 10px;">事务</a> <a href="/tags/供应链系统/" style="font-size: 10px;">供应链系统</a> <a href="/tags/分布式/" style="font-size: 13.75px;">分布式</a> <a href="/tags/分布式系统/" style="font-size: 11.25px;">分布式系统</a> <a href="/tags/分布式锁/" style="font-size: 10px;">分布式锁</a> <a href="/tags/命令行/" style="font-size: 11.25px;">命令行</a> <a href="/tags/工程实践/" style="font-size: 12.5px;">工程实践</a> <a href="/tags/并发控制/" style="font-size: 10px;">并发控制</a> <a href="/tags/微服务/" style="font-size: 10px;">微服务</a> <a href="/tags/技术文章/" style="font-size: 16.25px;">技术文章</a> <a href="/tags/报表统计/" style="font-size: 10px;">报表统计</a> <a href="/tags/数据分析/" style="font-size: 10px;">数据分析</a> <a href="/tags/数据库/" style="font-size: 11.25px;">数据库</a> <a href="/tags/数据结构与算法/" style="font-size: 12.5px;">数据结构与算法</a> <a href="/tags/架构设计/" style="font-size: 11.25px;">架构设计</a> <a href="/tags/消息队列/" style="font-size: 10px;">消息队列</a> <a href="/tags/系统优化/" style="font-size: 10px;">系统优化</a> <a href="/tags/系统设计/" style="font-size: 11.25px;">系统设计</a> <a href="/tags/缓存/" style="font-size: 10px;">缓存</a> <a href="/tags/编程效率/" style="font-size: 16.25px;">编程效率</a> <a href="/tags/软件工程/" style="font-size: 15px;">软件工程</a> <a href="/tags/锁/" style="font-size: 10px;">锁</a>
+      <a href="/tags/AGENTS-md/" style="font-size: 10px;">AGENTS.md</a> <a href="/tags/AI/" style="font-size: 20px;">AI</a> <a href="/tags/AQS/" style="font-size: 10px;">AQS</a> <a href="/tags/Agent/" style="font-size: 10px;">Agent</a> <a href="/tags/Atomic/" style="font-size: 10px;">Atomic</a> <a href="/tags/CAP/" style="font-size: 10px;">CAP</a> <a href="/tags/CAS/" style="font-size: 10px;">CAS</a> <a href="/tags/Claude-Code/" style="font-size: 13.33px;">Claude Code</a> <a href="/tags/Codex/" style="font-size: 17.78px;">Codex</a> <a href="/tags/Condition/" style="font-size: 10px;">Condition</a> <a href="/tags/ERP/" style="font-size: 10px;">ERP</a> <a href="/tags/InnoDB/" style="font-size: 13.33px;">InnoDB</a> <a href="/tags/JMM/" style="font-size: 10px;">JMM</a> <a href="/tags/Java/" style="font-size: 18.89px;">Java</a> <a href="/tags/Kafka/" style="font-size: 10px;">Kafka</a> <a href="/tags/LongAdder/" style="font-size: 10px;">LongAdder</a> <a href="/tags/Loop-Engineering/" style="font-size: 10px;">Loop Engineering</a> <a href="/tags/MVCC/" style="font-size: 10px;">MVCC</a> <a href="/tags/Monitor/" style="font-size: 10px;">Monitor</a> <a href="/tags/MySQL/" style="font-size: 16.67px;">MySQL</a> <a href="/tags/Next-Key-Lock/" style="font-size: 10px;">Next-Key Lock</a> <a href="/tags/ReadWriteLock/" style="font-size: 10px;">ReadWriteLock</a> <a href="/tags/Redis/" style="font-size: 11.11px;">Redis</a> <a href="/tags/ReentrantLock/" style="font-size: 10px;">ReentrantLock</a> <a href="/tags/SQL/" style="font-size: 10px;">SQL</a> <a href="/tags/SQL%E4%BC%98%E5%8C%96/" style="font-size: 10px;">SQL优化</a> <a href="/tags/Skill/" style="font-size: 10px;">Skill</a> <a href="/tags/Spec-Coding/" style="font-size: 12.22px;">Spec Coding</a> <a href="/tags/Spring-Cloud/" style="font-size: 10px;">Spring Cloud</a> <a href="/tags/StampedLock/" style="font-size: 10px;">StampedLock</a> <a href="/tags/synchronized/" style="font-size: 10px;">synchronized</a> <a href="/tags/volatile/" style="font-size: 10px;">volatile</a> <a href="/tags/%E4%B9%90%E8%A7%82%E9%94%81/" style="font-size: 10px;">乐观锁</a> <a href="/tags/%E4%BA%8B%E5%8A%A1/" style="font-size: 11.11px;">事务</a> <a href="/tags/%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/" style="font-size: 10px;">事务隔离级别</a> <a href="/tags/%E4%BB%93%E5%82%A8%E7%B3%BB%E7%BB%9F/" style="font-size: 12.22px;">仓储系统</a> <a href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F/" style="font-size: 14.44px;">供应链系统</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" style="font-size: 13.33px;">分布式</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/" style="font-size: 11.11px;">分布式系统</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" style="font-size: 10px;">分布式锁</a> <a href="/tags/%E5%8D%95%E6%8D%AE%E5%AE%A1%E6%A0%B8/" style="font-size: 10px;">单据审核</a> <a href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" style="font-size: 10px;">可见性</a> <a href="/tags/%E5%91%BD%E4%BB%A4%E8%A1%8C/" style="font-size: 11.11px;">命令行</a> <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/" style="font-size: 12.22px;">工程实践</a> <a href="/tags/%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6/" style="font-size: 10px;">并发控制</a> <a href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" style="font-size: 12.22px;">并发编程</a> <a href="/tags/%E5%B9%B6%E5%8F%91%E9%98%9F%E5%88%97/" style="font-size: 10px;">并发队列</a> <a href="/tags/%E5%B9%BB%E8%AF%BB/" style="font-size: 10px;">幻读</a> <a href="/tags/%E5%BA%93%E5%AD%98%E7%B3%BB%E7%BB%9F/" style="font-size: 11.11px;">库存系统</a> <a href="/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/" style="font-size: 10px;">微服务</a> <a href="/tags/%E6%82%B2%E8%A7%82%E9%94%81/" style="font-size: 10px;">悲观锁</a> <a href="/tags/%E6%8A%80%E6%9C%AF%E6%96%87%E7%AB%A0/" style="font-size: 15.56px;">技术文章</a> <a href="/tags/%E6%8A%A5%E8%A1%A8%E7%BB%9F%E8%AE%A1/" style="font-size: 10px;">报表统计</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E5%88%86%E6%9E%90/" style="font-size: 10px;">数据分析</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 11.11px;">数据库</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/" style="font-size: 12.22px;">数据结构与算法</a> <a href="/tags/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/" style="font-size: 11.11px;">架构设计</a> <a href="/tags/%E6%AD%BB%E9%94%81/" style="font-size: 10px;">死锁</a> <a href="/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" style="font-size: 10px;">消息队列</a> <a href="/tags/%E7%B3%BB%E7%BB%9F%E4%BC%98%E5%8C%96/" style="font-size: 10px;">系统优化</a> <a href="/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/" style="font-size: 11.11px;">系统设计</a> <a href="/tags/%E7%B4%A2%E5%BC%95/" style="font-size: 10px;">索引</a> <a href="/tags/%E7%BC%93%E5%AD%98/" style="font-size: 11.11px;">缓存</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E6%95%88%E7%8E%87/" style="font-size: 15.56px;">编程效率</a> <a href="/tags/%E8%A1%8C%E9%94%81/" style="font-size: 10px;">行锁</a> <a href="/tags/%E8%AE%A2%E5%8D%95%E7%B3%BB%E7%BB%9F/" style="font-size: 10px;">订单系统</a> <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%B7%A5%E7%A8%8B/" style="font-size: 14.44px;">软件工程</a> <a href="/tags/%E9%87%87%E8%B4%AD%E7%B3%BB%E7%BB%9F/" style="font-size: 10px;">采购系统</a> <a href="/tags/%E9%94%81/" style="font-size: 12.22px;">锁</a> <a href="/tags/%E9%94%81%E7%AD%89%E5%BE%85/" style="font-size: 10px;">锁等待</a> <a href="/tags/%E9%97%B4%E9%9A%99%E9%94%81/" style="font-size: 10px;">间隙锁</a>
     </div>
   </div>
 
@@ -1191,7 +668,7 @@ hexo deploy
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/06/">六月 2026</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/05/">五月 2026</a><span class="archive-list-count">9</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">十一月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">八月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/05/">五月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">二月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">十一月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/07/">七月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">三月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">六月 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">四月 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">三月 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">一月 2016</a><span class="archive-list-count">1</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/06/">六月 2026</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/05/">五月 2026</a><span class="archive-list-count">9</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/06/">六月 2025</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/05/">五月 2025</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/04/">四月 2025</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/03/">三月 2025</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">十一月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">八月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/05/">五月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">二月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">十一月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/07/">七月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">三月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">六月 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">四月 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">三月 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">一月 2016</a><span class="archive-list-count">1</span></li></ul>
     </div>
   </div>
 
@@ -1207,19 +684,19 @@ hexo deploy
           </li>
         
           <li>
-            <a href="/2026/06/10/Codex提高软件编程效率的10个技巧/">Codex提高软件编程效率的10个技巧</a>
+            <a href="/2026/06/10/Codex%E6%8F%90%E9%AB%98%E8%BD%AF%E4%BB%B6%E7%BC%96%E7%A8%8B%E6%95%88%E7%8E%87%E7%9A%8410%E4%B8%AA%E6%8A%80%E5%B7%A7/">Codex提高软件编程效率的10个技巧</a>
           </li>
         
           <li>
-            <a href="/2026/06/10/普通开发者使用AI的三条边界/">普通开发者使用AI的三条边界</a>
+            <a href="/2026/06/10/%E6%99%AE%E9%80%9A%E5%BC%80%E5%8F%91%E8%80%85%E4%BD%BF%E7%94%A8AI%E7%9A%84%E4%B8%89%E6%9D%A1%E8%BE%B9%E7%95%8C/">普通开发者使用AI的三条边界</a>
           </li>
         
           <li>
-            <a href="/2026/06/10/AI-Agent时代的开发工作流/">AI Agent时代的开发工作流</a>
+            <a href="/2026/06/10/AI-Agent%E6%97%B6%E4%BB%A3%E7%9A%84%E5%BC%80%E5%8F%91%E5%B7%A5%E4%BD%9C%E6%B5%81/">AI Agent时代的开发工作流</a>
           </li>
         
           <li>
-            <a href="/2026/06/10/2026年重新理解AI编程助手/">2026年，重新理解AI编程助手</a>
+            <a href="/2026/06/10/2026%E5%B9%B4%E9%87%8D%E6%96%B0%E7%90%86%E8%A7%A3AI%E7%BC%96%E7%A8%8B%E5%8A%A9%E6%89%8B/">2026年，重新理解AI编程助手</a>
           </li>
         
       </ul>
@@ -1254,11 +731,17 @@ hexo deploy
 <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
 
 
-  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
-  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
 
 
 <script src="/js/script.js"></script>
+
 
   </div>
 </body>
