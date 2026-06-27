@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Java多线程基础：供应链系统为什么需要并发处理 | 陈金星写字的地方</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="Java 多线程不是为了把代码写复杂，而是为了在合适的业务场景里提高吞吐、降低等待时间、充分利用 CPU 和 IO 资源。供应链系统里有大量典型场景：订单创建后要校验库存、校验客户信用、计算运费、匹配促销、写操作日志；仓库出库时要生成波次、分配库位、通知 WMS、刷新库存快照。这些动作有些可以并行，有些必须串行，多线程的价值就是把这两类工作区分清楚。 线程和进程进程是操作系统资源分配的基本单位，线">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java多线程基础：供应链系统为什么需要并发处理">
+<meta property="og:url" content="https://guxingxianyue.github.io/2022/05/05/Java%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%9F%BA%E7%A1%80%EF%BC%9A%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E5%B9%B6%E5%8F%91%E5%A4%84%E7%90%86/index.html">
+<meta property="og:site_name" content="陈金星写字的地方">
+<meta property="og:description" content="Java 多线程不是为了把代码写复杂，而是为了在合适的业务场景里提高吞吐、降低等待时间、充分利用 CPU 和 IO 资源。供应链系统里有大量典型场景：订单创建后要校验库存、校验客户信用、计算运费、匹配促销、写操作日志；仓库出库时要生成波次、分配库位、通知 WMS、刷新库存快照。这些动作有些可以并行，有些必须串行，多线程的价值就是把这两类工作区分清楚。 线程和进程进程是操作系统资源分配的基本单位，线">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-05-05T01:30:00.000Z">
+<meta property="article:modified_time" content="2026-06-27T14:15:35.613Z">
+<meta property="article:author" content="Jinxing Chen">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="供应链系统">
+<meta property="article:tag" content="多线程">
+<meta property="article:tag" content="并发编程">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternative" href="/atom.xml" title="陈金星写字的地方" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">陈金星写字的地方</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">首页</a>
+        
+          <a class="main-nav-link" href="/archives">存档</a>
+        
+          <a class="main-nav-link" href="/about">关于</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://guxingxianyue.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-Java多线程基础：供应链系统为什么需要并发处理" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2022/05/05/Java%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%9F%BA%E7%A1%80%EF%BC%9A%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E5%B9%B6%E5%8F%91%E5%A4%84%E7%90%86/" class="article-date">
+  <time datetime="2022-05-05T01:30:00.000Z" itemprop="datePublished">2022-05-05</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Java多线程基础：供应链系统为什么需要并发处理
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Java 多线程不是为了把代码写复杂，而是为了在合适的业务场景里提高吞吐、降低等待时间、充分利用 CPU 和 IO 资源。供应链系统里有大量典型场景：订单创建后要校验库存、校验客户信用、计算运费、匹配促销、写操作日志；仓库出库时要生成波次、分配库位、通知 WMS、刷新库存快照。这些动作有些可以并行，有些必须串行，多线程的价值就是把这两类工作区分清楚。</p>
+<h2 id="线程和进程"><a href="#线程和进程" class="headerlink" title="线程和进程"></a>线程和进程</h2><p>进程是操作系统资源分配的基本单位，线程是 CPU 调度执行的基本单位。一个 Java 应用进程里可以有很多线程，比如 Tomcat 请求线程、业务线程池线程、GC 线程、定时任务线程。</p>
+<p>在供应链系统中，一个订单接口请求通常由一个 Web 容器线程处理。如果接口里所有操作都串行执行，请求耗时会被每一步累加。如果某些步骤没有依赖关系，就可以并行执行。</p>
+<h2 id="线程生命周期"><a href="#线程生命周期" class="headerlink" title="线程生命周期"></a>线程生命周期</h2><p>Java 线程常见状态包括：</p>
+<ul>
+<li><code>NEW</code>：线程对象已创建但未启动。</li>
+<li><code>RUNNABLE</code>：可运行，等待 CPU 调度或正在执行。</li>
+<li><code>BLOCKED</code>：等待进入 synchronized 临界区。</li>
+<li><code>WAITING</code>：无限期等待其他线程通知。</li>
+<li><code>TIMED_WAITING</code>：限时等待，比如 <code>sleep</code>、带超时的 <code>wait</code>。</li>
+<li><code>TERMINATED</code>：线程执行结束。</li>
+</ul>
+<p>排查供应链批处理卡顿时，线程状态很关键。大量 <code>BLOCKED</code> 说明锁竞争严重，大量 <code>WAITING</code> 可能是队列无任务或等待条件未满足，大量 <code>RUNNABLE</code> 但 CPU 很高可能是计算任务过重或死循环。</p>
+<h2 id="创建线程的方式"><a href="#创建线程的方式" class="headerlink" title="创建线程的方式"></a>创建线程的方式</h2><p>最原始的方式是直接创建 <code>Thread</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">Thread</span> <span class="variable">thread</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Thread</span>(() -&gt; &#123;</span><br><span class="line">    System.out.println(<span class="string">&quot;同步库存快照&quot;</span>);</span><br><span class="line">&#125;);</span><br><span class="line">thread.start();</span><br></pre></td></tr></table></figure>
+
+<p>这种方式适合理解原理，不适合业务系统大量使用。真实项目应该使用线程池，避免频繁创建和销毁线程。</p>
+<p><code>Runnable</code> 没有返回值，适合只执行动作：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">Runnable</span> <span class="variable">task</span> <span class="operator">=</span> () -&gt; inventorySyncService.syncWarehouse(<span class="number">8L</span>);</span><br><span class="line"><span class="keyword">new</span> <span class="title class_">Thread</span>(task).start();</span><br></pre></td></tr></table></figure>
+
+<p><code>Callable</code> 有返回值，可以配合 <code>Future</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Callable&lt;Integer&gt; task = () -&gt; inventoryQueryService.countAvailableSku(<span class="number">8L</span>);</span><br><span class="line">FutureTask&lt;Integer&gt; future = <span class="keyword">new</span> <span class="title class_">FutureTask</span>&lt;&gt;(task);</span><br><span class="line"><span class="keyword">new</span> <span class="title class_">Thread</span>(future).start();</span><br><span class="line"><span class="type">Integer</span> <span class="variable">count</span> <span class="operator">=</span> future.get();</span><br></pre></td></tr></table></figure>
+
+<p>但业务里更常用线程池提交任务。</p>
+<h2 id="供应链订单校验的并行-demo"><a href="#供应链订单校验的并行-demo" class="headerlink" title="供应链订单校验的并行 demo"></a>供应链订单校验的并行 demo</h2><p>创建销售订单时，下面三个校验互不依赖：</p>
+<ul>
+<li>查询库存是否足够。</li>
+<li>查询客户信用额度。</li>
+<li>查询承运商是否覆盖收货地址。</li>
+</ul>
+<p>串行写法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> OrderCheckResult <span class="title function_">checkOrder</span><span class="params">(OrderCreateCommand command)</span> &#123;</span><br><span class="line">    <span class="type">InventoryCheckResult</span> <span class="variable">inventory</span> <span class="operator">=</span> inventoryService.check(command.items());</span><br><span class="line">    <span class="type">CreditCheckResult</span> <span class="variable">credit</span> <span class="operator">=</span> creditService.check(command.customerId(), command.amount());</span><br><span class="line">    <span class="type">CarrierCheckResult</span> <span class="variable">carrier</span> <span class="operator">=</span> carrierService.check(command.address());</span><br><span class="line">    <span class="keyword">return</span> OrderCheckResult.merge(inventory, credit, carrier);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果三个调用分别耗时 80ms、60ms、50ms，总耗时至少接近 190ms。可以用线程池并行：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> OrderCheckResult <span class="title function_">checkOrder</span><span class="params">(OrderCreateCommand command)</span> <span class="keyword">throws</span> Exception &#123;</span><br><span class="line">    Future&lt;InventoryCheckResult&gt; inventoryFuture =</span><br><span class="line">        executor.submit(() -&gt; inventoryService.check(command.items()));</span><br><span class="line"></span><br><span class="line">    Future&lt;CreditCheckResult&gt; creditFuture =</span><br><span class="line">        executor.submit(() -&gt; creditService.check(command.customerId(), command.amount()));</span><br><span class="line"></span><br><span class="line">    Future&lt;CarrierCheckResult&gt; carrierFuture =</span><br><span class="line">        executor.submit(() -&gt; carrierService.check(command.address()));</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> OrderCheckResult.merge(</span><br><span class="line">        inventoryFuture.get(),</span><br><span class="line">        creditFuture.get(),</span><br><span class="line">        carrierFuture.get()</span><br><span class="line">    );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>并行后，请求耗时接近最慢的那个任务，而不是三个任务之和。这里的收益来自 IO 等待重叠，而不是 CPU 被神奇地加速。</p>
+<h2 id="多线程不适合什么"><a href="#多线程不适合什么" class="headerlink" title="多线程不适合什么"></a>多线程不适合什么</h2><p>多线程不是默认选项。以下场景要谨慎：</p>
+<ul>
+<li>任务之间有严格顺序，比如先扣库存再生成库存流水。</li>
+<li>数据共享复杂，容易产生竞态。</li>
+<li>单个任务非常小，线程切换成本超过收益。</li>
+<li>下游系统已经限流，并发只会把压力打爆。</li>
+<li>业务要求强事务一致性，不能拆成并发步骤。</li>
+</ul>
+<p>比如订单扣库存不能简单把每个 SKU 丢给不同线程同时扣。如果一个订单内多个 SKU 需要同一个事务保证全部成功或全部失败，并行拆分反而会增加补偿复杂度。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>Java 多线程首先是一种工程手段，不是语法技巧。供应链系统使用多线程，核心收益是提升吞吐、缩短 IO 密集型流程耗时、让后台批处理更高效。使用前必须判断任务是否独立、是否共享状态、是否需要事务一致性。能并行的校验和查询可以并行，涉及最终库存和单据状态的数据修改必须保持清晰的事务边界。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://guxingxianyue.github.io/2022/05/05/Java%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%9F%BA%E7%A1%80%EF%BC%9A%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E5%B9%B6%E5%8F%91%E5%A4%84%E7%90%86/" data-id="cuid3HG0RL7_mFFBoqu8ltz1y" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F/" rel="tag">供应链系统</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" rel="tag">多线程</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" rel="tag">并发编程</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2022/05/10/Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E4%B8%8E%E9%94%81%EF%BC%9A%E5%BA%93%E5%AD%98%E5%90%8C%E6%AD%A5%E4%B8%AD%E7%9A%84%E5%8F%AF%E8%A7%81%E6%80%A7%E5%92%8C%E4%BA%92%E6%96%A5/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          Java内存模型与锁：库存同步中的可见性和互斥
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2017/05/10/redis%E5%85%A5%E9%97%A8/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">redis入门</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AGENTS-md/" rel="tag">AGENTS.md</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI/" rel="tag">AI</a><span class="tag-list-count">15</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AQS/" rel="tag">AQS</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Agent/" rel="tag">Agent</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Atomic/" rel="tag">Atomic</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BlockingQueue/" rel="tag">BlockingQueue</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CAP/" rel="tag">CAP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CAS/" rel="tag">CAS</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Claude-Code/" rel="tag">Claude Code</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Codex/" rel="tag">Codex</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CompletableFuture/" rel="tag">CompletableFuture</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ConcurrentHashMap/" rel="tag">ConcurrentHashMap</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Condition/" rel="tag">Condition</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CountDownLatch/" rel="tag">CountDownLatch</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ERP/" rel="tag">ERP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/InnoDB/" rel="tag">InnoDB</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JMM/" rel="tag">JMM</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a><span class="tag-list-count">18</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kafka/" rel="tag">Kafka</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LongAdder/" rel="tag">LongAdder</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Loop-Engineering/" rel="tag">Loop Engineering</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MVCC/" rel="tag">MVCC</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Monitor/" rel="tag">Monitor</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Next-Key-Lock/" rel="tag">Next-Key Lock</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ReadWriteLock/" rel="tag">ReadWriteLock</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Redis/" rel="tag">Redis</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ReentrantLock/" rel="tag">ReentrantLock</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/" rel="tag">SQL</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL%E4%BC%98%E5%8C%96/" rel="tag">SQL优化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Semaphore/" rel="tag">Semaphore</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Skill/" rel="tag">Skill</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spec-Coding/" rel="tag">Spec Coding</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spring-Cloud/" rel="tag">Spring Cloud</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/StampedLock/" rel="tag">StampedLock</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ThreadPoolExecutor/" rel="tag">ThreadPoolExecutor</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/synchronized/" rel="tag">synchronized</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/volatile/" rel="tag">volatile</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%B9%90%E8%A7%82%E9%94%81/" rel="tag">乐观锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8B%E5%8A%A1/" rel="tag">事务</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/" rel="tag">事务隔离级别</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BB%93%E5%82%A8%E7%B3%BB%E7%BB%9F/" rel="tag">仓储系统</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F/" rel="tag">供应链系统</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" rel="tag">分布式</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/" rel="tag">分布式系统</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" rel="tag">分布式锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8D%95%E6%8D%AE%E5%AE%A1%E6%A0%B8/" rel="tag">单据审核</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" rel="tag">可见性</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%91%BD%E4%BB%A4%E8%A1%8C/" rel="tag">命令行</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" rel="tag">多线程</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/" rel="tag">工程实践</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6/" rel="tag">并发控制</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" rel="tag">并发编程</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91%E9%98%9F%E5%88%97/" rel="tag">并发队列</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%BB%E8%AF%BB/" rel="tag">幻读</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BA%93%E5%AD%98%E7%B3%BB%E7%BB%9F/" rel="tag">库存系统</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/" rel="tag">微服务</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%82%B2%E8%A7%82%E9%94%81/" rel="tag">悲观锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8A%80%E6%9C%AF%E6%96%87%E7%AB%A0/" rel="tag">技术文章</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8A%A5%E8%A1%A8%E7%BB%9F%E8%AE%A1/" rel="tag">报表统计</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E5%88%86%E6%9E%90/" rel="tag">数据分析</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="tag">数据库</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/" rel="tag">数据结构与算法</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/" rel="tag">架构设计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%AD%BB%E9%94%81/" rel="tag">死锁</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" rel="tag">消息队列</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%B3%BB%E7%BB%9F%E4%BC%98%E5%8C%96/" rel="tag">系统优化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/" rel="tag">系统设计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%B4%A2%E5%BC%95/" rel="tag">索引</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E7%A8%8B%E6%B1%A0/" rel="tag">线程池</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BC%93%E5%AD%98/" rel="tag">缓存</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BC%96%E7%A8%8B%E6%95%88%E7%8E%87/" rel="tag">编程效率</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%A1%8C%E9%94%81/" rel="tag">行锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%A2%E5%8D%95%E5%B1%A5%E7%BA%A6/" rel="tag">订单履约</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%A2%E5%8D%95%E7%B3%BB%E7%BB%9F/" rel="tag">订单系统</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%BD%AF%E4%BB%B6%E5%B7%A5%E7%A8%8B/" rel="tag">软件工程</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%87%87%E8%B4%AD%E7%B3%BB%E7%BB%9F/" rel="tag">采购系统</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%94%81/" rel="tag">锁</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%94%81%E7%AD%89%E5%BE%85/" rel="tag">锁等待</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%97%B4%E9%9A%99%E9%94%81/" rel="tag">间隙锁</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/AGENTS-md/" style="font-size: 10px;">AGENTS.md</a> <a href="/tags/AI/" style="font-size: 18.89px;">AI</a> <a href="/tags/AQS/" style="font-size: 10px;">AQS</a> <a href="/tags/Agent/" style="font-size: 10px;">Agent</a> <a href="/tags/Atomic/" style="font-size: 10px;">Atomic</a> <a href="/tags/BlockingQueue/" style="font-size: 10px;">BlockingQueue</a> <a href="/tags/CAP/" style="font-size: 10px;">CAP</a> <a href="/tags/CAS/" style="font-size: 11.11px;">CAS</a> <a href="/tags/Claude-Code/" style="font-size: 13.33px;">Claude Code</a> <a href="/tags/Codex/" style="font-size: 17.78px;">Codex</a> <a href="/tags/CompletableFuture/" style="font-size: 10px;">CompletableFuture</a> <a href="/tags/ConcurrentHashMap/" style="font-size: 10px;">ConcurrentHashMap</a> <a href="/tags/Condition/" style="font-size: 10px;">Condition</a> <a href="/tags/CountDownLatch/" style="font-size: 10px;">CountDownLatch</a> <a href="/tags/ERP/" style="font-size: 10px;">ERP</a> <a href="/tags/InnoDB/" style="font-size: 13.33px;">InnoDB</a> <a href="/tags/JMM/" style="font-size: 11.11px;">JMM</a> <a href="/tags/Java/" style="font-size: 20px;">Java</a> <a href="/tags/Kafka/" style="font-size: 10px;">Kafka</a> <a href="/tags/LongAdder/" style="font-size: 10px;">LongAdder</a> <a href="/tags/Loop-Engineering/" style="font-size: 10px;">Loop Engineering</a> <a href="/tags/MVCC/" style="font-size: 10px;">MVCC</a> <a href="/tags/Monitor/" style="font-size: 10px;">Monitor</a> <a href="/tags/MySQL/" style="font-size: 16.67px;">MySQL</a> <a href="/tags/Next-Key-Lock/" style="font-size: 10px;">Next-Key Lock</a> <a href="/tags/ReadWriteLock/" style="font-size: 10px;">ReadWriteLock</a> <a href="/tags/Redis/" style="font-size: 11.11px;">Redis</a> <a href="/tags/ReentrantLock/" style="font-size: 10px;">ReentrantLock</a> <a href="/tags/SQL/" style="font-size: 10px;">SQL</a> <a href="/tags/SQL%E4%BC%98%E5%8C%96/" style="font-size: 10px;">SQL优化</a> <a href="/tags/Semaphore/" style="font-size: 10px;">Semaphore</a> <a href="/tags/Skill/" style="font-size: 10px;">Skill</a> <a href="/tags/Spec-Coding/" style="font-size: 12.22px;">Spec Coding</a> <a href="/tags/Spring-Cloud/" style="font-size: 10px;">Spring Cloud</a> <a href="/tags/StampedLock/" style="font-size: 10px;">StampedLock</a> <a href="/tags/ThreadPoolExecutor/" style="font-size: 10px;">ThreadPoolExecutor</a> <a href="/tags/synchronized/" style="font-size: 11.11px;">synchronized</a> <a href="/tags/volatile/" style="font-size: 11.11px;">volatile</a> <a href="/tags/%E4%B9%90%E8%A7%82%E9%94%81/" style="font-size: 10px;">乐观锁</a> <a href="/tags/%E4%BA%8B%E5%8A%A1/" style="font-size: 11.11px;">事务</a> <a href="/tags/%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/" style="font-size: 10px;">事务隔离级别</a> <a href="/tags/%E4%BB%93%E5%82%A8%E7%B3%BB%E7%BB%9F/" style="font-size: 13.33px;">仓储系统</a> <a href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F/" style="font-size: 17.78px;">供应链系统</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" style="font-size: 13.33px;">分布式</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/" style="font-size: 11.11px;">分布式系统</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" style="font-size: 10px;">分布式锁</a> <a href="/tags/%E5%8D%95%E6%8D%AE%E5%AE%A1%E6%A0%B8/" style="font-size: 10px;">单据审核</a> <a href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" style="font-size: 10px;">可见性</a> <a href="/tags/%E5%91%BD%E4%BB%A4%E8%A1%8C/" style="font-size: 11.11px;">命令行</a> <a href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" style="font-size: 10px;">多线程</a> <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/" style="font-size: 12.22px;">工程实践</a> <a href="/tags/%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6/" style="font-size: 10px;">并发控制</a> <a href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" style="font-size: 13.33px;">并发编程</a> <a href="/tags/%E5%B9%B6%E5%8F%91%E9%98%9F%E5%88%97/" style="font-size: 10px;">并发队列</a> <a href="/tags/%E5%B9%BB%E8%AF%BB/" style="font-size: 10px;">幻读</a> <a href="/tags/%E5%BA%93%E5%AD%98%E7%B3%BB%E7%BB%9F/" style="font-size: 11.11px;">库存系统</a> <a href="/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/" style="font-size: 10px;">微服务</a> <a href="/tags/%E6%82%B2%E8%A7%82%E9%94%81/" style="font-size: 10px;">悲观锁</a> <a href="/tags/%E6%8A%80%E6%9C%AF%E6%96%87%E7%AB%A0/" style="font-size: 15.56px;">技术文章</a> <a href="/tags/%E6%8A%A5%E8%A1%A8%E7%BB%9F%E8%AE%A1/" style="font-size: 10px;">报表统计</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E5%88%86%E6%9E%90/" style="font-size: 10px;">数据分析</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 11.11px;">数据库</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/" style="font-size: 12.22px;">数据结构与算法</a> <a href="/tags/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/" style="font-size: 11.11px;">架构设计</a> <a href="/tags/%E6%AD%BB%E9%94%81/" style="font-size: 11.11px;">死锁</a> <a href="/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" style="font-size: 10px;">消息队列</a> <a href="/tags/%E7%B3%BB%E7%BB%9F%E4%BC%98%E5%8C%96/" style="font-size: 10px;">系统优化</a> <a href="/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/" style="font-size: 11.11px;">系统设计</a> <a href="/tags/%E7%B4%A2%E5%BC%95/" style="font-size: 10px;">索引</a> <a href="/tags/%E7%BA%BF%E7%A8%8B%E6%B1%A0/" style="font-size: 10px;">线程池</a> <a href="/tags/%E7%BC%93%E5%AD%98/" style="font-size: 11.11px;">缓存</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E6%95%88%E7%8E%87/" style="font-size: 15.56px;">编程效率</a> <a href="/tags/%E8%A1%8C%E9%94%81/" style="font-size: 10px;">行锁</a> <a href="/tags/%E8%AE%A2%E5%8D%95%E5%B1%A5%E7%BA%A6/" style="font-size: 10px;">订单履约</a> <a href="/tags/%E8%AE%A2%E5%8D%95%E7%B3%BB%E7%BB%9F/" style="font-size: 10px;">订单系统</a> <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%B7%A5%E7%A8%8B/" style="font-size: 14.44px;">软件工程</a> <a href="/tags/%E9%87%87%E8%B4%AD%E7%B3%BB%E7%BB%9F/" style="font-size: 10px;">采购系统</a> <a href="/tags/%E9%94%81/" style="font-size: 12.22px;">锁</a> <a href="/tags/%E9%94%81%E7%AD%89%E5%BE%85/" style="font-size: 10px;">锁等待</a> <a href="/tags/%E9%97%B4%E9%9A%99%E9%94%81/" style="font-size: 10px;">间隙锁</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/06/">六月 2026</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/05/">五月 2026</a><span class="archive-list-count">9</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/06/">六月 2025</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/05/">五月 2025</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/04/">四月 2025</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/03/">三月 2025</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">十一月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">八月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/05/">五月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">二月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">十一月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/07/">七月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">三月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">五月 2022</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">六月 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">四月 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">三月 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">一月 2016</a><span class="archive-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recents</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2026/06/15/Loop-engineering/">Loop engineering</a>
+          </li>
+        
+          <li>
+            <a href="/2026/06/10/Codex%E6%8F%90%E9%AB%98%E8%BD%AF%E4%BB%B6%E7%BC%96%E7%A8%8B%E6%95%88%E7%8E%87%E7%9A%8410%E4%B8%AA%E6%8A%80%E5%B7%A7/">Codex提高软件编程效率的10个技巧</a>
+          </li>
+        
+          <li>
+            <a href="/2026/06/10/%E6%99%AE%E9%80%9A%E5%BC%80%E5%8F%91%E8%80%85%E4%BD%BF%E7%94%A8AI%E7%9A%84%E4%B8%89%E6%9D%A1%E8%BE%B9%E7%95%8C/">普通开发者使用AI的三条边界</a>
+          </li>
+        
+          <li>
+            <a href="/2026/06/10/AI-Agent%E6%97%B6%E4%BB%A3%E7%9A%84%E5%BC%80%E5%8F%91%E5%B7%A5%E4%BD%9C%E6%B5%81/">AI Agent时代的开发工作流</a>
+          </li>
+        
+          <li>
+            <a href="/2026/06/10/2026%E5%B9%B4%E9%87%8D%E6%96%B0%E7%90%86%E8%A7%A3AI%E7%BC%96%E7%A8%8B%E5%8A%A9%E6%89%8B/">2026年，重新理解AI编程助手</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2026 Jinxing Chen<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">首页</a>
+  
+    <a href="/archives" class="mobile-nav-link">存档</a>
+  
+    <a href="/about" class="mobile-nav-link">关于</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+  </div>
+</body>
+</html>

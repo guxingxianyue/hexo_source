@@ -65,10 +65,10 @@
       <div class="outer">
         <section id="main">
   
-    <article id="post-redis入门" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Java并发集合与排查：仓储任务并发安全怎么落地" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2017/05/10/redis%E5%85%A5%E9%97%A8/" class="article-date">
-  <time datetime="2017-05-10T11:06:07.000Z" itemprop="datePublished">2017-05-10</time>
+    <a href="/2022/05/30/Java%E5%B9%B6%E5%8F%91%E9%9B%86%E5%90%88%E4%B8%8E%E6%8E%92%E6%9F%A5%EF%BC%9A%E4%BB%93%E5%82%A8%E4%BB%BB%E5%8A%A1%E5%B9%B6%E5%8F%91%E5%AE%89%E5%85%A8%E6%80%8E%E4%B9%88%E8%90%BD%E5%9C%B0/" class="article-date">
+  <time datetime="2022-05-30T02:20:00.000Z" itemprop="datePublished">2022-05-30</time>
 </a>
     
   </div>
@@ -79,7 +79,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/05/10/redis%E5%85%A5%E9%97%A8/">redis入门</a>
+      <a class="article-title" href="/2022/05/30/Java%E5%B9%B6%E5%8F%91%E9%9B%86%E5%90%88%E4%B8%8E%E6%8E%92%E6%9F%A5%EF%BC%9A%E4%BB%93%E5%82%A8%E4%BB%BB%E5%8A%A1%E5%B9%B6%E5%8F%91%E5%AE%89%E5%85%A8%E6%80%8E%E4%B9%88%E8%90%BD%E5%9C%B0/">Java并发集合与排查：仓储任务并发安全怎么落地</a>
     </h1>
   
 
@@ -87,595 +87,57 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="安装gcc"><a href="#安装gcc" class="headerlink" title="安装gcc"></a>安装gcc</h2><ul>
-<li><p>Redis在linux上的安装首先必须先安装gcc，这个是用来编译redis的源文件的。首先需要先切换的到root用户：</p>
-<pre><code>  [chenjx@localhost ~]$ su
-  Password: 
-  [root@localhost chenjx]#
-</code></pre>
-</li>
-<li><p>然后开始安装gcc:</p>
-<pre><code>  //这个命令是在线安装的，所以在这之前你的PC必须能够上网
-  [root@localhost /]# yum install gcc-c++
-</code></pre>
-</li>
-</ul>
-<h2 id="解压redis的源文件"><a href="#解压redis的源文件" class="headerlink" title="解压redis的源文件"></a>解压redis的源文件</h2><pre><code>[root@localhost chenjx]# cd Desktop/
-[root@localhost Desktop]# ls
-redis-4.0.1.tar.gz
-[root@localhost Desktop]# tar zxvf redis-4.0.1.tar.gz 
-redis-4.0.1/
-redis-4.0.1/.gitignore
-redis-4.0.1/00-RELEASENOTES
-redis-4.0.1/BUGS
-redis-4.0.1/CONTRIBUTING
-</code></pre>
-<h2 id="进入redis的解压目录"><a href="#进入redis的解压目录" class="headerlink" title="进入redis的解压目录"></a>进入redis的解压目录</h2><pre><code>[root@localhost Desktop]# ls
-redis-4.0.1  redis-4.0.1.tar.gz
-[root@localhost Desktop]# cd redis-4.0.1/
-</code></pre>
-<h2 id="使用make命令编译"><a href="#使用make命令编译" class="headerlink" title="使用make命令编译"></a>使用make命令编译</h2><pre><code>[root@localhost redis-4.0.1]# make
+        <p>Java 多线程最终要落到数据结构和排查能力上。供应链系统里，仓储任务调度、库存缓存、波次队列、接口指标都会用到并发集合和原子类。选择正确的数据结构，可以减少手写锁；具备排查能力，才能在线上出现卡顿时定位问题。</p>
+<h2 id="ConcurrentHashMap：本地任务状态缓存"><a href="#ConcurrentHashMap：本地任务状态缓存" class="headerlink" title="ConcurrentHashMap：本地任务状态缓存"></a>ConcurrentHashMap：本地任务状态缓存</h2><p>仓储系统可能需要缓存正在处理的上架任务，避免同一个任务在当前实例内重复提交：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">PutawayTaskRegistry</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> ConcurrentHashMap&lt;Long, PutawayTask&gt; runningTasks = <span class="keyword">new</span> <span class="title class_">ConcurrentHashMap</span>&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">register</span><span class="params">(PutawayTask task)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> runningTasks.putIfAbsent(task.id(), task) == <span class="literal">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">unregister</span><span class="params">(Long taskId)</span> &#123;</span><br><span class="line">        runningTasks.remove(taskId);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-//出现以下信息即是编译成功
-CC notify.o
-CC setproctitle.o
-CC blocked.o
-CC hyperloglog.o
-CC latency.o
-CC sparkline.o
-CC redis-check-rdb.o
-CC redis-check-aof.o
-CC geo.o
-CC lazyfree.o
-CC module.o
-CC evict.o
-CC expire.o
-CC geohash.o
-CC geohash_helper.o
-CC childinfo.o
-CC defrag.o
-CC siphash.o
-CC rax.o
-LINK redis-server
-INSTALL redis-sentinel
-CC redis-cli.o
-LINK redis-cli
-CC redis-benchmark.o
-LINK redis-benchmark
-INSTALL redis-check-rdb
-INSTALL redis-check-aof
-</code></pre>
-<p>进入解压的src目录下</p>
-<pre><code>[root@localhost redis-4.0.1]# cd src
-</code></pre>
-<p>运行make test测试是否可以安装,检查的一大堆，都是绿色的ok。这就可以了</p>
-<h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><pre><code>[root@localhost src]# make PREFIX=/usr/local/redis install 
-</code></pre>
-<p>安装成功后，去&#x2F;usr&#x2F;local&#x2F;redis&#x2F;bin目录看，会发现如下文件：</p>
-<p><img src="https://i.imgur.com/esFeEOX.png"></p>
-<p>都是一个个工具命令</p>
-<p>然后把解压的redis路径下的redis.conf文件拷贝到安装路径&#x2F;usr&#x2F;local&#x2F;redis下面</p>
-<pre><code>[root@localhost redis-4.0.1]# cp redis.conf /usr/local/redis
-[root@localhost redis-4.0.1]# cd /usr/local/redis
-[root@localhost redis]# ls
-bin  redis.conf
-</code></pre>
-<p>到这里redis已经安装成功了。</p>
-<h2 id="启动redis"><a href="#启动redis" class="headerlink" title="启动redis"></a>启动redis</h2><h4 id="第一种方法：进入安装路径下的bin"><a href="#第一种方法：进入安装路径下的bin" class="headerlink" title="第一种方法：进入安装路径下的bin"></a>第一种方法：进入安装路径下的bin</h4><pre><code>[root@localhost redis]# cd bin
-[root@localhost bin]# ./redis-server
-</code></pre>
-<p>但是这属于前端启动，启动redis之后，我们的控制台就不能进行任何操作了。只能ctrl+c停止启动。</p>
-<h4 id="第二种方法：后端启动"><a href="#第二种方法：后端启动" class="headerlink" title="第二种方法：后端启动"></a>第二种方法：后端启动</h4><ul>
-<li><p>首先编辑redis.conf</p>
-<p>  [root@localhost redis]# vim redis.conf</p>
-</li>
-<li><p>找到daemonize no将其改为yes</p>
-</li>
-<li><p>再次启动 </p>
-<pre><code>  [root@localhost redis]# ls
-  bin  redis.conf
-  [root@localhost redis]# ./bin/redis-server ./redis.conf
-  //这里加载配置文件
-  
-  80167:C 30 Jul 16:01:58.145 # oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
-  80167:C 30 Jul 16:01:58.145 # Redis version=4.0.1, bits=64, commit=00000000, modified=0, pid=80167, just started
-  80167:C 30 Jul 16:01:58.145 # Configuration loaded
-</code></pre>
-</li>
-</ul>
-<p>这样redis就启动了</p>
-<pre><code>可以通过
-ps -ef|grep redis
-来查看是否启动
-</code></pre>
-<p>关闭redis</p>
-<pre><code>[root@localhost redis]# ./bin/redis-cli shutdown
-</code></pre>
-<h2 id="简单的使用"><a href="#简单的使用" class="headerlink" title="简单的使用"></a>简单的使用</h2><pre><code>//首先链接客户端
-[root@localhost redis]# ./bin/redis-cli
-//检查网络是否可以
-127.0.0.1:6379&gt; ping
-PONG
-//设置一个键值对
-127.0.0.1:6379&gt; set name chenjx
-OK
-//获取刚刚设置的键值对
-127.0.0.1:6379&gt; get name
-&quot;chenjx&quot;
-//查看所有的键
-127.0.0.1:6379&gt; keys *
-1) &quot;name&quot;
-//删除name这个键
-127.0.0.1:6379&gt; del name
-(integer) 1
-127.0.0.1:6379&gt; keys *
-(empty list or set)
-127.0.0.1:6379&gt;
-</code></pre>
-<h2 id="设置登录密码"><a href="#设置登录密码" class="headerlink" title="设置登录密码"></a>设置登录密码</h2><p>redis在生产环境中通常都会设置密码以保证一定的安全性</p>
-<h4 id="首先修改redis-conf"><a href="#首先修改redis-conf" class="headerlink" title="首先修改redis.conf"></a>首先修改redis.conf</h4><p>打开redis.conf文件，搜索requirepass关键字</p>
-<pre><code>################################## SECURITY ###################################
+<p><code>putIfAbsent</code> 是原子操作。多个线程同时注册同一个任务，只有一个会成功。</p>
+<p>注意，这只保护当前 JVM。多实例部署时，仍然要靠数据库状态条件防重：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span> scm_putaway_task</span><br><span class="line"><span class="keyword">SET</span> status <span class="operator">=</span> <span class="string">&#x27;RUNNING&#x27;</span></span><br><span class="line"><span class="keyword">WHERE</span> id <span class="operator">=</span> #&#123;taskId&#125;</span><br><span class="line">  <span class="keyword">AND</span> status <span class="operator">=</span> <span class="string">&#x27;WAITING&#x27;</span>;</span><br></pre></td></tr></table></figure>
 
-# Require clients to issue AUTH &lt;PASSWORD&gt; before processing any other
-# commands.  This might be useful in environments in which you do not trust
-# others with access to the host running redis-server.
-#
-# This should stay commented out for backward compatibility and because most
-# people do not need auth (e.g. they run their own servers).
-#
-# Warning: since Redis is pretty fast an outside user can try up to
-# 150k passwords per second against a good box. This means that you should
-# use a very strong password otherwise it will be very easy to break.
-#
-# requirepass foobared
-</code></pre>
-<p>关注标记的那一行，#requirepass foobared。设置密码的方法就是去掉注释的#，把foobared替换成自己的密码即可，例如将密码设置为123456： </p>
-<pre><code>################################## SECURITY ###################################
+<h2 id="BlockingQueue：生产者消费者"><a href="#BlockingQueue：生产者消费者" class="headerlink" title="BlockingQueue：生产者消费者"></a>BlockingQueue：生产者消费者</h2><p>仓库波次任务可以用阻塞队列实现生产者消费者：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">WaveDispatchQueue</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> BlockingQueue&lt;WaveTask&gt; queue = <span class="keyword">new</span> <span class="title class_">ArrayBlockingQueue</span>&lt;&gt;(<span class="number">1000</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">submit</span><span class="params">(WaveTask task)</span> <span class="keyword">throws</span> InterruptedException &#123;</span><br><span class="line">        queue.put(task);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> WaveTask <span class="title function_">take</span><span class="params">()</span> <span class="keyword">throws</span> InterruptedException &#123;</span><br><span class="line">        <span class="keyword">return</span> queue.take();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-# Require clients to issue AUTH &lt;PASSWORD&gt; before processing any other
-# commands.  This might be useful in environments in which you do not trust
-# others with access to the host running redis-server.
-#
-# This should stay commented out for backward compatibility and because most
-# people do not need auth (e.g. they run their own servers).
-#
-# Warning: since Redis is pretty fast an outside user can try up to
-# 150k passwords per second against a good box. This means that you should
-# use a very strong password otherwise it will be very easy to break.
-#
-requirepass 123456
-</code></pre>
-<p>修改完成后重启redis，再次通过redis客户端redis-cli登录并操作可以发现会报一个身份认证错误：</p>
-<p><img src="https://i.imgur.com/sR9PtPZ.png"></p>
-<p>这就说明我们已经成功的设置了密码，所以通过客户端连接的话必须加上密码参数才能正常连接： </p>
-<p><img src="https://i.imgur.com/EpEgFQr.png"></p>
-<p>如上图所示，加了-a参数之后即可正常连接并操作redis。</p>
-<h2 id="jedis连接设置密码"><a href="#jedis连接设置密码" class="headerlink" title="jedis连接设置密码"></a>jedis连接设置密码</h2><p>当我们用Java客户端连接redis时会遇到同样的问题，下面看一段简单的jedis连接redis的测试代码：</p>
-<pre><code>@Test
-public void testTwo() {
-    Jedis jedis = new Jedis(&quot;192.168.145.10&quot;);
-    System.out.println(&quot;Connection to server sucessfully&quot;);
-    // 查看服务是否运行
-    System.out.println(&quot;Server is running: &quot; + jedis.ping());
-}
-</code></pre>
-<p>运行junit后我们发现报异常了：</p>
-<pre><code>redis.clients.jedis.exceptions.JedisDataException: NOAUTH Authentication required.
-at redis.clients.jedis.Protocol.processError(Protocol.java:117)
-at redis.clients.jedis.Protocol.process(Protocol.java:142)
-at redis.clients.jedis.Protocol.read(Protocol.java:196)
-</code></pre>
-<p>由于我们设置了密码但在这里又没有指定密码，所以报了和刚才相同的错误,Jedis的父类BinaryJedis提供了这样一样方法：</p>
-<pre><code>public String auth(final String password) {
-    checkIsInMulti();
-    client.auth(password);
-    return client.getStatusCodeReply();
-}
-</code></pre>
-<p>所以在创建了Jedis的实例后再加上一行jedis.auth(“123456”); 即可</p>
-<pre><code>@Test
-public void testTwo() {
-    Jedis jedis = new Jedis(&quot;192.168.145.10&quot;);
-	jedis.auth(&quot;123456&quot;);
-    System.out.println(&quot;Connection to server sucessfully&quot;);
-    // 查看服务是否运行
-    System.out.println(&quot;Server is running: &quot; + jedis.ping());
-}
-</code></pre>
-<p><img src="https://i.imgur.com/MpHJLvu.png"></p>
-<h2 id="spring-data-redis设置密码"><a href="#spring-data-redis设置密码" class="headerlink" title="spring-data-redis设置密码"></a>spring-data-redis设置密码</h2><p>通常情况下在实际的java项目中我们会选择Spring提供的spring-data-redis来操作redis，spring的封装可以给我们提供很多便捷之处。那么spring-data-redis又是如何设置密码的呢？首先定义一个redis.properties配置文件，定义一组redis属性供spring加载使用，其中就包含密码（redis.password）：</p>
-<pre><code># Redis settings  
-redis.host=192.168.145.10 
-redis.port=6379  
-redis.password=123456
-redis.database=2
-redis.timeout=100000  
-redis.maxTotal=300  
-redis.maxIdle=100
-redis.minIdle=10
-redis.maxWaitMillis=1000  
-redis.testOnBorrow=true  
-</code></pre>
-<p>然后在由Spring封装的JedisConnectionFactory中来设置密码属性即可，下面是完整redis配置：</p>
-<pre><code>&lt;!-- redis配置 --&gt;
-&lt;bean id=&quot;poolConfig&quot; class=&quot;redis.clients.jedis.JedisPoolConfig&quot;&gt;
-    &lt;property name=&quot;maxIdle&quot; value=&quot;${redis.maxIdle}&quot; /&gt;
-    &lt;property name=&quot;maxWaitMillis&quot; value=&quot;${redis.maxWaitMillis}&quot; /&gt;
-    &lt;property name=&quot;testOnBorrow&quot; value=&quot;${redis.testOnBorrow}&quot; /&gt;
-&lt;/bean&gt;
+<p>生产者生成波次任务，消费者线程处理任务：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">startWorkers</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; <span class="number">8</span>; i++) &#123;</span><br><span class="line">        executor.execute(() -&gt; &#123;</span><br><span class="line">            <span class="keyword">while</span> (!Thread.currentThread().isInterrupted()) &#123;</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    <span class="type">WaveTask</span> <span class="variable">task</span> <span class="operator">=</span> queue.take();</span><br><span class="line">                    waveService.dispatch(task);</span><br><span class="line">                &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">                    Thread.currentThread().interrupt();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-&lt;bean id=&quot;connectionFactory&quot; class=&quot;org.springframework.data.redis.connection.jedis.JedisConnectionFactory&quot;
-    p:host-name=&quot;${redis.host}&quot; p:port=&quot;${redis.port}&quot; 
-    p:password=&quot;${redis.password}&quot; p:pool-config-ref=&quot;poolConfig&quot; /&gt;
+<p>阻塞队列的好处是自然支持等待和唤醒，不需要自己写 <code>wait/notify</code>。</p>
+<h2 id="CopyOnWriteArrayList：读多写少配置"><a href="#CopyOnWriteArrayList：读多写少配置" class="headerlink" title="CopyOnWriteArrayList：读多写少配置"></a>CopyOnWriteArrayList：读多写少配置</h2><p>仓库作业规则通常读多写少，比如上架策略规则：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">PutawayRuleHolder</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> CopyOnWriteArrayList&lt;PutawayRule&gt; rules = <span class="keyword">new</span> <span class="title class_">CopyOnWriteArrayList</span>&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> List&lt;PutawayRule&gt; <span class="title function_">currentRules</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> rules;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">reload</span><span class="params">(List&lt;PutawayRule&gt; latest)</span> &#123;</span><br><span class="line">        rules.clear();</span><br><span class="line">        rules.addAll(latest);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-&lt;bean id=&quot;redisTemplate&quot; class=&quot;org.springframework.data.redis.core.StringRedisTemplate&quot;&gt;
-    &lt;property name=&quot;connectionFactory&quot; ref=&quot;connectionFactory&quot; /&gt;
-&lt;/bean&gt;
-</code></pre>
-<h2 id="Redis常用数据类型介绍、使用场景及其操作命令"><a href="#Redis常用数据类型介绍、使用场景及其操作命令" class="headerlink" title="Redis常用数据类型介绍、使用场景及其操作命令"></a>Redis常用数据类型介绍、使用场景及其操作命令</h2><p>Redis目前支持5种数据类型，分别是：</p>
-<ul>
-<li>String（字符串）</li>
-<li>List（列表）</li>
-<li>Hash（字典）</li>
-<li>Set（集合）</li>
-<li>Sorted Set（有序集合）</li>
-</ul>
-<p>下面就分别介绍这五种数据类型及其相应的操作命令。</p>
-<h3 id="String（字符串）"><a href="#String（字符串）" class="headerlink" title="String（字符串）"></a>String（字符串）</h3><p>String是简单的 key-value 键值对，value 不仅可以是 String，也可以是数字。String在redis内部存储默认就是一个字符串，被redisObject所引用，当遇到incr,decr等操作时会转成数值型进行计算，此时redisObject的encoding字段为int。</p>
-<p>String在redis内部存储默认就是一个字符串，被redisObject所引用，当遇到incr,decr等操作时会转成数值型进行计算，此时redisObject的encoding字段为int。</p>
-<ul>
-<li>应用场景</li>
-</ul>
-<p>String是最常用的一种数据类型，普通的key&#x2F;value存储都可以归为此类，这里就不所做解释了。</p>
-<ul>
-<li><p>相关命令</p>
-<pre><code>  SET key value                   设置key=value
-  GET key                         或者键key对应的值
-  GETRANGE key start end          得到字符串的子字符串存放在一个键
-  GETSET key value                设置键的字符串值，并返回旧值
-  GETBIT key offset               返回存储在键位值的字符串值的偏移
-  MGET key1 [key2..]              得到所有的给定键的值
-  SETBIT key offset value         设置或清除该位在存储在键的字符串值偏移
-  SETEX key seconds value         键到期时设置值
-  SETNX key value                 设置键的值，只有当该键不存在
-  SETRANGE key offset value       覆盖字符串的一部分从指定键的偏移
-  STRLEN key                      得到存储在键的值的长度
-  MSET key value [key value...]   设置多个键和多个值
-  MSETNX key value [key value...] 设置多个键多个值，只有在当没有按键的存在时
-  PSETEX key milliseconds value   设置键的毫秒值和到期时间
-  INCR key                        增加键的整数值一次
-  INCRBY key increment            由给定的数量递增键的整数值
-  INCRBYFLOAT key increment       由给定的数量递增键的浮点值
-  DECR key                        递减键一次的整数值
-  DECRBY key decrement            由给定数目递减键的整数值
-  APPEND key value                追加值到一个键
-</code></pre>
-</li>
-<li><p>其中用于操作管理键的命令有：</p>
-<pre><code>  DEL key                         如果存在删除键
-  DUMP key                        返回存储在指定键的值的序列化版本
-  EXISTS key                      此命令检查该键是否存在
-  EXPIRE key seconds              指定键的过期时间
-  EXPIREAT key timestamp          指定的键过期时间。在这里，时间是在Unix时间戳格式
-  PEXPIRE key milliseconds        设置键以毫秒为单位到期
-  PEXPIREAT key milliseconds-timestamp        设置键在Unix时间戳指定为毫秒到期
-  KEYS pattern                    查找与指定模式匹配的所有键
-  MOVE key db                     移动键到另一个数据库
-  PERSIST key                     移除过期的键
-  PTTL key                        以毫秒为单位获取剩余时间的到期键。
-  TTL key                         获取键到期的剩余时间。
-  RANDOMKEY                       从Redis返回随机键
-  RENAME key newkey               更改键的名称
-  RENAMENX key newkey             重命名键，如果新的键不存在
-  TYPE key                        返回存储在键的数据类型的值。
-</code></pre>
-</li>
-<li><p>实例：</p>
-<pre><code>  redis 127.0.0.1:6379&gt; set baidu http://www.baidu
-  OK
-  redis 127.0.0.1:6379&gt; append baidu .com
-  (integer) 20
-  redis 127.0.0.1:6379&gt; get baidu
-  &quot;http://www.baidu.com&quot;
-  redis 127.0.0.1:6379&gt; set visitors 0
-  OK
-  redis 127.0.0.1:6379&gt; incr visitors
-  (integer) 1
-  redis 127.0.0.1:6379&gt; incr visitors
-  (integer) 2
-  redis 127.0.0.1:6379&gt; get visitors
-  &quot;2&quot;
-  redis 127.0.0.1:6379&gt; incrby visitors 100
-  (integer) 102
-  redis 127.0.0.1:6379&gt; get visitors
-  &quot;102&quot;
-  redis 127.0.0.1:6379&gt; type baidu
-  string
-  redis 127.0.0.1:6379&gt; type visitors
-  string
-  redis 127.0.0.1:6379&gt; ttl baidu
-  (integer) -1
-  redis 127.0.0.1:6379&gt; rename baidu baidu-site
-  OK
-  redis 127.0.0.1:6379&gt; get baidu
-  (nil)
-  redis 127.0.0.1:6379&gt; get baidu-site
-  &quot;http://www.baidu.com&quot;
-</code></pre>
-</li>
-</ul>
-<h4 id="List（列表）"><a href="#List（列表）" class="headerlink" title="List（列表）"></a>List（列表）</h4><p>Redis list的实现为一个双向链表，即可以支持反向查找和遍历，更方便操作，不过带来了部分额外的内存开销，Redis内部的很多实现，包括发送缓冲队列等也都是用的这个数据结构。可以从头部或尾部向Redis列表添加元素。列表的最大长度为2^32 - 1，也即每个列表支持超过40亿个元素。</p>
-<ul>
-<li>应用场景</li>
-</ul>
-<p>Redis list的应用场景非常多，也是Redis最重要的数据结构之一，比如twitter的关注列表、粉丝列表等都可以用Redis的list结构来实现，再比如有的应用使用Redis的list类型实现一个简单的轻量级消息队列，生产者push，消费者pop</p>
-<ul>
-<li><p>相关命令</p>
-<pre><code>  BLPOP
-  BLPOP key1 [key2 ] timeout 取出并获取列表中的第一个元素，或阻塞，直到有可用
-  BRPOP
-  BRPOP key1 [key2 ] timeout 取出并获取列表中的最后一个元素，或阻塞，直到有可用
-  BRPOPLPUSH
-  BRPOPLPUSH source destination timeout 从列表中弹出一个值，它推到另一个列表并返回它;或阻塞，直到有可用
-  LINDEX
-  LINDEX key index 从一个列表其索引获取对应的元素
-  LINSERT
-  LINSERT key BEFORE|AFTER pivot value 在列表中的其他元素之后或之前插入一个元素
-  LLEN
-  LLEN key 获取列表的长度
-  LPOP
-  LPOP key 获取并取出列表中的第一个元素
-  LPUSH
-  LPUSH key value1 [value2] 在前面加上一个或多个值的列表
-  LPUSHX
-  LPUSHX key value 在前面加上一个值列表，仅当列表中存在
-  LRANGE
-  LRANGE key start stop 从一个列表获取各种元素
-  LREM
-  LREM key count value 从列表中删除元素
-  LSET
-  LSET key index value 在列表中的索引设置一个元素的值
-  LTRIM
-  LTRIM key start stop 修剪列表到指定的范围内
-  RPOP
-  RPOP key 取出并获取列表中的最后一个元素
-  RPOPLPUSH
-  RPOPLPUSH source destination 删除最后一个元素的列表，将其附加到另一个列表并返回它
-  RPUSH
-  RPUSH key value1 [value2] 添加一个或多个值到列表头部
-  RPUSHX
-  RPUSHX key value 添加一个值列表，仅当列表中存在
-</code></pre>
-</li>
-<li><p>使用示例</p>
-<pre><code>  redis 127.0.0.1:6379&gt; lpush list1 redis
-  (integer) 1
-  redis 127.0.0.1:6379&gt; lpush list1 hello
-  (integer) 2
-  redis 127.0.0.1:6379&gt; rpush list1 world
-  (integer) 3
-  redis 127.0.0.1:6379&gt; llen list1
-  (integer) 3
-  redis 127.0.0.1:6379&gt; lrange list1 0 3
-  1) &quot;hello&quot;
-  2) &quot;redis&quot;
-  3) &quot;world&quot;
-  redis 127.0.0.1:6379&gt; lpop list1
-  &quot;hello&quot;
-  redis 127.0.0.1:6379&gt; rpop list1
-  &quot;world&quot;
-  redis 127.0.0.1:6379&gt; lrange list1 0 3
-  1) &quot;redis&quot;
-</code></pre>
-</li>
-</ul>
-<h4 id="Hash（字典，哈希表）"><a href="#Hash（字典，哈希表）" class="headerlink" title="Hash（字典，哈希表）"></a>Hash（字典，哈希表）</h4><p>类似C#中的dict类型或者C++中的hash_map类型</p>
-<p>Redis Hash对应Value内部实际就是一个HashMap，实际这里会有2种不同实现，这个Hash的成员比较少时Redis为了节省内存会采用类似一维数组的方式来紧凑存储，而不会采用真正的HashMap结构，对应的value redisObject的encoding为zipmap,当成员数量增大时会自动转成真正的HashMap</p>
-<ul>
-<li>应用场景</li>
-</ul>
-<p>假设有多个用户及对应的用户信息，可以用来存储以用户ID为key，将用户信息序列化为比如json格式做为value进行保存。</p>
-<ul>
-<li><p>相关命令</p>
-<pre><code>  HDEL
-  HDEL key field[field...] 删除对象的一个或几个属性域，不存在的属性将被忽略
-  HEXISTS
-  HEXISTS key field 查看对象是否存在该属性域
-  HGET
-  HGET key field 获取对象中该field属性域的值
-  HGETALL
-  HGETALL key 获取对象的所有属性域和值
-  HINCRBY
-  HINCRBY key field value 将该对象中指定域的值增加给定的value，原子自增操作，只能是integer的属性值可以使用
-  HINCRBYFLOAT
-  HINCRBYFLOAT key field increment 将该对象中指定域的值增加给定的浮点数
-  HKEYS
-  HKEYS key 获取对象的所有属性字段
-  HVALS
-  HVALS key 获取对象的所有属性值
-  HLEN
-  HLEN key 获取对象的所有属性字段的总数
-  HMGET
-  HMGET key field[field...] 获取对象的一个或多个指定字段的值
-  HSET
-  HSET key field value 设置对象指定字段的值
-  HMSET
-  HMSET key field value [field value ...] 同时设置对象中一个或多个字段的值
-  HSETNX
-  HSETNX key field value 只在对象不存在指定的字段时才设置字段的值
-  HSTRLEN
-  HSTRLEN key field 返回对象指定field的value的字符串长度，如果该对象或者field不存在，返回0.
-  HSCAN
-  HSCAN key cursor [MATCH pattern] [COUNT count] 类似SCAN命令
-</code></pre>
-</li>
-<li><p>使用示例</p>
-<pre><code>  127.0.0.1:6379&gt; hset person name jack
-  (integer) 1
-  127.0.0.1:6379&gt; hset person age 20
-  (integer) 1
-  127.0.0.1:6379&gt; hset person sex famale
-  (integer) 1
-  127.0.0.1:6379&gt; hgetall person
-  1) &quot;name&quot;
-  2) &quot;jack&quot;
-  3) &quot;age&quot;
-  4) &quot;20&quot;
-  5) &quot;sex&quot;
-  6) &quot;famale&quot;
-  127.0.0.1:6379&gt; hkeys person
-  1) &quot;name&quot;
-  2) &quot;age&quot;
-  3) &quot;sex&quot;
-  127.0.0.1:6379&gt; hvals person
-  1) &quot;jack&quot;
-  2) &quot;20&quot;
-  3) &quot;famale&quot;
-</code></pre>
-</li>
-</ul>
-<h4 id="Set（集合）"><a href="#Set（集合）" class="headerlink" title="Set（集合）"></a>Set（集合）</h4><p>可以理解为一堆值不重复的列表，类似数学领域中的集合概念，且Redis也提供了针对集合的求交集、并集、差集等操作。</p>
-<p>set 的内部实现是一个 value永远为null的HashMap，实际就是通过计算hash的方式来快速排重的，这也是set能提供判断一个成员是否在集合内的原因。</p>
-<ul>
-<li>应用场景</li>
-</ul>
-<p>Redis set对外提供的功能与list类似是一个列表的功能，特殊之处在于set是可以自动排重的，当你需要存储一个列表数据，又不希望出现重复数据时，set是一个很好的选择，并且set提供了判断某个成员是否在一个set集合内的重要接口，这个也是list所不能提供的。</p>
-<ul>
-<li><p>相关命令</p>
-<pre><code>  SADD
-  SADD key member [member ...] 添加一个或者多个元素到集合(set)里
-  SACRD
-  SCARD key 获取集合里面的元素数量
-  SDIFF
-  SDIFF key [key ...] 获得队列不存在的元素
-  SDIFFSTORE
-  SDIFFSTORE destination key [key ...] 获得队列不存在的元素，并存储在一个关键的结果集
-  SINTER
-  SINTER key [key ...] 获得两个集合的交集
-  SINTERSTORE
-  SINTERSTORE destination key [key ...] 获得两个集合的交集，并存储在一个集合中
-  SISMEMBER
-  SISMEMBER key member 确定一个给定的值是一个集合的成员
-  SMEMBERS
-  SMEMBERS key 获取集合里面的所有key
-  SMOVE
-  SMOVE source destination member 移动集合里面的一个key到另一个集合
-  SPOP
-  SPOP key [count] 获取并删除一个集合里面的元素
-  SRANDMEMBER
-  SRANDMEMBER key [count] 从集合里面随机获取一个元素
-  SREM
-  SREM key member [member ...] 从集合里删除一个或多个元素，不存在的元素会被忽略
-  SUNION
-  SUNION key [key ...] 添加多个set元素
-  SUNIONSTORE
-  SUNIONSTORE destination key [key ...] 合并set元素，并将结果存入新的set里面
-  SSCAN
-  SSCAN key cursor [MATCH pattern] [COUNT count] 迭代set里面的元素
-</code></pre>
-</li>
-<li><p>使用示例</p>
-<pre><code>  redis&gt; SADD myset &quot;Hello&quot;
-  (integer) 1
-  redis&gt; SADD myset &quot;World&quot;
-  (integer) 1
-  redis&gt; SMEMBERS myset
-  1) &quot;World&quot;
-  2) &quot;Hello&quot;
-  redis&gt; SADD myset &quot;one&quot;
-  (integer) 1
-  redis&gt; SISMEMBER myset &quot;one&quot;
-  (integer) 1
-  redis&gt; SISMEMBER myset &quot;two&quot;
-  (integer) 0
-</code></pre>
-</li>
-</ul>
-<h4 id="Sorted-Set（有序集合）"><a href="#Sorted-Set（有序集合）" class="headerlink" title="Sorted Set（有序集合）"></a>Sorted Set（有序集合）</h4><p>Redis有序集合类似Redis集合，不同的是增加了一个功能，即集合是有序的。一个有序集合的每个成员带有分数，用于进行排序。</p>
-<p>Redis有序集合添加、删除和测试的时间复杂度均为O(1)(固定时间，无论里面包含的元素集合的数量)。列表的最大长度为2^32- 1元素(4294967295，超过40亿每个元素的集合)。</p>
-<p>Redis sorted set的内部使用HashMap和跳跃表(SkipList)来保证数据的存储和有序，HashMap里放的是成员到score的映射，而跳跃表里存放的是所有的成员，排序依据是HashMap里存的score,使用跳跃表的结构可以获得比较高的查找效率，并且在实现上比较简单。</p>
-<ul>
-<li>使用场景</li>
-</ul>
-<p>Redis sorted set的使用场景与set类似，区别是set不是自动有序的，而sorted set可以通过用户额外提供一个优先级(score)的参数来为成员排序，并且是插入有序的，即自动排序。当你需要一个有序的并且不重复的集合列表，那么可以选择sorted set数据结构.</p>
-<p>比如用户的积分排行榜需求就可以通过有序集合实现。还有上面介绍的使用List实现轻量级的消息队列，其实也可以通过Sorted Set实现有优先级或按权重的队列。</p>
-<ul>
-<li><p>相关命令</p>
-<pre><code>  ZADD
-  ZADD key score1 member1 [score2 member2] 添加一个或多个成员到有序集合，或者如果它已经存在更新其分数
-  ZCARD
-  ZCARD key 得到的有序集合成员的数量
-  ZCOUNT
-  ZCOUNT key min max 计算一个有序集合成员与给定值范围内的分数
-  ZINCRBY
-  ZINCRBY key increment member 在有序集合增加成员的分数
-  ZINTERSTORE
-  ZINTERSTORE destination numkeys key [key ...] 多重交叉排序集合，并存储生成一个新的键有序集合。
-  ZLEXCOUNT
-  ZLEXCOUNT key min max 计算一个给定的字典范围之间的有序集合成员的数量
-  ZRANGE
-  ZRANGE key start stop [WITHSCORES] 由索引返回一个成员范围的有序集合（从低到高）
-  ZRANGEBYLEX
-  ZRANGEBYLEX key min max [LIMIT offset count]返回一个成员范围的有序集合（由字典范围）
-  ZRANGEBYSCORE
-  ZRANGEBYSCORE key min max [WITHSCORES] [LIMIT] 返回有序集key中，所有 score 值介于 min 和 max 之间(包括等于 min 或 max )的成员，有序集成员按 score 值递增(从小到大)次序排列
-  ZRANK
-  ZRANK key member 确定成员的索引中有序集合
-  ZREM
-  ZREM key member [member ...] 从有序集合中删除一个或多个成员，不存在的成员将被忽略
-  ZREMRANGEBYLEX
-  ZREMRANGEBYLEX key min max 删除所有成员在给定的字典范围之间的有序集合
-  ZREMRANGEBYRANK
-  ZREMRANGEBYRANK key start stop 在给定的索引之内删除所有成员的有序集合
-  ZREMRANGEBYSCORE
-  ZREMRANGEBYSCORE key min max 在给定的分数之内删除所有成员的有序集合
-  ZREVRANGE
-  ZREVRANGE key start stop [WITHSCORES] 返回一个成员范围的有序集合，通过索引，以分数排序，从高分到低分
-  ZREVRANGEBYSCORE
-  ZREVRANGEBYSCORE key max min [WITHSCORES] 返回一个成员范围的有序集合，以socre排序从高到低
-  ZREVRANK
-  ZREVRANK key member 确定一个有序集合成员的索引，以分数排序，从高分到低分
-  ZSCORE
-  ZSCORE key member 获取给定成员相关联的分数在一个有序集合
-  ZUNIONSTORE
-  ZUNIONSTORE destination numkeys key [key ...] 添加多个集排序，所得排序集合存储在一个新的键
-  ZSCAN
-  ZSCAN key cursor [MATCH pattern] [COUNT count] 增量迭代排序元素集和相关的分数
-</code></pre>
-</li>
-<li><p>使用示例</p>
-<pre><code>  redis 127.0.0.1:6379&gt; zadd dbs 100 redis
-  (integer) 1
-  redis 127.0.0.1:6379&gt; zadd dbs 98 memcached
-  (integer) 1
-  redis 127.0.0.1:6379&gt; zadd dbs 99 mongodb
-  (integer) 1
-  redis 127.0.0.1:6379&gt; zadd dbs 99 leveldb
-  (integer) 1
-  redis 127.0.0.1:6379&gt; zcard dbs
-  (integer) 4
-  redis 127.0.0.1:6379&gt; zcount dbs 10 99
-  (integer) 3
-  redis 127.0.0.1:6379&gt; zrank dbs leveldb
-  (integer) 1
-  redis 127.0.0.1:6379&gt; zrank dbs other
-  (nil)
-  redis 127.0.0.1:6379&gt; zrangebyscore dbs 98 100
-  1) &quot;memcached&quot;
-  2) &quot;leveldb&quot;
-  3) &quot;mongodb&quot;
-  4) &quot;redis&quot;
-</code></pre>
-</li>
-</ul>
+<p><code>CopyOnWriteArrayList</code> 写入时复制数组，读取时不加锁。它适合规则、配置、监听器列表，不适合高频写入的数据。</p>
+<h2 id="CAS-和-AtomicReference"><a href="#CAS-和-AtomicReference" class="headerlink" title="CAS 和 AtomicReference"></a>CAS 和 AtomicReference</h2><p>本地策略快照可以用 <code>AtomicReference</code> 原子替换：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">RoutingPolicyCache</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> AtomicReference&lt;RoutingPolicy&gt; policyRef =</span><br><span class="line">        <span class="keyword">new</span> <span class="title class_">AtomicReference</span>&lt;&gt;(RoutingPolicy.defaultPolicy());</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> RoutingPolicy <span class="title function_">current</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> policyRef.get();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">refresh</span><span class="params">(RoutingPolicy latest)</span> &#123;</span><br><span class="line">        policyRef.set(latest);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果要防止旧版本覆盖新版本：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">refreshIfNewer</span><span class="params">(RoutingPolicy latest)</span> &#123;</span><br><span class="line">    <span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">        <span class="type">RoutingPolicy</span> <span class="variable">current</span> <span class="operator">=</span> policyRef.get();</span><br><span class="line">        <span class="keyword">if</span> (latest.version() &lt;= current.version()) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (policyRef.compareAndSet(current, latest)) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这适合单 JVM 内的配置引用。业务库存余额不应该用本地 CAS 保存，因为库存需要跨实例一致、事务回滚和审计。</p>
+<h2 id="死锁排查"><a href="#死锁排查" class="headerlink" title="死锁排查"></a>死锁排查</h2><p>Java 死锁常见于多个线程以不同顺序获取锁。例如两个仓储任务同时锁两个库位：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">synchronized</span> (binA) &#123;</span><br><span class="line">    <span class="keyword">synchronized</span> (binB) &#123;</span><br><span class="line">        transfer();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>另一个线程反过来：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">synchronized</span> (binB) &#123;</span><br><span class="line">    <span class="keyword">synchronized</span> (binA) &#123;</span><br><span class="line">        transfer();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>解决办法是固定加锁顺序：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">transfer</span><span class="params">(Bin from, Bin to)</span> &#123;</span><br><span class="line">    <span class="type">Bin</span> <span class="variable">first</span> <span class="operator">=</span> from.id() &lt; to.id() ? from : to;</span><br><span class="line">    <span class="type">Bin</span> <span class="variable">second</span> <span class="operator">=</span> from.id() &lt; to.id() ? to : from;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">synchronized</span> (first) &#123;</span><br><span class="line">        <span class="keyword">synchronized</span> (second) &#123;</span><br><span class="line">            doTransfer(from, to);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>线上排查可以用：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">jstack &lt;pid&gt;</span><br></pre></td></tr></table></figure>
+
+<p>或者 Arthas：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">thread -b</span><br></pre></td></tr></table></figure>
+
+<p>重点看线程是否大量 <code>BLOCKED</code>，以及堆栈里等待的是哪把锁。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>并发集合和原子类能减少手写锁，让并发代码更清晰。供应链系统里，<code>ConcurrentHashMap</code> 适合本地任务注册，<code>BlockingQueue</code> 适合生产者消费者，<code>CopyOnWriteArrayList</code> 适合读多写少规则，<code>AtomicReference</code> 适合配置快照替换。核心业务数据仍然要用数据库状态机和事务保护。线上卡顿时，要能用 <code>jstack</code>、Arthas 定位线程阻塞和死锁。</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2017/05/10/redis%E5%85%A5%E9%97%A8/" data-id="cuidABou6rwDaRTsRt7aVs5yA" class="article-share-link">Share</a>
+      <a data-url="https://guxingxianyue.github.io/2022/05/30/Java%E5%B9%B6%E5%8F%91%E9%9B%86%E5%90%88%E4%B8%8E%E6%8E%92%E6%9F%A5%EF%BC%9A%E4%BB%93%E5%82%A8%E4%BB%BB%E5%8A%A1%E5%B9%B6%E5%8F%91%E5%AE%89%E5%85%A8%E6%80%8E%E4%B9%88%E8%90%BD%E5%9C%B0/" data-id="cuidX145vWJdYoch2pFaOydQ2" class="article-share-link">Share</a>
       
       
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" rel="tag">分布式</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/BlockingQueue/" rel="tag">BlockingQueue</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CAS/" rel="tag">CAS</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ConcurrentHashMap/" rel="tag">ConcurrentHashMap</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%BB%93%E5%82%A8%E7%B3%BB%E7%BB%9F/" rel="tag">仓储系统</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%AD%BB%E9%94%81/" rel="tag">死锁</a></li></ul>
 
     </footer>
   </div>
@@ -684,10 +146,10 @@ redis.testOnBorrow=true
 
 
   
-    <article id="post-kafka集群" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Java并发工具类：采购对账和库存汇总如何并行协作" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2017/01/07/kafka%E9%9B%86%E7%BE%A4/" class="article-date">
-  <time datetime="2017-01-07T04:16:17.000Z" itemprop="datePublished">2017-01-07</time>
+    <a href="/2022/05/23/Java%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB%EF%BC%9A%E9%87%87%E8%B4%AD%E5%AF%B9%E8%B4%A6%E5%92%8C%E5%BA%93%E5%AD%98%E6%B1%87%E6%80%BB%E5%A6%82%E4%BD%95%E5%B9%B6%E8%A1%8C%E5%8D%8F%E4%BD%9C/" class="article-date">
+  <time datetime="2022-05-23T01:50:00.000Z" itemprop="datePublished">2022-05-23</time>
 </a>
     
   </div>
@@ -698,7 +160,7 @@ redis.testOnBorrow=true
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2017/01/07/kafka%E9%9B%86%E7%BE%A4/">kafka集群</a>
+      <a class="article-title" href="/2022/05/23/Java%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB%EF%BC%9A%E9%87%87%E8%B4%AD%E5%AF%B9%E8%B4%A6%E5%92%8C%E5%BA%93%E5%AD%98%E6%B1%87%E6%80%BB%E5%A6%82%E4%BD%95%E5%B9%B6%E8%A1%8C%E5%8D%8F%E4%BD%9C/">Java并发工具类：采购对账和库存汇总如何并行协作</a>
     </h1>
   
 
@@ -706,171 +168,38 @@ redis.testOnBorrow=true
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="Kafka初识"><a href="#Kafka初识" class="headerlink" title="Kafka初识"></a>Kafka初识</h2><ul>
-<li><p>Kafka使用背景</p>
-<p>  在我们大量使用分布式数据库、分布式计算集群的时候，是否会遇到这样的一些问题：</p>
+        <p>Java 并发工具类解决的是线程之间的协作问题。供应链系统里，很多流程不是简单加锁，而是多个任务并行执行后汇总结果，或者限制同时访问某个下游系统的并发量。常用工具包括 <code>CountDownLatch</code>、<code>Semaphore</code>、<code>CompletableFuture</code>。</p>
+<h2 id="CountDownLatch：等待多个任务完成"><a href="#CountDownLatch：等待多个任务完成" class="headerlink" title="CountDownLatch：等待多个任务完成"></a>CountDownLatch：等待多个任务完成</h2><p>采购对账时，需要同时加载三类数据：</p>
 <ul>
-<li>我们想分析下用户行为（pageviews），以便我们设计出更好的广告位</li>
-<li>我想对用户的搜索关键词进行统计，分析出当前的流行趋势</li>
-<li>有些数据，存储数据库浪费，直接存储硬盘效率又低</li>
+<li>采购入库单。</li>
+<li>供应商发票。</li>
+<li>付款记录。</li>
 </ul>
-</li>
-<li><p>Kafka的定义</p>
-<p>  它是一个分布式消息系统,具有高水平扩展和高吞吐量的特点。</p>
-</li>
-</ul>
-<h2 id="Kafka相关概念"><a href="#Kafka相关概念" class="headerlink" title="Kafka相关概念"></a>Kafka相关概念</h2><ul>
-<li><p>AMQP协议：是一个标准开放的应用层的消息中间件（Message Oriented Middleware）协议。AMQP定义了通过网络发送的字节流的数据格式。因此兼容性非常好，任何实现AMQP协议的程序都可以和与AMQP协议兼容的其他程序交互，可以很容易做到跨语言，跨平台。</p>
-</li>
-<li><p>一些基本的概念</p>
-<ul>
-<li>消费者：（Consumer）：从消息队列中请求消息的客户端应用程序</li>
-<li>生产者：（Producer）：向broker发布消息的应用程序</li>
-<li>AMQP服务端（broker）：用来接收生产者发送的消息并将这些消息路由给服务器中的队列，便于fafka将生产者发送的消息，动态的添加到磁盘并给每一条消息一个偏移量，所以对于kafka一个broker就是一个应用程序的实例</li>
-</ul>
-</li>
-</ul>
-<p>kafka支持的客户端语言：Kafka客户端支持当前大部分主流语言，包括：C、C++、Erlang、Java、.net、perl、PHP、Python、Ruby、Go、Javascript<br>可以使用以上任何一种语言和kafka服务器进行通信（即辨析自己的consumer从kafka集群订阅消息也可以自己写producer程序）</p>
-<ul>
-<li><p>Kafka架构</p>
-<p>  生产者生产消息、kafka集群、消费者获取消息这样一种架构，如下图：</p>
-<p>  <img src="https://i.imgur.com/fFh8aZr.png"></p>
-<p>  kafka集群中的消息，是通过Topic（主题）来进行组织的，如下图：</p>
-<p>  <img src="https://i.imgur.com/yMOoyNJ.png"></p>
-<p>  一些基本的概念：</p>
-<ul>
-<li>主题（Topic）：一个主题类似新闻中的体育、娱乐、教育等分类概念，在实际工程中通常一个业务一个主题。</li>
-<li>分区（Partition）：一个Topic中的消息数据按照多个分区组织，分区是kafka消息队列组织的最小单位，一个分区可以看作是一个FIFO（ First Input First Output的缩写，先入先出队列）的队列。</li>
-</ul>
-<p>  kafka分区是提高kafka性能的关键所在，当你发现你的集群性能不高时，常用手段就是增加Topic的分区，分区里面的消息是按照从新到老的顺序进行组织，消费者从队列头订阅消息，生产者从队列尾添加消息。</p>
-<p>  工作图：<br>  <img src="https://i.imgur.com/4eSzo4r.png"></p>
-<p>  备份（Replication）：为了保证分布式可靠性，kafka0.8开始对每个分区的数据进行备份（不同的Broker上），防止其中一个Broker宕机造成分区上的数据不可用。</p>
-</li>
-</ul>
-<h2 id="Kafka集群搭建"><a href="#Kafka集群搭建" class="headerlink" title="Kafka集群搭建"></a>Kafka集群搭建</h2><ul>
-<li><p>软件环境</p>
-<ul>
-<li>已经搭建好的zookeeper集群(文章最后另写)</li>
-<li>软件版本kafka_2.11-0.9.0.1.tgz</li>
-<li>软件版本kafka_2.11-0.9.0.1.tgz</li>
-</ul>
-</li>
-<li><p>创建目录并下载安装软件<br>  #下载软件<br>  wget <a href="https://archive.apache.org/dist/kafka/0.9.0.1/kafka_2.11-0.9.0.1.tgz">https://archive.apache.org/dist/kafka/0.9.0.1/kafka_2.11-0.9.0.1.tgz</a><br>  #解压软件<br>  tar -xvf kafka_2.11-0.9.0.1.tgz</p>
-</li>
-<li><p>修改配置文件</p>
-<p>  主要关注config&#x2F;server.properties     </p>
-<pre><code>  broker.id=0  #当前机器在集群中的唯一标识，和zookeeper的myid性质一样
-  port=9092 #当前kafka对外提供服务的端口默认是9092
-  host.name = 120.76.230.134 #这个参数默认是关闭的，在0.8.1有个bug，DNS解析问题，失败率的问题
-  #申明此kafka服务器需要监听的端口号，如果是在本机上跑虚拟机运行可以不用配置本项，默认会使用localhost的地址，如果是在远程服务器上运行则必须配置
-  listeners = PLAINTEXT://120.76.230.134:9092 
-  advertised.host.name = 120.76.230.134
-  advertised.listeners=PLAINTEXT://120.76.230.134:9092
-  log.dirs=/data/kafka/kafkalogs  #消息存放的目录
-  #在log.retention.hours=168 下面新增下面三项
-  message.max.byte=5242880
-  default.replication.factor=2
-  replica.fetch.max.bytes=5242880
-  zookeeper.connect=120.76.230.134:5181,120.76.193.192:5181,120.25.239.155:5181 #zookeeper配置地址
-</code></pre>
-<p>  每个机子的broker.id、host.name都是不一样的，主要是关注以上几项参数配置。</p>
-</li>
-<li><p>启动Kafka集群并测试</p>
-<p>  启动服务</p>
-<pre><code>  #从后台启动Kafka集群（3台都需要启动）
-  cd /data/kafka/kafka_2.11-0.11.0.1/bin #进入到kafka的bin目录 
-  ./kafka-server-start.sh -daemon ../config/server.properties
-</code></pre>
-<p>  检查服务是否启动</p>
-<pre><code>  #执行命令jps
-  22246 Bootstrap
-  26393 Kafka
-</code></pre>
-<p>  创建Topic来验证是否创建成功</p>
-<pre><code>  #创建Topic
-  ./kafka-topics.sh --create --zookeeper 120.76.230.134:5181,120.76.193.192:5181,120.25.239.155:5181 --replication-factor 2 --partitions 1 --topic test
-  
-  #解释
-  --replication-factor 2   #复制两份
-  --partitions 1 #创建1个分区
-  --topic #主题为test
-  
-  #在一台服务器上创建一个发布者
-  #创建一个broker，发布者
-  ./kafka-console-producer.sh --broker-list 120.76.230.134:9092 --topic test
-  
-  #在一台服务器上创建一个订阅者
-  ./kafka-console-consumer.sh --bootstrap-server 120.76.230.134:9092 --topic test --from-beginning
-</code></pre>
-<p>  测试（在发布者那里发布消息看看订阅者那里是否能正常收到~）：</p>
-</li>
-<li><p>其他命令	</p>
-<p>  大部分命令可以去官方文档查看</p>
-<ul>
-<li><p>查看topic</p>
-<pre><code>  ./kafka-topics.sh --list --zookeeper 120.76.230.134:5181,120.76.193.192:5181,120.25.239.155:5181
-  #就会显示我们创建的所有topic
-</code></pre>
-</li>
-</ul>
-<p>  kafka集群搭建完毕</p>
-</li>
-</ul>
-<h2 id="zookeeper集群部署"><a href="#zookeeper集群部署" class="headerlink" title="zookeeper集群部署"></a>zookeeper集群部署</h2><ul>
-<li><p>为什么是基数</p>
-<ul>
-<li>集群必须有一半以上的机器统一才能成为leader</li>
-<li>一半的机器挂掉 整个集群挂掉</li>
-</ul>
-</li>
-<li><p>去官网下载好zookeeper包，解压</p>
-</li>
-<li><p>修改配置&#x2F;conf&#x2F;zoo.cfg文件</p>
-<pre><code>  # 基本事件单元，以毫秒为单位，用来控制心跳和超时
-  tickTime=2000
-  # 参数设定了允许所有跟随者与领导者进行连接并同步的时间，如果在设定的时间段内，半数以上的跟随者未能完成同步，领导者便会宣布放弃领导地位，进行另一次的领导选举
-  # 如果zk集群环境数量确实很大，同步数据的时间会变长，因此这种情况下可以适当调大该参数
-  #集群中的follower服务器(F)与leader服务器(L)之间 初始连接 时能容忍的最多心跳数（tickTime的数量）
-  initLimit=10
-  # 参数设定了允许一个跟随者与一个领导者进行同步的时间，如果在设定的时间段内，跟随者未完成同步，它将会被集群丢弃
-  # 所有关联到这个跟随者的客户端将连接到另外一个跟随着
-  syncLimit=5
-  # 存储持久数据的本地文件系统位置
-  dataDir=/data/zookeeper-3.4.9/data
-  dataLogDir=/data/zookeeper-3.4.9/logs
-  # 监听客户端连接的端口
-  clientPort=5181
-  
-  server.1=120.76.230.134:2888:3888
-  server.2=120.76.193.192:2888:3888
-  server.3=120.25.239.155:2888:3888
+<p>三类数据查询互不依赖，可以并行查询，最后汇总差异。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> ReconcileResult <span class="title function_">reconcile</span><span class="params">(<span class="type">long</span> supplierId, LocalDate month)</span> <span class="keyword">throws</span> InterruptedException &#123;</span><br><span class="line">    <span class="type">CountDownLatch</span> <span class="variable">latch</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">CountDownLatch</span>(<span class="number">3</span>);</span><br><span class="line"></span><br><span class="line">    AtomicReference&lt;List&lt;Receipt&gt;&gt; receiptsRef = <span class="keyword">new</span> <span class="title class_">AtomicReference</span>&lt;&gt;();</span><br><span class="line">    AtomicReference&lt;List&lt;Invoice&gt;&gt; invoicesRef = <span class="keyword">new</span> <span class="title class_">AtomicReference</span>&lt;&gt;();</span><br><span class="line">    AtomicReference&lt;List&lt;Payment&gt;&gt; paymentsRef = <span class="keyword">new</span> <span class="title class_">AtomicReference</span>&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    executor.execute(() -&gt; &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            receiptsRef.set(receiptService.query(supplierId, month));</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            latch.countDown();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    executor.execute(() -&gt; &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            invoicesRef.set(invoiceService.query(supplierId, month));</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            latch.countDown();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    executor.execute(() -&gt; &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            paymentsRef.set(paymentService.query(supplierId, month));</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            latch.countDown();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    latch.await();</span><br><span class="line">    <span class="keyword">return</span> reconcileEngine.compare(receiptsRef.get(), invoicesRef.get(), paymentsRef.get());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-  #server.1 这个1是服务器的标识也可以是其他的数字， 表示这个是第几号服务器，用来标识服务器，这个标识要写到快照目录下面myid文件里
-  #120.76.230.134为集群里的IP地址，第一个端口是master和slave之间的通信端口，默认是2888，第二个端口是leader选举的端口，集群刚启动的时候选举或者leader挂掉之后进行新的选举的端口默认是3888
-</code></pre>
-<p>  zoo_sample.cfg  这个文件是官方给我们的zookeeper的样板文件，给他复制一份命名为zoo.cfg，zoo.cfg是官方指定的文件命名规则。</p>
-</li>
-<li><p>创建myid文件</p>
-<p>  &#x2F;data&#x2F;zookeeper-3.4.9&#x2F;data目录下要配置myid文件，内容跟server.id相对应，比如:1</p>
-<p>  .&#x2F;zkServer.sh star启动zookeeper，每台都要启动一遍</p>
-</li>
-<li><p>重要配置说明</p>
-<ul>
-<li><p>myid文件和server.myid  在快照目录下存放的标识本台服务器的文件，他是整个zk集群用来发现彼此的一个重要标识。</p>
-</li>
-<li><p>zoo.cfg 文件是zookeeper配置文件 在conf目录里。</p>
-</li>
-</ul>
-</li>
-</ul>
+<p>这里的收益是缩短对账等待时间。原来三类数据串行查询，现在可以并行加载。</p>
+<h2 id="Semaphore：限制并发访问下游"><a href="#Semaphore：限制并发访问下游" class="headerlink" title="Semaphore：限制并发访问下游"></a>Semaphore：限制并发访问下游</h2><p>物流轨迹同步可能调用承运商 API。承运商接口有 QPS 限制，不能因为系统里有大量线程就无限请求。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">CarrierTrackClient</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">Semaphore</span> <span class="variable">semaphore</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Semaphore</span>(<span class="number">20</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> TrackInfo <span class="title function_">queryTrack</span><span class="params">(String trackingNo)</span> &#123;</span><br><span class="line">        <span class="type">boolean</span> <span class="variable">acquired</span> <span class="operator">=</span> <span class="literal">false</span>;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            acquired = semaphore.tryAcquire(<span class="number">1</span>, <span class="number">2</span>, TimeUnit.SECONDS);</span><br><span class="line">            <span class="keyword">if</span> (!acquired) &#123;</span><br><span class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">BizException</span>(<span class="string">&quot;承运商接口繁忙，请稍后重试&quot;</span>);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">return</span> doQuery(trackingNo);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">            Thread.currentThread().interrupt();</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">BizException</span>(<span class="string">&quot;查询被中断&quot;</span>);</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (acquired) &#123;</span><br><span class="line">                semaphore.release();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>Semaphore</code> 控制的是并发许可数。这里最多允许 20 个线程同时访问承运商接口，保护下游系统，也保护自己。</p>
+<h2 id="CompletableFuture：异步编排更清晰"><a href="#CompletableFuture：异步编排更清晰" class="headerlink" title="CompletableFuture：异步编排更清晰"></a>CompletableFuture：异步编排更清晰</h2><p><code>CompletableFuture</code> 适合多个异步任务组合。订单详情页需要同时展示订单基础信息、库存状态、物流轨迹、应收金额：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> OrderDetail <span class="title function_">detail</span><span class="params">(<span class="type">long</span> orderId)</span> &#123;</span><br><span class="line">    CompletableFuture&lt;Order&gt; orderFuture =</span><br><span class="line">        CompletableFuture.supplyAsync(() -&gt; orderService.get(orderId), executor);</span><br><span class="line"></span><br><span class="line">    CompletableFuture&lt;InventoryView&gt; inventoryFuture =</span><br><span class="line">        CompletableFuture.supplyAsync(() -&gt; inventoryService.viewByOrder(orderId), executor);</span><br><span class="line"></span><br><span class="line">    CompletableFuture&lt;TrackInfo&gt; trackFuture =</span><br><span class="line">        CompletableFuture.supplyAsync(() -&gt; trackService.queryByOrder(orderId), executor);</span><br><span class="line"></span><br><span class="line">    CompletableFuture&lt;Receivable&gt; receivableFuture =</span><br><span class="line">        CompletableFuture.supplyAsync(() -&gt; financeService.receivable(orderId), executor);</span><br><span class="line"></span><br><span class="line">    CompletableFuture.allOf(orderFuture, inventoryFuture, trackFuture, receivableFuture).join();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">OrderDetail</span>(</span><br><span class="line">        orderFuture.join(),</span><br><span class="line">        inventoryFuture.join(),</span><br><span class="line">        trackFuture.join(),</span><br><span class="line">        receivableFuture.join()</span><br><span class="line">    );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>注意要传入业务线程池，不要默认依赖 <code>ForkJoinPool.commonPool()</code>，否则不同业务会混用同一个公共线程池，排查困难。</p>
+<h2 id="异常处理"><a href="#异常处理" class="headerlink" title="异常处理"></a>异常处理</h2><p>异步任务一定要处理异常：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">CompletableFuture&lt;TrackInfo&gt; trackFuture =</span><br><span class="line">    CompletableFuture</span><br><span class="line">        .supplyAsync(() -&gt; trackService.queryByOrder(orderId), executor)</span><br><span class="line">        .exceptionally(e -&gt; TrackInfo.empty(<span class="string">&quot;物流轨迹暂不可用&quot;</span>));</span><br></pre></td></tr></table></figure>
+
+<p>供应链系统的详情页通常允许部分信息降级，比如物流轨迹临时失败不应该导致整个订单详情不可用。但结算、扣库存这类核心流程不能随意吞异常。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>并发工具类的价值是让线程协作更清晰。<code>CountDownLatch</code> 适合等待多个并行任务完成；<code>Semaphore</code> 适合限制下游并发；<code>CompletableFuture</code> 适合异步任务编排。供应链系统使用这些工具时，必须区分查询类流程和交易类流程：查询可以并行和降级，交易必须保证状态一致、异常可追踪。</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2017/01/07/kafka%E9%9B%86%E7%BE%A4/" data-id="cuidfyvLLK7iCXtGkBHduCZgS" class="article-share-link">Share</a>
+      <a data-url="https://guxingxianyue.github.io/2022/05/23/Java%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB%EF%BC%9A%E9%87%87%E8%B4%AD%E5%AF%B9%E8%B4%A6%E5%92%8C%E5%BA%93%E5%AD%98%E6%B1%87%E6%80%BB%E5%A6%82%E4%BD%95%E5%B9%B6%E8%A1%8C%E5%8D%8F%E4%BD%9C/" data-id="cuidMV4eOf2aEBGASEu3BDjYK" class="article-share-link">Share</a>
       
       
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" rel="tag">分布式</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CompletableFuture/" rel="tag">CompletableFuture</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CountDownLatch/" rel="tag">CountDownLatch</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Semaphore/" rel="tag">Semaphore</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F/" rel="tag">供应链系统</a></li></ul>
 
     </footer>
   </div>
@@ -879,10 +208,10 @@ redis.testOnBorrow=true
 
 
   
-    <article id="post-快速排序" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Java线程池实战：订单履约任务如何稳定提吞吐" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2016/06/04/%E5%BF%AB%E9%80%9F%E6%8E%92%E5%BA%8F/" class="article-date">
-  <time datetime="2016-06-04T12:21:10.000Z" itemprop="datePublished">2016-06-04</time>
+    <a href="/2022/05/16/Java%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E6%88%98%EF%BC%9A%E8%AE%A2%E5%8D%95%E5%B1%A5%E7%BA%A6%E4%BB%BB%E5%8A%A1%E5%A6%82%E4%BD%95%E7%A8%B3%E5%AE%9A%E6%8F%90%E5%90%9E%E5%90%90/" class="article-date">
+  <time datetime="2022-05-16T02:00:00.000Z" itemprop="datePublished">2022-05-16</time>
 </a>
     
   </div>
@@ -893,7 +222,7 @@ redis.testOnBorrow=true
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2016/06/04/%E5%BF%AB%E9%80%9F%E6%8E%92%E5%BA%8F/">快速排序</a>
+      <a class="article-title" href="/2022/05/16/Java%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E6%88%98%EF%BC%9A%E8%AE%A2%E5%8D%95%E5%B1%A5%E7%BA%A6%E4%BB%BB%E5%8A%A1%E5%A6%82%E4%BD%95%E7%A8%B3%E5%AE%9A%E6%8F%90%E5%90%9E%E5%90%90/">Java线程池实战：订单履约任务如何稳定提吞吐</a>
     </h1>
   
 
@@ -901,79 +230,64 @@ redis.testOnBorrow=true
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="快速排序"><a href="#快速排序" class="headerlink" title="快速排序"></a>快速排序</h2><h4 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h4><p>在数组中找一个支点(任意),经过一趟排序后，支点左边的数都要比支点小，支点右边的数都要比支点大！</p>
-<p>现在我们有一个数组：int arr[]&#x3D;{1,4,5,67,2,7,8,6,9,44};</p>
-<p>经过一趟排序之后，如果我选择数组中间的数作为支点：7(任意的)，那么第一趟排序后的结果是这样的：{1,4,5,6,2,7,8,67,9,44}</p>
-<p>那么就实现了支点左边的数比支点小，支点右边的数比支点大</p>
-<h4 id="递归分析与代码实现"><a href="#递归分析与代码实现" class="headerlink" title="递归分析与代码实现"></a>递归分析与代码实现</h4><p>现在我们的数组是这样的：{1,4,5,6,2,7,8,67,9,44}，既然我们比7小的在左边，比7大的在右边，那么我们只要将”左边“的排好顺序，又将”右边“的排好序，那整个数组是不是就有序了？</p>
-<p>回顾一下递归：”左边“的排好顺序，”右边“的排好序，跟我们第一趟排序的做法是一样的。</p>
-<p>只不过是参数不一样：第一趟排序是任选了一个支点，比支点小的在左边，比支点大的在右边。那么，我们想要”左边“的排好顺序，只要在”左边“部分找一个支点，比支点小的在左边，比支点大的在右边。</p>
-<p>递归出口也很容易找到：如果数组只有一个元素时，那么就不用排序了</p>
-<p>代码如下：</p>
-<pre><code>public static void main(String[] args) {
-    int[] arr = {1, 4, 5, 67, 2, 7, 8, 6, 9, 44};
+        <p>线程池是 Java 多线程在业务系统中最常用的落地方式。它解决两个问题：复用线程，减少创建销毁成本；限制并发，避免请求无限堆积压垮系统。供应链系统里的订单履约、库存同步、物流轨迹拉取、报表生成，都应该用线程池管理并发。</p>
+<h2 id="不要无限创建线程"><a href="#不要无限创建线程" class="headerlink" title="不要无限创建线程"></a>不要无限创建线程</h2><p>错误示例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (Long orderId : orderIds) &#123;</span><br><span class="line">    <span class="keyword">new</span> <span class="title class_">Thread</span>(() -&gt; fulfillmentService.fulfill(orderId)).start();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-    quickSort(arr, 0, 9);
+<p>如果一次批处理有 5000 个订单，这段代码会创建 5000 个线程。线程本身占内存，调度也有成本，下游数据库、WMS、TMS 都可能被打爆。</p>
+<p>应该使用 <code>ThreadPoolExecutor</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">ThreadPoolExecutor</span> <span class="variable">executor</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ThreadPoolExecutor</span>(</span><br><span class="line">    <span class="number">8</span>,</span><br><span class="line">    <span class="number">16</span>,</span><br><span class="line">    <span class="number">60</span>,</span><br><span class="line">    TimeUnit.SECONDS,</span><br><span class="line">    <span class="keyword">new</span> <span class="title class_">ArrayBlockingQueue</span>&lt;&gt;(<span class="number">1000</span>),</span><br><span class="line">    <span class="keyword">new</span> <span class="title class_">ThreadFactory</span>() &#123;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">AtomicInteger</span> <span class="variable">index</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">AtomicInteger</span>();</span><br><span class="line"></span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="keyword">public</span> Thread <span class="title function_">newThread</span><span class="params">(Runnable r)</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">Thread</span>(r, <span class="string">&quot;fulfillment-worker-&quot;</span> + index.incrementAndGet());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="keyword">new</span> <span class="title class_">ThreadPoolExecutor</span>.CallerRunsPolicy()</span><br><span class="line">);</span><br></pre></td></tr></table></figure>
 
-    System.out.println(arr);
+<p>这个线程池最多 16 个工作线程，队列最多缓存 1000 个任务。超过能力后，<code>CallerRunsPolicy</code> 会让提交任务的线程自己执行，形成反压。</p>
+<h2 id="七个核心参数"><a href="#七个核心参数" class="headerlink" title="七个核心参数"></a>七个核心参数</h2><p><code>ThreadPoolExecutor</code> 的关键参数包括：</p>
+<ul>
+<li><code>corePoolSize</code>：核心线程数。</li>
+<li><code>maximumPoolSize</code>：最大线程数。</li>
+<li><code>keepAliveTime</code>：非核心线程空闲多久回收。</li>
+<li><code>unit</code>：时间单位。</li>
+<li><code>workQueue</code>：任务队列。</li>
+<li><code>threadFactory</code>：线程工厂。</li>
+<li><code>handler</code>：拒绝策略。</li>
+</ul>
+<p>供应链系统里，线程数不是越大越好。订单履约通常包含数据库、库存服务、仓储服务、物流服务调用，属于 IO 密集型，可以适度提高线程数。但如果下游 TMS 每秒只允许 100 次请求，线程池再大也只会制造超时。</p>
+<h2 id="订单履约-demo"><a href="#订单履约-demo" class="headerlink" title="订单履约 demo"></a>订单履约 demo</h2><p>批量履约订单时，可以这样提交任务：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">fulfillBatch</span><span class="params">(List&lt;Long&gt; orderIds)</span> &#123;</span><br><span class="line">    <span class="keyword">for</span> (Long orderId : orderIds) &#123;</span><br><span class="line">        executor.execute(() -&gt; &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                fulfillmentService.fulfill(orderId);</span><br><span class="line">            &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">                fulfillmentLogService.recordFailed(orderId, e.getMessage());</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
+<p>任务内部要保证幂等：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Transactional</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">fulfill</span><span class="params">(Long orderId)</span> &#123;</span><br><span class="line">    <span class="type">int</span> <span class="variable">affected</span> <span class="operator">=</span> orderMapper.markFulfilling(orderId);</span><br><span class="line">    <span class="keyword">if</span> (affected != <span class="number">1</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    inventoryService.reserve(orderId);</span><br><span class="line">    warehouseTaskService.createPickTask(orderId);</span><br><span class="line">    orderMapper.markFulfilled(orderId);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-}
+<p>对应状态更新：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span> scm_sales_order</span><br><span class="line"><span class="keyword">SET</span> status <span class="operator">=</span> <span class="string">&#x27;FULFILLING&#x27;</span></span><br><span class="line"><span class="keyword">WHERE</span> id <span class="operator">=</span> #&#123;orderId&#125;</span><br><span class="line">  <span class="keyword">AND</span> status <span class="operator">=</span> <span class="string">&#x27;WAIT_FULFILL&#x27;</span>;</span><br></pre></td></tr></table></figure>
 
-/**
- * 快速排序
- *
- * @param arr
- * @param L   指向数组第一个元素
- * @param R   指向数组最后一个元素
- */
-public static void quickSort(int[] arr, int L, int R) {
-    int i = L;
-    int j = R;
+<p>线程池负责并发执行，数据库状态机负责避免重复履约。</p>
+<h2 id="队列选择"><a href="#队列选择" class="headerlink" title="队列选择"></a>队列选择</h2><p>常见队列：</p>
+<ul>
+<li><code>ArrayBlockingQueue</code>：有界数组队列，容量固定，适合明确限流。</li>
+<li><code>LinkedBlockingQueue</code>：链表队列，可有界也可无界；业务中必须设置容量。</li>
+<li><code>SynchronousQueue</code>：不存储任务，直接移交线程，适合快速扩容线程的场景。</li>
+<li><code>PriorityBlockingQueue</code>：优先级队列，适合高优先级订单先处理。</li>
+</ul>
+<p>供应链系统建议优先使用有界队列。无界队列在高峰期会隐藏问题，直到内存被耗尽。</p>
+<h2 id="监控线程池"><a href="#监控线程池" class="headerlink" title="监控线程池"></a>监控线程池</h2><p>线程池必须监控：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> ThreadPoolStats <span class="title function_">stats</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">ThreadPoolStats</span>(</span><br><span class="line">        executor.getPoolSize(),</span><br><span class="line">        executor.getActiveCount(),</span><br><span class="line">        executor.getQueue().size(),</span><br><span class="line">        executor.getCompletedTaskCount()</span><br><span class="line">    );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-    //支点
-    int pivot = arr[(L + R) / 2];
-
-    //左右两端进行扫描，只要两端还没有交替，就一直扫描
-    while (i &lt;= j) {
-
-        //寻找直到比支点大的数
-        while (pivot &gt; arr[i])
-            i++;
-
-        //寻找直到比支点小的数
-        while (pivot &lt; arr[j])
-            j--;
-
-        //此时已经分别找到了比支点小的数(右边)、比支点大的数(左边)，它们进行交换
-        if (i &lt;= j) {
-            int temp = arr[i];
-            arr[i] = arr[j];
-            arr[j] = temp;
-            i++;
-            j--;
-        }
-    }
-    //上面一个while保证了第一趟排序支点的左边比支点小，支点的右边比支点大了。
-
-
-    //“左边”再做排序，直到左边剩下一个数(递归出口)
-    if (L &lt; j)
-        quickSort(arr, L, j);
-
-    //“右边”再做排序，直到右边剩下一个数(递归出口)
-    if (i &lt; R)
-        quickSort(arr, i, R);
-}
-</code></pre>
+<p>核心指标：</p>
+<ul>
+<li>活跃线程数是否长期接近最大线程数。</li>
+<li>队列长度是否持续增长。</li>
+<li>拒绝任务是否出现。</li>
+<li>单任务耗时是否变长。</li>
+</ul>
+<p>如果队列持续增长，不要只加线程。要确认瓶颈是数据库、外部接口、锁等待还是代码慢。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>线程池的作用是稳定地控制并发，而不是无上限地提高并发。供应链系统中，线程池适合订单履约、库存同步、物流轨迹拉取等后台任务。设计时要使用有界队列、明确拒绝策略、处理任务异常、保证业务幂等，并持续监控线程池运行状态。</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2016/06/04/%E5%BF%AB%E9%80%9F%E6%8E%92%E5%BA%8F/" data-id="cuidryLQX_Kz7EDFdlP66_mna" class="article-share-link">Share</a>
+      <a data-url="https://guxingxianyue.github.io/2022/05/16/Java%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E6%88%98%EF%BC%9A%E8%AE%A2%E5%8D%95%E5%B1%A5%E7%BA%A6%E4%BB%BB%E5%8A%A1%E5%A6%82%E4%BD%95%E7%A8%B3%E5%AE%9A%E6%8F%90%E5%90%9E%E5%90%90/" data-id="cuidyYRXe4eDjv-aw6rhGBgWG" class="article-share-link">Share</a>
       
       
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/" rel="tag">数据结构与算法</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ThreadPoolExecutor/" rel="tag">ThreadPoolExecutor</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F/" rel="tag">供应链系统</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%BA%BF%E7%A8%8B%E6%B1%A0/" rel="tag">线程池</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E8%AE%A2%E5%8D%95%E5%B1%A5%E7%BA%A6/" rel="tag">订单履约</a></li></ul>
 
     </footer>
   </div>
@@ -982,10 +296,10 @@ public static void quickSort(int[] arr, int L, int R) {
 
 
   
-    <article id="post-冒泡排序" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Java内存模型与锁：库存同步中的可见性和互斥" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2016/06/03/%E5%86%92%E6%B3%A1%E6%8E%92%E5%BA%8F/" class="article-date">
-  <time datetime="2016-06-03T14:16:29.000Z" itemprop="datePublished">2016-06-03</time>
+    <a href="/2022/05/10/Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E4%B8%8E%E9%94%81%EF%BC%9A%E5%BA%93%E5%AD%98%E5%90%8C%E6%AD%A5%E4%B8%AD%E7%9A%84%E5%8F%AF%E8%A7%81%E6%80%A7%E5%92%8C%E4%BA%92%E6%96%A5/" class="article-date">
+  <time datetime="2022-05-10T01:40:00.000Z" itemprop="datePublished">2022-05-10</time>
 </a>
     
   </div>
@@ -996,7 +310,7 @@ public static void quickSort(int[] arr, int L, int R) {
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2016/06/03/%E5%86%92%E6%B3%A1%E6%8E%92%E5%BA%8F/">冒泡排序</a>
+      <a class="article-title" href="/2022/05/10/Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E4%B8%8E%E9%94%81%EF%BC%9A%E5%BA%93%E5%AD%98%E5%90%8C%E6%AD%A5%E4%B8%AD%E7%9A%84%E5%8F%AF%E8%A7%81%E6%80%A7%E5%92%8C%E4%BA%92%E6%96%A5/">Java内存模型与锁：库存同步中的可见性和互斥</a>
     </h1>
   
 
@@ -1004,86 +318,45 @@ public static void quickSort(int[] arr, int L, int R) {
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="冒泡排序就这么简单"><a href="#冒泡排序就这么简单" class="headerlink" title="冒泡排序就这么简单"></a>冒泡排序就这么简单</h2><p>排序对我们来说是一点也不陌生了，当你打Dota的时候也有天梯分，从高往下数，这个排名是有规律的，就是一种排序。</p>
-<h2 id="冒泡排序的实现"><a href="#冒泡排序的实现" class="headerlink" title="冒泡排序的实现"></a>冒泡排序的实现</h2><blockquote>
-<p>冒泡排序是一种简单的排序算法。它重复地走访过要排序的数列，一次比较两个元素，如果他们的顺序错误就把他们交换过来。走访数列的工作是重复地进行直到没有再需要交换，也就是说该数列已经排序完成。这个算法的名字由来是因为越大的元素会经由交换慢慢“浮”到数列的顶端，故名冒泡排序。</p>
-</blockquote>
-<p>算法描述：</p>
-<ul>
-<li>i从0开始，i与i+1比较，如果i&gt;i+1，那么就互换</li>
-<li>i不断增加，直到i&lt;n-1（n是数组元素的个数，n-1是数组已经最后一个元素） ，一趟下来，可以让数组元素中最大值排在数组的最后面</li>
-</ul>
-<p>从最简单开始，首先我们创建一个数组，该数组有6位数字：</p>
-<pre><code>int[] arrays = {8, 3, 2, 6, 7, 9};
-</code></pre>
-<p>6位数的数组需要5躺排序的，每躺排序之后次数减1(因为前一趟已经把前一趟数的最大值确定下来了)！</p>
-<p>于是我们可以根据for循环和变量将上面的代码进行排序：</p>
-<pre><code>int temp;
+        <p>Java 多线程的核心问题可以归纳为三类：原子性、可见性、有序性。Java 内存模型，也就是 JMM，定义了线程之间如何看见彼此的写入，以及哪些同步动作能建立 happens-before 关系。供应链系统里，库存同步、价格缓存、仓库配置刷新都离不开这些基础。</p>
+<h2 id="可见性问题"><a href="#可见性问题" class="headerlink" title="可见性问题"></a>可见性问题</h2><p>库存同步任务通常有一个停止标志：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">InventorySyncJob</span> <span class="keyword">implements</span> <span class="title class_">Runnable</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="type">boolean</span> <span class="variable">running</span> <span class="operator">=</span> <span class="literal">true</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">stop</span><span class="params">()</span> &#123;</span><br><span class="line">        running = <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">run</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">while</span> (running) &#123;</span><br><span class="line">            syncOnce();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-//外层循环是排序的趟数
-for (int i = 0; i &lt; arrays.length - 1 ; i++) {
+<p>管理线程调用 <code>stop()</code> 后，工作线程不一定马上看到 <code>running = false</code>。这就是可见性问题。</p>
+<p>可以使用 <code>volatile</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">InventorySyncJob</span> <span class="keyword">implements</span> <span class="title class_">Runnable</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">volatile</span> <span class="type">boolean</span> <span class="variable">running</span> <span class="operator">=</span> <span class="literal">true</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">stop</span><span class="params">()</span> &#123;</span><br><span class="line">        running = <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">run</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">while</span> (running) &#123;</span><br><span class="line">            syncOnce();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-    //内层循环是当前趟数需要比较的次数
-    for (int j = 0; j &lt; arrays.length - i - 1; j++) {
+<p><code>volatile</code> 保证写入对其他线程可见，并限制相关指令重排。它适合任务开关、配置引用、状态标志。</p>
+<h2 id="volatile-不保证复合操作原子性"><a href="#volatile-不保证复合操作原子性" class="headerlink" title="volatile 不保证复合操作原子性"></a>volatile 不保证复合操作原子性</h2><p>下面这个计数器是错误的：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SyncCounter</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">volatile</span> <span class="type">int</span> successCount;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">success</span><span class="params">()</span> &#123;</span><br><span class="line">        successCount++;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-        //前一位与后一位与前一位比较，如果前一位比后一位要大，那么交换
-        if (arrays[j] &gt; arrays[j + 1]) {
-            temp = arrays[j];
-            arrays[j] = arrays[j + 1];
-            arrays[j + 1] = temp;
-        }
-    }
-}
-</code></pre>
-<h2 id="冒泡排序优化"><a href="#冒泡排序优化" class="headerlink" title="冒泡排序优化"></a>冒泡排序优化</h2><p>从上面的例子我们可以看出来，如果数据足够乱的情况下是需要经过5躺比较才能将数组完整排好序。但是我们在第二躺比较后就已经得到排好序的数组了。</p>
-<p>但是，我们的程序在第二趟排序后仍会执行第三趟、第四趟排序。这是没有必要的，因此我们可以对其进行优化一下：</p>
-<ul>
-<li>如果在某躺排序中没有发生交换位置，那么我们可以认为该数组已经排好序了<ul>
-<li>因为我们每趟排序的目的就是将当前趟最大的数置换到对应的位置上，没有发生置换说明就已经排好序了</li>
-</ul>
-</li>
-</ul>
-<p>代码如下：</p>
-<pre><code>//装载临时变量
-int temp;
+<p><code>successCount++</code> 包含读取、加一、写回三个步骤。多个线程同时执行会丢失更新。正确方式是使用原子类：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SyncCounter</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">AtomicInteger</span> <span class="variable">successCount</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">AtomicInteger</span>();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">success</span><span class="params">()</span> &#123;</span><br><span class="line">        successCount.incrementAndGet();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-//记录是否发生了置换， 0 表示没有发生置换、 1 表示发生了置换
-int isChange;
+<p>如果是高并发指标统计，可以用 <code>LongAdder</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SyncCounter</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">LongAdder</span> <span class="variable">successCount</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">LongAdder</span>();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">success</span><span class="params">()</span> &#123;</span><br><span class="line">        successCount.increment();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="type">long</span> <span class="title function_">value</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> successCount.sum();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-//外层循环是排序的趟数
-for (int i = 0; i &lt; arrays.length - 1; i++) {
+<h2 id="synchronized-解决互斥"><a href="#synchronized-解决互斥" class="headerlink" title="synchronized 解决互斥"></a>synchronized 解决互斥</h2><p>如果多个线程要修改同一个本地库存快照 Map，需要互斥控制：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">InventorySnapshotCache</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Map&lt;String, Integer&gt; cache = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">synchronized</span> <span class="keyword">void</span> <span class="title function_">put</span><span class="params">(String key, Integer qty)</span> &#123;</span><br><span class="line">        cache.put(key, qty);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">synchronized</span> Integer <span class="title function_">get</span><span class="params">(String key)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> cache.get(key);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-    //每比较一趟就重新初始化为0
-    isChange = 0;
+<p><code>synchronized</code> 修饰实例方法时，锁对象是 <code>this</code>。同一个对象上的同步方法互斥。</p>
+<p>更推荐使用私有锁对象，避免外部代码锁住当前实例：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">InventorySnapshotCache</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">Object</span> <span class="variable">lock</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Object</span>();</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Map&lt;String, Integer&gt; cache = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">put</span><span class="params">(String key, Integer qty)</span> &#123;</span><br><span class="line">        <span class="keyword">synchronized</span> (lock) &#123;</span><br><span class="line">            cache.put(key, qty);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> Integer <span class="title function_">get</span><span class="params">(String key)</span> &#123;</span><br><span class="line">        <span class="keyword">synchronized</span> (lock) &#123;</span><br><span class="line">            <span class="keyword">return</span> cache.get(key);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-    //内层循环是当前趟数需要比较的次数
-    for (int j = 0; j &lt; arrays.length - i - 1; j++) {
+<h2 id="锁的边界"><a href="#锁的边界" class="headerlink" title="锁的边界"></a>锁的边界</h2><p>供应链系统一般是多实例部署。<code>synchronized</code> 只能保护当前 JVM 内存，不能保护数据库里的库存余额。如果两个应用实例同时扣同一条库存，Java 本地锁没有任何作用。</p>
+<p>库存扣减必须落到数据库条件更新：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span> scm_inventory</span><br><span class="line"><span class="keyword">SET</span> available_qty <span class="operator">=</span> available_qty <span class="operator">-</span> #&#123;qty&#125;,</span><br><span class="line">    locked_qty <span class="operator">=</span> locked_qty <span class="operator">+</span> #&#123;qty&#125;</span><br><span class="line"><span class="keyword">WHERE</span> warehouse_id <span class="operator">=</span> #&#123;warehouseId&#125;</span><br><span class="line">  <span class="keyword">AND</span> sku_id <span class="operator">=</span> #&#123;skuId&#125;</span><br><span class="line">  <span class="keyword">AND</span> available_qty <span class="operator">&gt;=</span> #&#123;qty&#125;;</span><br></pre></td></tr></table></figure>
 
-        //前一位与后一位与前一位比较，如果前一位比后一位要大，那么交换
-        if (arrays[j] &gt; arrays[j + 1]) {
-            temp = arrays[j];
-            arrays[j] = arrays[j + 1];
-            arrays[j + 1] = temp;
-
-            //如果进到这里面了，说明发生置换了
-            isChange = 1;
-
-        }
-    }
-    //如果比较完一趟没有发生置换，那么说明已经排好序了，不需要再执行下去了
-    if (isChange == 0) {
-        break;
-    }
-}
-</code></pre>
+<p>Java 锁适合保护本地缓存、内存队列、对象状态；数据库事务和行锁负责保护最终业务数据。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>JMM 是理解 Java 多线程的基础。<code>volatile</code> 解决可见性和有序性，不解决复合操作原子性；<code>synchronized</code> 解决单 JVM 内共享状态的互斥；数据库锁解决跨实例的业务数据一致性。供应链系统里要明确每把锁保护的对象，不能用本地锁替代数据库并发控制。</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2016/06/03/%E5%86%92%E6%B3%A1%E6%8E%92%E5%BA%8F/" data-id="cuiduOUsi3d2QMR_DNRFxd25J" class="article-share-link">Share</a>
+      <a data-url="https://guxingxianyue.github.io/2022/05/10/Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E4%B8%8E%E9%94%81%EF%BC%9A%E5%BA%93%E5%AD%98%E5%90%8C%E6%AD%A5%E4%B8%AD%E7%9A%84%E5%8F%AF%E8%A7%81%E6%80%A7%E5%92%8C%E4%BA%92%E6%96%A5/" data-id="cuidZ3LX7uoZZHlyh2k6uLZu1" class="article-share-link">Share</a>
       
       
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/" rel="tag">数据结构与算法</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JMM/" rel="tag">JMM</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/synchronized/" rel="tag">synchronized</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/volatile/" rel="tag">volatile</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F/" rel="tag">供应链系统</a></li></ul>
 
     </footer>
   </div>
@@ -1092,10 +365,10 @@ for (int i = 0; i &lt; arrays.length - 1; i++) {
 
 
   
-    <article id="post-递归" class="article article-type-post" itemscope itemprop="blogPost">
+    <article id="post-Java多线程基础：供应链系统为什么需要并发处理" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
-    <a href="/2016/06/03/%E9%80%92%E5%BD%92/" class="article-date">
-  <time datetime="2016-06-03T14:16:29.000Z" itemprop="datePublished">2016-06-03</time>
+    <a href="/2022/05/05/Java%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%9F%BA%E7%A1%80%EF%BC%9A%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E5%B9%B6%E5%8F%91%E5%A4%84%E7%90%86/" class="article-date">
+  <time datetime="2022-05-05T01:30:00.000Z" itemprop="datePublished">2022-05-05</time>
 </a>
     
   </div>
@@ -1106,7 +379,7 @@ for (int i = 0; i &lt; arrays.length - 1; i++) {
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2016/06/03/%E9%80%92%E5%BD%92/">递归</a>
+      <a class="article-title" href="/2022/05/05/Java%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%9F%BA%E7%A1%80%EF%BC%9A%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E5%B9%B6%E5%8F%91%E5%A4%84%E7%90%86/">Java多线程基础：供应链系统为什么需要并发处理</a>
     </h1>
   
 
@@ -1114,164 +387,61 @@ for (int i = 0; i &lt; arrays.length - 1; i++) {
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="递归介绍"><a href="#递归介绍" class="headerlink" title="递归介绍"></a>递归介绍</h2><p>递归在程序语言中简单的理解是：方法自己调用自己。</p>
-<p>递归其实和循环是非常像的，循环都可以改写成递归，递归未必能改写成循环，这是一个充分不必要的条件。</p>
+        <p>Java 多线程不是为了把代码写复杂，而是为了在合适的业务场景里提高吞吐、降低等待时间、充分利用 CPU 和 IO 资源。供应链系统里有大量典型场景：订单创建后要校验库存、校验客户信用、计算运费、匹配促销、写操作日志；仓库出库时要生成波次、分配库位、通知 WMS、刷新库存快照。这些动作有些可以并行，有些必须串行，多线程的价值就是把这两类工作区分清楚。</p>
+<h2 id="线程和进程"><a href="#线程和进程" class="headerlink" title="线程和进程"></a>线程和进程</h2><p>进程是操作系统资源分配的基本单位，线程是 CPU 调度执行的基本单位。一个 Java 应用进程里可以有很多线程，比如 Tomcat 请求线程、业务线程池线程、GC 线程、定时任务线程。</p>
+<p>在供应链系统中，一个订单接口请求通常由一个 Web 容器线程处理。如果接口里所有操作都串行执行，请求耗时会被每一步累加。如果某些步骤没有依赖关系，就可以并行执行。</p>
+<h2 id="线程生命周期"><a href="#线程生命周期" class="headerlink" title="线程生命周期"></a>线程生命周期</h2><p>Java 线程常见状态包括：</p>
 <ul>
-<li>那么，有了循环，为什么还要用递归呢？？在某些情况下(费波纳切数列，汉诺塔)，使用递归会比循环简单很多很多</li>
+<li><code>NEW</code>：线程对象已创建但未启动。</li>
+<li><code>RUNNABLE</code>：可运行，等待 CPU 调度或正在执行。</li>
+<li><code>BLOCKED</code>：等待进入 synchronized 临界区。</li>
+<li><code>WAITING</code>：无限期等待其他线程通知。</li>
+<li><code>TIMED_WAITING</code>：限时等待，比如 <code>sleep</code>、带超时的 <code>wait</code>。</li>
+<li><code>TERMINATED</code>：线程执行结束。</li>
 </ul>
-<p>想要用递归必须知道两个条件：</p>
+<p>排查供应链批处理卡顿时，线程状态很关键。大量 <code>BLOCKED</code> 说明锁竞争严重，大量 <code>WAITING</code> 可能是队列无任务或等待条件未满足，大量 <code>RUNNABLE</code> 但 CPU 很高可能是计算任务过重或死循环。</p>
+<h2 id="创建线程的方式"><a href="#创建线程的方式" class="headerlink" title="创建线程的方式"></a>创建线程的方式</h2><p>最原始的方式是直接创建 <code>Thread</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">Thread</span> <span class="variable">thread</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Thread</span>(() -&gt; &#123;</span><br><span class="line">    System.out.println(<span class="string">&quot;同步库存快照&quot;</span>);</span><br><span class="line">&#125;);</span><br><span class="line">thread.start();</span><br></pre></td></tr></table></figure>
+
+<p>这种方式适合理解原理，不适合业务系统大量使用。真实项目应该使用线程池，避免频繁创建和销毁线程。</p>
+<p><code>Runnable</code> 没有返回值，适合只执行动作：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">Runnable</span> <span class="variable">task</span> <span class="operator">=</span> () -&gt; inventorySyncService.syncWarehouse(<span class="number">8L</span>);</span><br><span class="line"><span class="keyword">new</span> <span class="title class_">Thread</span>(task).start();</span><br></pre></td></tr></table></figure>
+
+<p><code>Callable</code> 有返回值，可以配合 <code>Future</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Callable&lt;Integer&gt; task = () -&gt; inventoryQueryService.countAvailableSku(<span class="number">8L</span>);</span><br><span class="line">FutureTask&lt;Integer&gt; future = <span class="keyword">new</span> <span class="title class_">FutureTask</span>&lt;&gt;(task);</span><br><span class="line"><span class="keyword">new</span> <span class="title class_">Thread</span>(future).start();</span><br><span class="line"><span class="type">Integer</span> <span class="variable">count</span> <span class="operator">=</span> future.get();</span><br></pre></td></tr></table></figure>
+
+<p>但业务里更常用线程池提交任务。</p>
+<h2 id="供应链订单校验的并行-demo"><a href="#供应链订单校验的并行-demo" class="headerlink" title="供应链订单校验的并行 demo"></a>供应链订单校验的并行 demo</h2><p>创建销售订单时，下面三个校验互不依赖：</p>
 <ul>
-<li>递归出口(终止递归的条件)</li>
-<li>递归表达式(规律)</li>
+<li>查询库存是否足够。</li>
+<li>查询客户信用额度。</li>
+<li>查询承运商是否覆盖收货地址。</li>
 </ul>
-<p>技巧：在递归中常常是将问题切割成两个部分(1和整体的思想)，这能够让我们快速找到递归表达式(规律)</p>
-<h2 id="求和"><a href="#求和" class="headerlink" title="求和"></a>求和</h2><p>如果我们使用for循环来进行求和1+2+3+4+….+100，那是很简单的：</p>
-<pre><code>int sum = 0;
-for (int i = 1; i &lt;= 100; i++) {
+<p>串行写法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> OrderCheckResult <span class="title function_">checkOrder</span><span class="params">(OrderCreateCommand command)</span> &#123;</span><br><span class="line">    <span class="type">InventoryCheckResult</span> <span class="variable">inventory</span> <span class="operator">=</span> inventoryService.check(command.items());</span><br><span class="line">    <span class="type">CreditCheckResult</span> <span class="variable">credit</span> <span class="operator">=</span> creditService.check(command.customerId(), command.amount());</span><br><span class="line">    <span class="type">CarrierCheckResult</span> <span class="variable">carrier</span> <span class="operator">=</span> carrierService.check(command.address());</span><br><span class="line">    <span class="keyword">return</span> OrderCheckResult.merge(inventory, credit, carrier);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-    sum = sum + i;
+<p>如果三个调用分别耗时 80ms、60ms、50ms，总耗时至少接近 190ms。可以用线程池并行：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> OrderCheckResult <span class="title function_">checkOrder</span><span class="params">(OrderCreateCommand command)</span> <span class="keyword">throws</span> Exception &#123;</span><br><span class="line">    Future&lt;InventoryCheckResult&gt; inventoryFuture =</span><br><span class="line">        executor.submit(() -&gt; inventoryService.check(command.items()));</span><br><span class="line"></span><br><span class="line">    Future&lt;CreditCheckResult&gt; creditFuture =</span><br><span class="line">        executor.submit(() -&gt; creditService.check(command.customerId(), command.amount()));</span><br><span class="line"></span><br><span class="line">    Future&lt;CarrierCheckResult&gt; carrierFuture =</span><br><span class="line">        executor.submit(() -&gt; carrierService.check(command.address()));</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> OrderCheckResult.merge(</span><br><span class="line">        inventoryFuture.get(),</span><br><span class="line">        creditFuture.get(),</span><br><span class="line">        carrierFuture.get()</span><br><span class="line">    );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-}
-System.out.println(&quot;公众号：Java3y：&quot; + sum);
-</code></pre>
-<p>for循环都可以使用递归来进行改写，而使用递归必须要知道两个条件：</p>
+<p>并行后，请求耗时接近最慢的那个任务，而不是三个任务之和。这里的收益来自 IO 等待重叠，而不是 CPU 被神奇地加速。</p>
+<h2 id="多线程不适合什么"><a href="#多线程不适合什么" class="headerlink" title="多线程不适合什么"></a>多线程不适合什么</h2><p>多线程不是默认选项。以下场景要谨慎：</p>
 <ul>
-<li>递归出口</li>
-<li>递归表达式(规律)</li>
+<li>任务之间有严格顺序，比如先扣库存再生成库存流水。</li>
+<li>数据共享复杂，容易产生竞态。</li>
+<li>单个任务非常小，线程切换成本超过收益。</li>
+<li>下游系统已经限流，并发只会把压力打爆。</li>
+<li>业务要求强事务一致性，不能拆成并发步骤。</li>
 </ul>
-<p>我们来找出它的规律：1+2+3+…+n，这是一个求和的运算，那么我们可以假设X&#x3D;1+2+3+…+n，可以将1+2+3+…+(n-1)看成是一个整体。而这个整体做的事又和我们的初始目的(求和)相同。以我们的高中数学知识我们又可以将上面的式子看成X&#x3D;sum(n-1)+n</p>
-<p>我们找到我们的递归表达式(规律)，它就是sum(n-1)+n,那递归出口呢，这个题目的递归出口就有很多了，我列举一下：</p>
-<p>如果n&#x3D;1时，那么就返回1<br>如果n&#x3D;2时，那么就返回(1+2)&#x3D;3<br>如果n&#x3D;3时，那么就返回(1+2+3)&#x3D;6</p>
-<p>递归表达式和递归出口我们都找到了，下面就代码演示：</p>
-<p>递归出口为1：</p>
-<pre><code>public static void main(String[] args) {
-    System.out.println(sum(100));
-}
-
-/**
- *
- * @param n 要加到的数字，比如题目的100
- * @return
- */
-public static int sum(int n) {
-
-    if (n == 1) {
-        return 1;
-    } else {
-        return sum(n - 1) + n;
-    }
-}
-</code></pre>
-<h2 id="数组内部的最大值"><a href="#数组内部的最大值" class="headerlink" title="数组内部的最大值"></a>数组内部的最大值</h2><p>使用的是循环，那么我们通常这样实现：</p>
-<pre><code>int[] arrays = {2, 3, 4, 5, 1, 5, 2, 9, 5, 6, 8, 3, 2};
-
-//将数组的第一个假设是最大值
-int max = arrays[0];
-
-for (int i = 1; i &lt; arrays.length; i++) {
-
-    if (arrays[i] &gt; max) {
-        max = arrays[i];
-    }
-}
-
-System.out.println(max);
-</code></pre>
-<p>如果我们用递归的话，那怎么用弄呢？首先还是先要找到递归表达式(规律)和递归出口</p>
-<ul>
-<li>我们又可以运用1和整体的思想来找到规律<ul>
-<li>将数组第一个数-&gt;2与数组后面的数-&gt;{3, 4, 5, 1, 5, 2, 9, 5, 6, 8, 3, 2}进行切割，将数组后面的数看成是一个整体X&#x3D;{3, 4, 5, 1, 5, 2, 9, 5, 6, 8, 3, 2}，那么我们就可以看成是第一个数和一个整体进行比较if(2&gt;X) return 2  else(2&lt;X) return X</li>
-<li>而我们要做的就是找出这个整体的最大值与2进行比较。找出整体的最大值又是和我们的初始目的(找出最大值)是一样的</li>
-<li>也就可以写成if( 2&gt;findMax() )return 2 else return findMax()</li>
-</ul>
-</li>
-<li>递归出口，如果数组只有1个元素时，那么这个数组最大值就是它了。</li>
-</ul>
-<p>使用到数组的时候，我们通常为数组设定左边界和右边界，这样比较好地进行切割。</p>
-<ul>
-<li>L表示左边界，往往表示的是数组第一个元素，也就会赋值为0(角标为0是数组的第一个元素)</li>
-<li>R表示右边界，往往表示的是数组的长度，也就会赋值为arrays.length-1（长度-1在角标中才是代表最后一个元素)</li>
-</ul>
-<p>那么我们递归的写法就是：</p>
-<pre><code>  public static void main(String[] args) {
-
-        int[] arrays = {2, 3, 4, 5, 1, 5, 2, 9, 5, 6, 8, 3, 1};
-
-        System.out.println(findMax(arrays, 0, arrays.length - 1));
-
-    }
-
-
-    /**
-     * 递归，找出数组最大的值
-     * @param arrays 数组
-     * @param L      左边界，第一个数
-     * @param R      右边界，数组的长度
-     * @return
-     */
-
-    public static int findMax(int[] arrays, int L, int R) {
-
-        //如果该数组只有一个数，那么最大的就是该数组第一个值了
-        if (L == R) {
-            return arrays[L];
-        } else {
-
-            int a = arrays[L];
-            int b = findMax(arrays, L + 1, R);//找出整体的最大值
-
-            if (a &gt; b) {
-                return a;
-            } else {
-                return b;
-            }
-        }
-
-    }
-</code></pre>
-<h2 id="斐波那契数列"><a href="#斐波那契数列" class="headerlink" title="斐波那契数列"></a>斐波那契数列</h2><p>菲波那切数列长这个样子：{1 1 2 3 5 8 13 21 34 55….. n }</p>
-<p>数学好的同学可能很容易就找到规律了：前两项之和等于第三项</p>
-<p>如果让我们求出第n项是多少，那么我们就可以很简单写出对应的递归表达式了：Z &#x3D; (n-2) + (n-1)</p>
-<p>递归出口在本题目是需要有两个的，因为它是前两项加起来才得出第三项的值</p>
-<p>同样地，那么我们的递归出口可以写成这样：</p>
-<pre><code>if(n==1) retrun 1;
-if(n==2) return 2;
-</code></pre>
-<p>看一下完整的代码:</p>
-<pre><code>public static void main(String[] args) {
-
-    int[] arrays = {1, 1, 2, 3, 5, 8, 13, 21};
-    //bubbleSort(arrays, 0, arrays.length - 1);
-
-    int fibonacci = fibonacci(10);
-    System.out.println(fibonacci);
-
-}
-
-public static int fibonacci(int n) {
-    if (n == 1) {
-        return 1;
-    } else if (n == 2) {
-        return 1;
-    } else {
-        return (fibonacci(n - 1) + fibonacci(n - 2));
-    }
-
-}
-</code></pre>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>要使用递归首先要知道两件事：</p>
-<ul>
-<li>递归出口(终止递归的条件)</li>
-<li>递归表达式(规律)</li>
-</ul>
+<p>比如订单扣库存不能简单把每个 SKU 丢给不同线程同时扣。如果一个订单内多个 SKU 需要同一个事务保证全部成功或全部失败，并行拆分反而会增加补偿复杂度。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>Java 多线程首先是一种工程手段，不是语法技巧。供应链系统使用多线程，核心收益是提升吞吐、缩短 IO 密集型流程耗时、让后台批处理更高效。使用前必须判断任务是否独立、是否共享状态、是否需要事务一致性。能并行的校验和查询可以并行，涉及最终库存和单据状态的数据修改必须保持清晰的事务边界。</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2016/06/03/%E9%80%92%E5%BD%92/" data-id="cuideR_jH6zvH8jDpZa0KzH2I" class="article-share-link">Share</a>
+      <a data-url="https://guxingxianyue.github.io/2022/05/05/Java%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%9F%BA%E7%A1%80%EF%BC%9A%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E5%B9%B6%E5%8F%91%E5%A4%84%E7%90%86/" data-id="cuid3HG0RL7_mFFBoqu8ltz1y" class="article-share-link">Share</a>
       
       
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/" rel="tag">数据结构与算法</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F/" rel="tag">供应链系统</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" rel="tag">多线程</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" rel="tag">并发编程</a></li></ul>
 
     </footer>
   </div>
@@ -1282,7 +452,7 @@ public static int fibonacci(int n) {
   
   
     <nav id="page-nav">
-      <a class="extend prev" rel="prev" href="/page/7/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/6/">6</a><a class="page-number" href="/page/7/">7</a><span class="page-number current">8</span><a class="page-number" href="/page/9/">9</a><a class="page-number" href="/page/10/">10</a><a class="extend next" rel="next" href="/page/9/">Next &raquo;</a>
+      <a class="extend prev" rel="prev" href="/page/7/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/6/">6</a><a class="page-number" href="/page/7/">7</a><span class="page-number current">8</span><a class="page-number" href="/page/9/">9</a><a class="page-number" href="/page/10/">10</a><a class="page-number" href="/page/11/">11</a><a class="extend next" rel="next" href="/page/9/">Next &raquo;</a>
     </nav>
   
 </section>
@@ -1295,7 +465,7 @@ public static int fibonacci(int n) {
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AGENTS-md/" rel="tag">AGENTS.md</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI/" rel="tag">AI</a><span class="tag-list-count">15</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AQS/" rel="tag">AQS</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Agent/" rel="tag">Agent</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Atomic/" rel="tag">Atomic</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CAP/" rel="tag">CAP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CAS/" rel="tag">CAS</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Claude-Code/" rel="tag">Claude Code</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Codex/" rel="tag">Codex</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Condition/" rel="tag">Condition</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ERP/" rel="tag">ERP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/InnoDB/" rel="tag">InnoDB</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JMM/" rel="tag">JMM</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kafka/" rel="tag">Kafka</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LongAdder/" rel="tag">LongAdder</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Loop-Engineering/" rel="tag">Loop Engineering</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MVCC/" rel="tag">MVCC</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Monitor/" rel="tag">Monitor</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Next-Key-Lock/" rel="tag">Next-Key Lock</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ReadWriteLock/" rel="tag">ReadWriteLock</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Redis/" rel="tag">Redis</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ReentrantLock/" rel="tag">ReentrantLock</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/" rel="tag">SQL</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL%E4%BC%98%E5%8C%96/" rel="tag">SQL优化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Skill/" rel="tag">Skill</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spec-Coding/" rel="tag">Spec Coding</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spring-Cloud/" rel="tag">Spring Cloud</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/StampedLock/" rel="tag">StampedLock</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/synchronized/" rel="tag">synchronized</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/volatile/" rel="tag">volatile</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%B9%90%E8%A7%82%E9%94%81/" rel="tag">乐观锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8B%E5%8A%A1/" rel="tag">事务</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/" rel="tag">事务隔离级别</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BB%93%E5%82%A8%E7%B3%BB%E7%BB%9F/" rel="tag">仓储系统</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F/" rel="tag">供应链系统</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" rel="tag">分布式</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/" rel="tag">分布式系统</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" rel="tag">分布式锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8D%95%E6%8D%AE%E5%AE%A1%E6%A0%B8/" rel="tag">单据审核</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" rel="tag">可见性</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%91%BD%E4%BB%A4%E8%A1%8C/" rel="tag">命令行</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/" rel="tag">工程实践</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6/" rel="tag">并发控制</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" rel="tag">并发编程</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91%E9%98%9F%E5%88%97/" rel="tag">并发队列</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%BB%E8%AF%BB/" rel="tag">幻读</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BA%93%E5%AD%98%E7%B3%BB%E7%BB%9F/" rel="tag">库存系统</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/" rel="tag">微服务</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%82%B2%E8%A7%82%E9%94%81/" rel="tag">悲观锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8A%80%E6%9C%AF%E6%96%87%E7%AB%A0/" rel="tag">技术文章</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8A%A5%E8%A1%A8%E7%BB%9F%E8%AE%A1/" rel="tag">报表统计</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E5%88%86%E6%9E%90/" rel="tag">数据分析</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="tag">数据库</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/" rel="tag">数据结构与算法</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/" rel="tag">架构设计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%AD%BB%E9%94%81/" rel="tag">死锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" rel="tag">消息队列</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%B3%BB%E7%BB%9F%E4%BC%98%E5%8C%96/" rel="tag">系统优化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/" rel="tag">系统设计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%B4%A2%E5%BC%95/" rel="tag">索引</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BC%93%E5%AD%98/" rel="tag">缓存</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BC%96%E7%A8%8B%E6%95%88%E7%8E%87/" rel="tag">编程效率</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%A1%8C%E9%94%81/" rel="tag">行锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%A2%E5%8D%95%E7%B3%BB%E7%BB%9F/" rel="tag">订单系统</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%BD%AF%E4%BB%B6%E5%B7%A5%E7%A8%8B/" rel="tag">软件工程</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%87%87%E8%B4%AD%E7%B3%BB%E7%BB%9F/" rel="tag">采购系统</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%94%81/" rel="tag">锁</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%94%81%E7%AD%89%E5%BE%85/" rel="tag">锁等待</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%97%B4%E9%9A%99%E9%94%81/" rel="tag">间隙锁</a><span class="tag-list-count">1</span></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AGENTS-md/" rel="tag">AGENTS.md</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI/" rel="tag">AI</a><span class="tag-list-count">15</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AQS/" rel="tag">AQS</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Agent/" rel="tag">Agent</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Atomic/" rel="tag">Atomic</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BlockingQueue/" rel="tag">BlockingQueue</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CAP/" rel="tag">CAP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CAS/" rel="tag">CAS</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Claude-Code/" rel="tag">Claude Code</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Codex/" rel="tag">Codex</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CompletableFuture/" rel="tag">CompletableFuture</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ConcurrentHashMap/" rel="tag">ConcurrentHashMap</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Condition/" rel="tag">Condition</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CountDownLatch/" rel="tag">CountDownLatch</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ERP/" rel="tag">ERP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/InnoDB/" rel="tag">InnoDB</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JMM/" rel="tag">JMM</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a><span class="tag-list-count">18</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kafka/" rel="tag">Kafka</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LongAdder/" rel="tag">LongAdder</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Loop-Engineering/" rel="tag">Loop Engineering</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MVCC/" rel="tag">MVCC</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Monitor/" rel="tag">Monitor</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Next-Key-Lock/" rel="tag">Next-Key Lock</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ReadWriteLock/" rel="tag">ReadWriteLock</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Redis/" rel="tag">Redis</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ReentrantLock/" rel="tag">ReentrantLock</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/" rel="tag">SQL</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL%E4%BC%98%E5%8C%96/" rel="tag">SQL优化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Semaphore/" rel="tag">Semaphore</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Skill/" rel="tag">Skill</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spec-Coding/" rel="tag">Spec Coding</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spring-Cloud/" rel="tag">Spring Cloud</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/StampedLock/" rel="tag">StampedLock</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ThreadPoolExecutor/" rel="tag">ThreadPoolExecutor</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/synchronized/" rel="tag">synchronized</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/volatile/" rel="tag">volatile</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%B9%90%E8%A7%82%E9%94%81/" rel="tag">乐观锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8B%E5%8A%A1/" rel="tag">事务</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/" rel="tag">事务隔离级别</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BB%93%E5%82%A8%E7%B3%BB%E7%BB%9F/" rel="tag">仓储系统</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F/" rel="tag">供应链系统</a><span class="tag-list-count">9</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" rel="tag">分布式</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/" rel="tag">分布式系统</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" rel="tag">分布式锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8D%95%E6%8D%AE%E5%AE%A1%E6%A0%B8/" rel="tag">单据审核</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" rel="tag">可见性</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%91%BD%E4%BB%A4%E8%A1%8C/" rel="tag">命令行</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" rel="tag">多线程</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/" rel="tag">工程实践</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6/" rel="tag">并发控制</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" rel="tag">并发编程</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91%E9%98%9F%E5%88%97/" rel="tag">并发队列</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%BB%E8%AF%BB/" rel="tag">幻读</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BA%93%E5%AD%98%E7%B3%BB%E7%BB%9F/" rel="tag">库存系统</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/" rel="tag">微服务</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%82%B2%E8%A7%82%E9%94%81/" rel="tag">悲观锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8A%80%E6%9C%AF%E6%96%87%E7%AB%A0/" rel="tag">技术文章</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8A%A5%E8%A1%A8%E7%BB%9F%E8%AE%A1/" rel="tag">报表统计</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E5%88%86%E6%9E%90/" rel="tag">数据分析</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="tag">数据库</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/" rel="tag">数据结构与算法</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/" rel="tag">架构设计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%AD%BB%E9%94%81/" rel="tag">死锁</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" rel="tag">消息队列</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%B3%BB%E7%BB%9F%E4%BC%98%E5%8C%96/" rel="tag">系统优化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/" rel="tag">系统设计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%B4%A2%E5%BC%95/" rel="tag">索引</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E7%A8%8B%E6%B1%A0/" rel="tag">线程池</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BC%93%E5%AD%98/" rel="tag">缓存</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BC%96%E7%A8%8B%E6%95%88%E7%8E%87/" rel="tag">编程效率</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%A1%8C%E9%94%81/" rel="tag">行锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%A2%E5%8D%95%E5%B1%A5%E7%BA%A6/" rel="tag">订单履约</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%A2%E5%8D%95%E7%B3%BB%E7%BB%9F/" rel="tag">订单系统</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%BD%AF%E4%BB%B6%E5%B7%A5%E7%A8%8B/" rel="tag">软件工程</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%87%87%E8%B4%AD%E7%B3%BB%E7%BB%9F/" rel="tag">采购系统</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%94%81/" rel="tag">锁</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%94%81%E7%AD%89%E5%BE%85/" rel="tag">锁等待</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%97%B4%E9%9A%99%E9%94%81/" rel="tag">间隙锁</a><span class="tag-list-count">1</span></li></ul>
     </div>
   </div>
 
@@ -1304,7 +474,7 @@ public static int fibonacci(int n) {
   <div class="widget-wrap">
     <h3 class="widget-title">Tag Cloud</h3>
     <div class="widget tagcloud">
-      <a href="/tags/AGENTS-md/" style="font-size: 10px;">AGENTS.md</a> <a href="/tags/AI/" style="font-size: 20px;">AI</a> <a href="/tags/AQS/" style="font-size: 10px;">AQS</a> <a href="/tags/Agent/" style="font-size: 10px;">Agent</a> <a href="/tags/Atomic/" style="font-size: 10px;">Atomic</a> <a href="/tags/CAP/" style="font-size: 10px;">CAP</a> <a href="/tags/CAS/" style="font-size: 10px;">CAS</a> <a href="/tags/Claude-Code/" style="font-size: 13.33px;">Claude Code</a> <a href="/tags/Codex/" style="font-size: 17.78px;">Codex</a> <a href="/tags/Condition/" style="font-size: 10px;">Condition</a> <a href="/tags/ERP/" style="font-size: 10px;">ERP</a> <a href="/tags/InnoDB/" style="font-size: 13.33px;">InnoDB</a> <a href="/tags/JMM/" style="font-size: 10px;">JMM</a> <a href="/tags/Java/" style="font-size: 18.89px;">Java</a> <a href="/tags/Kafka/" style="font-size: 10px;">Kafka</a> <a href="/tags/LongAdder/" style="font-size: 10px;">LongAdder</a> <a href="/tags/Loop-Engineering/" style="font-size: 10px;">Loop Engineering</a> <a href="/tags/MVCC/" style="font-size: 10px;">MVCC</a> <a href="/tags/Monitor/" style="font-size: 10px;">Monitor</a> <a href="/tags/MySQL/" style="font-size: 16.67px;">MySQL</a> <a href="/tags/Next-Key-Lock/" style="font-size: 10px;">Next-Key Lock</a> <a href="/tags/ReadWriteLock/" style="font-size: 10px;">ReadWriteLock</a> <a href="/tags/Redis/" style="font-size: 11.11px;">Redis</a> <a href="/tags/ReentrantLock/" style="font-size: 10px;">ReentrantLock</a> <a href="/tags/SQL/" style="font-size: 10px;">SQL</a> <a href="/tags/SQL%E4%BC%98%E5%8C%96/" style="font-size: 10px;">SQL优化</a> <a href="/tags/Skill/" style="font-size: 10px;">Skill</a> <a href="/tags/Spec-Coding/" style="font-size: 12.22px;">Spec Coding</a> <a href="/tags/Spring-Cloud/" style="font-size: 10px;">Spring Cloud</a> <a href="/tags/StampedLock/" style="font-size: 10px;">StampedLock</a> <a href="/tags/synchronized/" style="font-size: 10px;">synchronized</a> <a href="/tags/volatile/" style="font-size: 10px;">volatile</a> <a href="/tags/%E4%B9%90%E8%A7%82%E9%94%81/" style="font-size: 10px;">乐观锁</a> <a href="/tags/%E4%BA%8B%E5%8A%A1/" style="font-size: 11.11px;">事务</a> <a href="/tags/%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/" style="font-size: 10px;">事务隔离级别</a> <a href="/tags/%E4%BB%93%E5%82%A8%E7%B3%BB%E7%BB%9F/" style="font-size: 12.22px;">仓储系统</a> <a href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F/" style="font-size: 14.44px;">供应链系统</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" style="font-size: 13.33px;">分布式</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/" style="font-size: 11.11px;">分布式系统</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" style="font-size: 10px;">分布式锁</a> <a href="/tags/%E5%8D%95%E6%8D%AE%E5%AE%A1%E6%A0%B8/" style="font-size: 10px;">单据审核</a> <a href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" style="font-size: 10px;">可见性</a> <a href="/tags/%E5%91%BD%E4%BB%A4%E8%A1%8C/" style="font-size: 11.11px;">命令行</a> <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/" style="font-size: 12.22px;">工程实践</a> <a href="/tags/%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6/" style="font-size: 10px;">并发控制</a> <a href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" style="font-size: 12.22px;">并发编程</a> <a href="/tags/%E5%B9%B6%E5%8F%91%E9%98%9F%E5%88%97/" style="font-size: 10px;">并发队列</a> <a href="/tags/%E5%B9%BB%E8%AF%BB/" style="font-size: 10px;">幻读</a> <a href="/tags/%E5%BA%93%E5%AD%98%E7%B3%BB%E7%BB%9F/" style="font-size: 11.11px;">库存系统</a> <a href="/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/" style="font-size: 10px;">微服务</a> <a href="/tags/%E6%82%B2%E8%A7%82%E9%94%81/" style="font-size: 10px;">悲观锁</a> <a href="/tags/%E6%8A%80%E6%9C%AF%E6%96%87%E7%AB%A0/" style="font-size: 15.56px;">技术文章</a> <a href="/tags/%E6%8A%A5%E8%A1%A8%E7%BB%9F%E8%AE%A1/" style="font-size: 10px;">报表统计</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E5%88%86%E6%9E%90/" style="font-size: 10px;">数据分析</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 11.11px;">数据库</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/" style="font-size: 12.22px;">数据结构与算法</a> <a href="/tags/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/" style="font-size: 11.11px;">架构设计</a> <a href="/tags/%E6%AD%BB%E9%94%81/" style="font-size: 10px;">死锁</a> <a href="/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" style="font-size: 10px;">消息队列</a> <a href="/tags/%E7%B3%BB%E7%BB%9F%E4%BC%98%E5%8C%96/" style="font-size: 10px;">系统优化</a> <a href="/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/" style="font-size: 11.11px;">系统设计</a> <a href="/tags/%E7%B4%A2%E5%BC%95/" style="font-size: 10px;">索引</a> <a href="/tags/%E7%BC%93%E5%AD%98/" style="font-size: 11.11px;">缓存</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E6%95%88%E7%8E%87/" style="font-size: 15.56px;">编程效率</a> <a href="/tags/%E8%A1%8C%E9%94%81/" style="font-size: 10px;">行锁</a> <a href="/tags/%E8%AE%A2%E5%8D%95%E7%B3%BB%E7%BB%9F/" style="font-size: 10px;">订单系统</a> <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%B7%A5%E7%A8%8B/" style="font-size: 14.44px;">软件工程</a> <a href="/tags/%E9%87%87%E8%B4%AD%E7%B3%BB%E7%BB%9F/" style="font-size: 10px;">采购系统</a> <a href="/tags/%E9%94%81/" style="font-size: 12.22px;">锁</a> <a href="/tags/%E9%94%81%E7%AD%89%E5%BE%85/" style="font-size: 10px;">锁等待</a> <a href="/tags/%E9%97%B4%E9%9A%99%E9%94%81/" style="font-size: 10px;">间隙锁</a>
+      <a href="/tags/AGENTS-md/" style="font-size: 10px;">AGENTS.md</a> <a href="/tags/AI/" style="font-size: 18.89px;">AI</a> <a href="/tags/AQS/" style="font-size: 10px;">AQS</a> <a href="/tags/Agent/" style="font-size: 10px;">Agent</a> <a href="/tags/Atomic/" style="font-size: 10px;">Atomic</a> <a href="/tags/BlockingQueue/" style="font-size: 10px;">BlockingQueue</a> <a href="/tags/CAP/" style="font-size: 10px;">CAP</a> <a href="/tags/CAS/" style="font-size: 11.11px;">CAS</a> <a href="/tags/Claude-Code/" style="font-size: 13.33px;">Claude Code</a> <a href="/tags/Codex/" style="font-size: 17.78px;">Codex</a> <a href="/tags/CompletableFuture/" style="font-size: 10px;">CompletableFuture</a> <a href="/tags/ConcurrentHashMap/" style="font-size: 10px;">ConcurrentHashMap</a> <a href="/tags/Condition/" style="font-size: 10px;">Condition</a> <a href="/tags/CountDownLatch/" style="font-size: 10px;">CountDownLatch</a> <a href="/tags/ERP/" style="font-size: 10px;">ERP</a> <a href="/tags/InnoDB/" style="font-size: 13.33px;">InnoDB</a> <a href="/tags/JMM/" style="font-size: 11.11px;">JMM</a> <a href="/tags/Java/" style="font-size: 20px;">Java</a> <a href="/tags/Kafka/" style="font-size: 10px;">Kafka</a> <a href="/tags/LongAdder/" style="font-size: 10px;">LongAdder</a> <a href="/tags/Loop-Engineering/" style="font-size: 10px;">Loop Engineering</a> <a href="/tags/MVCC/" style="font-size: 10px;">MVCC</a> <a href="/tags/Monitor/" style="font-size: 10px;">Monitor</a> <a href="/tags/MySQL/" style="font-size: 16.67px;">MySQL</a> <a href="/tags/Next-Key-Lock/" style="font-size: 10px;">Next-Key Lock</a> <a href="/tags/ReadWriteLock/" style="font-size: 10px;">ReadWriteLock</a> <a href="/tags/Redis/" style="font-size: 11.11px;">Redis</a> <a href="/tags/ReentrantLock/" style="font-size: 10px;">ReentrantLock</a> <a href="/tags/SQL/" style="font-size: 10px;">SQL</a> <a href="/tags/SQL%E4%BC%98%E5%8C%96/" style="font-size: 10px;">SQL优化</a> <a href="/tags/Semaphore/" style="font-size: 10px;">Semaphore</a> <a href="/tags/Skill/" style="font-size: 10px;">Skill</a> <a href="/tags/Spec-Coding/" style="font-size: 12.22px;">Spec Coding</a> <a href="/tags/Spring-Cloud/" style="font-size: 10px;">Spring Cloud</a> <a href="/tags/StampedLock/" style="font-size: 10px;">StampedLock</a> <a href="/tags/ThreadPoolExecutor/" style="font-size: 10px;">ThreadPoolExecutor</a> <a href="/tags/synchronized/" style="font-size: 11.11px;">synchronized</a> <a href="/tags/volatile/" style="font-size: 11.11px;">volatile</a> <a href="/tags/%E4%B9%90%E8%A7%82%E9%94%81/" style="font-size: 10px;">乐观锁</a> <a href="/tags/%E4%BA%8B%E5%8A%A1/" style="font-size: 11.11px;">事务</a> <a href="/tags/%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/" style="font-size: 10px;">事务隔离级别</a> <a href="/tags/%E4%BB%93%E5%82%A8%E7%B3%BB%E7%BB%9F/" style="font-size: 13.33px;">仓储系统</a> <a href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F/" style="font-size: 17.78px;">供应链系统</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" style="font-size: 13.33px;">分布式</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/" style="font-size: 11.11px;">分布式系统</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" style="font-size: 10px;">分布式锁</a> <a href="/tags/%E5%8D%95%E6%8D%AE%E5%AE%A1%E6%A0%B8/" style="font-size: 10px;">单据审核</a> <a href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" style="font-size: 10px;">可见性</a> <a href="/tags/%E5%91%BD%E4%BB%A4%E8%A1%8C/" style="font-size: 11.11px;">命令行</a> <a href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" style="font-size: 10px;">多线程</a> <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/" style="font-size: 12.22px;">工程实践</a> <a href="/tags/%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6/" style="font-size: 10px;">并发控制</a> <a href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" style="font-size: 13.33px;">并发编程</a> <a href="/tags/%E5%B9%B6%E5%8F%91%E9%98%9F%E5%88%97/" style="font-size: 10px;">并发队列</a> <a href="/tags/%E5%B9%BB%E8%AF%BB/" style="font-size: 10px;">幻读</a> <a href="/tags/%E5%BA%93%E5%AD%98%E7%B3%BB%E7%BB%9F/" style="font-size: 11.11px;">库存系统</a> <a href="/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/" style="font-size: 10px;">微服务</a> <a href="/tags/%E6%82%B2%E8%A7%82%E9%94%81/" style="font-size: 10px;">悲观锁</a> <a href="/tags/%E6%8A%80%E6%9C%AF%E6%96%87%E7%AB%A0/" style="font-size: 15.56px;">技术文章</a> <a href="/tags/%E6%8A%A5%E8%A1%A8%E7%BB%9F%E8%AE%A1/" style="font-size: 10px;">报表统计</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E5%88%86%E6%9E%90/" style="font-size: 10px;">数据分析</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 11.11px;">数据库</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/" style="font-size: 12.22px;">数据结构与算法</a> <a href="/tags/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/" style="font-size: 11.11px;">架构设计</a> <a href="/tags/%E6%AD%BB%E9%94%81/" style="font-size: 11.11px;">死锁</a> <a href="/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" style="font-size: 10px;">消息队列</a> <a href="/tags/%E7%B3%BB%E7%BB%9F%E4%BC%98%E5%8C%96/" style="font-size: 10px;">系统优化</a> <a href="/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/" style="font-size: 11.11px;">系统设计</a> <a href="/tags/%E7%B4%A2%E5%BC%95/" style="font-size: 10px;">索引</a> <a href="/tags/%E7%BA%BF%E7%A8%8B%E6%B1%A0/" style="font-size: 10px;">线程池</a> <a href="/tags/%E7%BC%93%E5%AD%98/" style="font-size: 11.11px;">缓存</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E6%95%88%E7%8E%87/" style="font-size: 15.56px;">编程效率</a> <a href="/tags/%E8%A1%8C%E9%94%81/" style="font-size: 10px;">行锁</a> <a href="/tags/%E8%AE%A2%E5%8D%95%E5%B1%A5%E7%BA%A6/" style="font-size: 10px;">订单履约</a> <a href="/tags/%E8%AE%A2%E5%8D%95%E7%B3%BB%E7%BB%9F/" style="font-size: 10px;">订单系统</a> <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%B7%A5%E7%A8%8B/" style="font-size: 14.44px;">软件工程</a> <a href="/tags/%E9%87%87%E8%B4%AD%E7%B3%BB%E7%BB%9F/" style="font-size: 10px;">采购系统</a> <a href="/tags/%E9%94%81/" style="font-size: 12.22px;">锁</a> <a href="/tags/%E9%94%81%E7%AD%89%E5%BE%85/" style="font-size: 10px;">锁等待</a> <a href="/tags/%E9%97%B4%E9%9A%99%E9%94%81/" style="font-size: 10px;">间隙锁</a>
     </div>
   </div>
 
@@ -1313,7 +483,7 @@ public static int fibonacci(int n) {
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/06/">六月 2026</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/05/">五月 2026</a><span class="archive-list-count">9</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/06/">六月 2025</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/05/">五月 2025</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/04/">四月 2025</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/03/">三月 2025</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">十一月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">八月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/05/">五月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">二月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">十一月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/07/">七月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">三月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">六月 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">四月 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">三月 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">一月 2016</a><span class="archive-list-count">1</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/06/">六月 2026</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/05/">五月 2026</a><span class="archive-list-count">9</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/06/">六月 2025</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/05/">五月 2025</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/04/">四月 2025</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/03/">三月 2025</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">十一月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">八月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/05/">五月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">二月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">十一月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/07/">七月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">三月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">五月 2022</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">六月 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">四月 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">三月 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">一月 2016</a><span class="archive-list-count">1</span></li></ul>
     </div>
   </div>
 
