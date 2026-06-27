@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="540" viewBox="0 0 980 540" role="img" aria-labelledby="title desc">
+  <title id="title">GC 可达性分析与回收算法</title>
+  <desc id="desc">展示从 GC Roots 出发做可达性分析，并按对象生命周期使用不同回收算法。</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#2f5d7c"/></marker>
+    <style>
+      .box{fill:#f7fbff;stroke:#2f5d7c;stroke-width:2;rx:10;ry:10}
+      .key{fill:#eef7f0;stroke:#347a44;stroke-width:2;rx:10;ry:10}
+      .warn{fill:#fff8e8;stroke:#9a6a16;stroke-width:2;rx:10;ry:10}
+      .text{font-family:Arial,'Microsoft YaHei',sans-serif;font-size:17px;fill:#1f2d3d}
+      .small{font-family:Arial,'Microsoft YaHei',sans-serif;font-size:13px;fill:#4d5b68}
+      .line{stroke:#2f5d7c;stroke-width:2.1;fill:none;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect width="980" height="540" fill="#fff"/>
+  <text x="490" y="42" text-anchor="middle" class="text" font-size="26">订单批处理对象的 GC 判断流程</text>
+  <rect x="70" y="90" width="170" height="74" class="key"/>
+  <text x="155" y="120" text-anchor="middle" class="text">GC Roots</text>
+  <text x="155" y="145" text-anchor="middle" class="small">栈 静态变量 JNI</text>
+  <rect x="300" y="90" width="170" height="74" class="box"/>
+  <text x="385" y="120" text-anchor="middle" class="text">可达性分析</text>
+  <text x="385" y="145" text-anchor="middle" class="small">沿引用链标记</text>
+  <rect x="530" y="90" width="170" height="74" class="warn"/>
+  <text x="615" y="120" text-anchor="middle" class="text">不可达对象</text>
+  <text x="615" y="145" text-anchor="middle" class="small">可回收候选</text>
+  <rect x="760" y="90" width="150" height="74" class="key"/>
+  <text x="835" y="120" text-anchor="middle" class="text">释放空间</text>
+  <text x="835" y="145" text-anchor="middle" class="small">更新可用内存</text>
+  <rect x="130" y="260" width="180" height="86" class="box"/>
+  <text x="220" y="292" text-anchor="middle" class="text">标记-复制</text>
+  <text x="220" y="317" text-anchor="middle" class="small">适合新生代短命对象</text>
+  <rect x="400" y="260" width="180" height="86" class="warn"/>
+  <text x="490" y="292" text-anchor="middle" class="text">标记-清除</text>
+  <text x="490" y="317" text-anchor="middle" class="small">简单但可能碎片化</text>
+  <rect x="670" y="260" width="180" height="86" class="key"/>
+  <text x="760" y="292" text-anchor="middle" class="text">标记-整理</text>
+  <text x="760" y="317" text-anchor="middle" class="small">适合老年代整理空间</text>
+  <rect x="315" y="430" width="350" height="62" class="box"/>
+  <text x="490" y="456" text-anchor="middle" class="text">分代收集思想</text>
+  <text x="490" y="480" text-anchor="middle" class="small">订单临时对象快回收，缓存和配置对象长期存活</text>
+  <path class="line" d="M240 127 H300"/>
+  <path class="line" d="M470 127 H530"/>
+  <path class="line" d="M700 127 H760"/>
+  <path class="line" d="M385 164 C340 210 260 215 220 260"/>
+  <path class="line" d="M490 164 V260"/>
+  <path class="line" d="M615 164 C660 210 720 215 760 260"/>
+  <path class="line" d="M220 346 C260 395 350 405 405 430"/>
+  <path class="line" d="M760 346 C720 395 630 405 575 430"/>
+</svg>

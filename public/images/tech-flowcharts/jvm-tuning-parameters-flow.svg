@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="540" viewBox="0 0 980 540" role="img" aria-labelledby="title desc">
+  <title id="title">JVM 参数调优流程</title>
+  <desc id="desc">展示供应链服务 JVM 参数从目标、基线、配置、压测到上线验证的流程。</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#2f5d7c"/></marker>
+    <style>
+      .box{fill:#f7fbff;stroke:#2f5d7c;stroke-width:2;rx:10;ry:10}
+      .key{fill:#eef7f0;stroke:#347a44;stroke-width:2;rx:10;ry:10}
+      .warn{fill:#fff8e8;stroke:#9a6a16;stroke-width:2;rx:10;ry:10}
+      .text{font-family:Arial,'Microsoft YaHei',sans-serif;font-size:17px;fill:#1f2d3d}
+      .small{font-family:Arial,'Microsoft YaHei',sans-serif;font-size:13px;fill:#4d5b68}
+      .line{stroke:#2f5d7c;stroke-width:2.1;fill:none;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect width="980" height="540" fill="#fff"/>
+  <text x="490" y="42" text-anchor="middle" class="text" font-size="26">供应链 Java 服务 JVM 参数调优流程</text>
+  <rect x="70" y="90" width="170" height="80" class="box"/>
+  <text x="155" y="122" text-anchor="middle" class="text">明确目标</text>
+  <text x="155" y="148" text-anchor="middle" class="small">吞吐 延迟 成本</text>
+  <rect x="295" y="90" width="170" height="80" class="box"/>
+  <text x="380" y="122" text-anchor="middle" class="text">采集基线</text>
+  <text x="380" y="148" text-anchor="middle" class="small">QPS P99 GC 日志</text>
+  <rect x="520" y="90" width="170" height="80" class="key"/>
+  <text x="605" y="122" text-anchor="middle" class="text">设置内存</text>
+  <text x="605" y="148" text-anchor="middle" class="small">-Xms -Xmx -Xss</text>
+  <rect x="745" y="90" width="170" height="80" class="key"/>
+  <text x="830" y="122" text-anchor="middle" class="text">选择 GC</text>
+  <text x="830" y="148" text-anchor="middle" class="small">G1 ZGC Parallel</text>
+  <rect x="745" y="270" width="170" height="80" class="warn"/>
+  <text x="830" y="302" text-anchor="middle" class="text">压测验证</text>
+  <text x="830" y="328" text-anchor="middle" class="small">订单峰值 批处理</text>
+  <rect x="520" y="270" width="170" height="80" class="box"/>
+  <text x="605" y="302" text-anchor="middle" class="text">观察指标</text>
+  <text x="605" y="328" text-anchor="middle" class="small">停顿 堆曲线 CPU</text>
+  <rect x="295" y="270" width="170" height="80" class="warn"/>
+  <text x="380" y="302" text-anchor="middle" class="text">修正代码</text>
+  <text x="380" y="328" text-anchor="middle" class="small">减少大对象和泄漏</text>
+  <rect x="70" y="270" width="170" height="80" class="key"/>
+  <text x="155" y="302" text-anchor="middle" class="text">灰度上线</text>
+  <text x="155" y="328" text-anchor="middle" class="small">回滚与告警</text>
+  <rect x="320" y="430" width="340" height="64" class="box"/>
+  <text x="490" y="457" text-anchor="middle" class="text">沉淀标准模板</text>
+  <text x="490" y="481" text-anchor="middle" class="small">按服务类型维护参数基线和容量模型</text>
+  <path class="line" d="M240 130 H295"/>
+  <path class="line" d="M465 130 H520"/>
+  <path class="line" d="M690 130 H745"/>
+  <path class="line" d="M830 170 V270"/>
+  <path class="line" d="M745 310 H690"/>
+  <path class="line" d="M520 310 H465"/>
+  <path class="line" d="M295 310 H240"/>
+  <path class="line" d="M155 350 C190 405 340 405 405 430"/>
+</svg>

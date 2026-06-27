@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="560" viewBox="0 0 980 560" role="img" aria-labelledby="title desc">
+  <title id="title">JVM 线上故障排查流程</title>
+  <desc id="desc">展示供应链系统 JVM 故障从现象、指标、线程、堆转储、GC 日志到修复验证的闭环。</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#2f5d7c"/></marker>
+    <style>
+      .box{fill:#f7fbff;stroke:#2f5d7c;stroke-width:2;rx:10;ry:10}
+      .key{fill:#eef7f0;stroke:#347a44;stroke-width:2;rx:10;ry:10}
+      .warn{fill:#fff8e8;stroke:#9a6a16;stroke-width:2;rx:10;ry:10}
+      .text{font-family:Arial,'Microsoft YaHei',sans-serif;font-size:17px;fill:#1f2d3d}
+      .small{font-family:Arial,'Microsoft YaHei',sans-serif;font-size:13px;fill:#4d5b68}
+      .line{stroke:#2f5d7c;stroke-width:2.1;fill:none;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect width="980" height="560" fill="#fff"/>
+  <text x="490" y="42" text-anchor="middle" class="text" font-size="26">供应链 JVM 线上故障排查闭环</text>
+  <rect x="60" y="90" width="165" height="78" class="warn"/>
+  <text x="142" y="122" text-anchor="middle" class="text">故障现象</text>
+  <text x="142" y="147" text-anchor="middle" class="small">OOM CPU 高 Full GC</text>
+  <rect x="285" y="90" width="165" height="78" class="box"/>
+  <text x="367" y="122" text-anchor="middle" class="text">基础指标</text>
+  <text x="367" y="147" text-anchor="middle" class="small">top jstat 容器内存</text>
+  <rect x="510" y="90" width="165" height="78" class="box"/>
+  <text x="592" y="122" text-anchor="middle" class="text">线程分析</text>
+  <text x="592" y="147" text-anchor="middle" class="small">jstack Arthas</text>
+  <rect x="735" y="90" width="165" height="78" class="key"/>
+  <text x="817" y="122" text-anchor="middle" class="text">堆和 GC</text>
+  <text x="817" y="147" text-anchor="middle" class="small">jmap JFR GC log</text>
+  <rect x="735" y="270" width="165" height="78" class="warn"/>
+  <text x="817" y="302" text-anchor="middle" class="text">定位根因</text>
+  <text x="817" y="327" text-anchor="middle" class="small">泄漏 大对象 慢 SQL</text>
+  <rect x="510" y="270" width="165" height="78" class="box"/>
+  <text x="592" y="302" text-anchor="middle" class="text">修复方案</text>
+  <text x="592" y="327" text-anchor="middle" class="small">代码 参数 容量</text>
+  <rect x="285" y="270" width="165" height="78" class="key"/>
+  <text x="367" y="302" text-anchor="middle" class="text">验证发布</text>
+  <text x="367" y="327" text-anchor="middle" class="small">压测 灰度 回滚</text>
+  <rect x="60" y="270" width="165" height="78" class="key"/>
+  <text x="142" y="302" text-anchor="middle" class="text">补充监控</text>
+  <text x="142" y="327" text-anchor="middle" class="small">告警 看板 Runbook</text>
+  <rect x="325" y="435" width="330" height="70" class="box"/>
+  <text x="490" y="465" text-anchor="middle" class="text">复盘沉淀</text>
+  <text x="490" y="490" text-anchor="middle" class="small">把问题变成参数模板、代码规范和容量基线</text>
+  <path class="line" d="M225 129 H285"/>
+  <path class="line" d="M450 129 H510"/>
+  <path class="line" d="M675 129 H735"/>
+  <path class="line" d="M817 168 V270"/>
+  <path class="line" d="M735 309 H675"/>
+  <path class="line" d="M510 309 H450"/>
+  <path class="line" d="M285 309 H225"/>
+  <path class="line" d="M142 348 C190 420 345 415 410 435"/>
+</svg>
