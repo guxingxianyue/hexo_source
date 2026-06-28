@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="380" viewBox="0 0 920 380" role="img" aria-labelledby="title desc">
+  <title id="title">递归处理流程</title>
+  <desc id="desc">递归处理树形结构时，需要终止条件、递推关系和循环依赖检查。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#0f766e"/>
+    </marker>
+    <style>
+      .box { fill: #f0fdfa; stroke: #0f766e; stroke-width: 2; rx: 8; }
+      .warn { fill: #fff7ed; stroke: #c2410c; stroke-width: 2; rx: 8; }
+      .text { font-family: Arial, "PingFang SC", "Microsoft YaHei", sans-serif; font-size: 18px; fill: #134e4a; }
+      .sub { font-size: 14px; fill: #475569; }
+      .line { stroke: #0f766e; stroke-width: 2.4; fill: none; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect x="380" y="35" width="160" height="65" class="box"/>
+  <text x="460" y="62" text-anchor="middle" class="text">根节点</text>
+  <text x="460" y="84" text-anchor="middle" class="sub">成品 BOM</text>
+  <path d="M 430 100 L 300 165" class="line"/>
+  <path d="M 490 100 L 620 165" class="line"/>
+  <rect x="210" y="165" width="160" height="65" class="box"/>
+  <text x="290" y="192" text-anchor="middle" class="text">子节点 A</text>
+  <text x="290" y="214" text-anchor="middle" class="sub">半成品</text>
+  <rect x="550" y="165" width="160" height="65" class="box"/>
+  <text x="630" y="192" text-anchor="middle" class="text">子节点 B</text>
+  <text x="630" y="214" text-anchor="middle" class="sub">半成品</text>
+  <path d="M 270 230 L 210 285" class="line"/>
+  <path d="M 310 230 L 370 285" class="line"/>
+  <rect x="100" y="285" width="160" height="55" class="box"/>
+  <text x="180" y="318" text-anchor="middle" class="text">叶子物料</text>
+  <rect x="320" y="285" width="160" height="55" class="box"/>
+  <text x="400" y="318" text-anchor="middle" class="text">叶子物料</text>
+  <rect x="610" y="285" width="230" height="55" class="warn"/>
+  <text x="725" y="308" text-anchor="middle" class="text">生产保护</text>
+  <text x="725" y="330" text-anchor="middle" class="sub">终止条件、循环检查、最大深度</text>
+</svg>

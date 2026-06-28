@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="390" viewBox="0 0 960 390" role="img" aria-labelledby="title desc">
+  <title id="title">Java 线程生命周期</title>
+  <desc id="desc">Java 线程从 NEW 到 RUNNABLE，并在 BLOCKED、WAITING、TIMED_WAITING 和 TERMINATED 之间转换。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#155e75"/>
+    </marker>
+    <style>
+      .box { fill: #ecfeff; stroke: #155e75; stroke-width: 2; rx: 8; }
+      .end { fill: #f1f5f9; stroke: #475569; stroke-width: 2; rx: 8; }
+      .text { font-family: Arial, "PingFang SC", "Microsoft YaHei", sans-serif; font-size: 18px; fill: #083344; }
+      .sub { font-size: 14px; fill: #475569; }
+      .line { stroke: #155e75; stroke-width: 2.4; fill: none; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect x="55" y="70" width="130" height="70" class="box"/>
+  <text x="120" y="100" text-anchor="middle" class="text">NEW</text>
+  <text x="120" y="122" text-anchor="middle" class="sub">创建对象</text>
+  <path d="M 185 105 H 275" class="line"/>
+  <rect x="290" y="70" width="150" height="70" class="box"/>
+  <text x="365" y="100" text-anchor="middle" class="text">RUNNABLE</text>
+  <text x="365" y="122" text-anchor="middle" class="sub">等待或正在运行</text>
+  <path d="M 440 105 H 540" class="line"/>
+  <rect x="555" y="70" width="145" height="70" class="end"/>
+  <text x="627" y="100" text-anchor="middle" class="text">TERMINATED</text>
+  <text x="627" y="122" text-anchor="middle" class="sub">执行结束</text>
+  <path d="M 365 140 V 200" class="line"/>
+  <rect x="90" y="230" width="150" height="75" class="box"/>
+  <text x="165" y="260" text-anchor="middle" class="text">BLOCKED</text>
+  <text x="165" y="282" text-anchor="middle" class="sub">等待锁</text>
+  <rect x="305" y="230" width="150" height="75" class="box"/>
+  <text x="380" y="260" text-anchor="middle" class="text">WAITING</text>
+  <text x="380" y="282" text-anchor="middle" class="sub">等待唤醒</text>
+  <rect x="520" y="230" width="180" height="75" class="box"/>
+  <text x="610" y="260" text-anchor="middle" class="text">TIMED_WAITING</text>
+  <text x="610" y="282" text-anchor="middle" class="sub">超时等待</text>
+  <path d="M 300 235 C 250 190, 250 165, 330 140" class="line"/>
+  <path d="M 380 230 V 145" class="line"/>
+  <path d="M 560 230 C 500 185, 470 160, 405 140" class="line"/>
+  <text x="805" y="105" class="sub">start()</text>
+  <text x="730" y="263" class="sub">sleep / wait(timeout) / join(timeout)</text>
+</svg>

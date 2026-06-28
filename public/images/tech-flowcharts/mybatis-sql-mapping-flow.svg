@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="360" viewBox="0 0 960 360" role="img" aria-labelledby="title desc">
+  <title id="title">MyBatis SQL 映射流程</title>
+  <desc id="desc">Mapper 接口调用通过 MyBatis 绑定 SQL 参数，执行数据库查询并映射成 Java 对象。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#365314"/>
+    </marker>
+    <style>
+      .box { fill: #f7fee7; stroke: #365314; stroke-width: 2; rx: 8; }
+      .text { font-family: Arial, "PingFang SC", "Microsoft YaHei", sans-serif; font-size: 18px; fill: #24330f; }
+      .sub { font-size: 14px; fill: #53683a; }
+      .line { stroke: #365314; stroke-width: 2.4; fill: none; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect x="40" y="90" width="150" height="80" class="box"/>
+  <text x="115" y="122" text-anchor="middle" class="text">Service</text>
+  <text x="115" y="148" text-anchor="middle" class="sub">调用 Mapper 方法</text>
+  <path d="M 190 130 H 275" class="line"/>
+  <rect x="290" y="90" width="150" height="80" class="box"/>
+  <text x="365" y="122" text-anchor="middle" class="text">Mapper 接口</text>
+  <text x="365" y="148" text-anchor="middle" class="sub">方法和参数</text>
+  <path d="M 440 130 H 525" class="line"/>
+  <rect x="540" y="90" width="150" height="80" class="box"/>
+  <text x="615" y="122" text-anchor="middle" class="text">XML SQL</text>
+  <text x="615" y="148" text-anchor="middle" class="sub">参数绑定、动态 SQL</text>
+  <path d="M 690 130 H 775" class="line"/>
+  <rect x="790" y="90" width="130" height="80" class="box"/>
+  <text x="855" y="122" text-anchor="middle" class="text">数据库</text>
+  <text x="855" y="148" text-anchor="middle" class="sub">执行 SQL</text>
+  <path d="M 855 170 C 790 270, 300 270, 210 170" class="line"/>
+  <text x="520" y="285" text-anchor="middle" class="text">ResultMap 把结果集映射成 Java 对象</text>
+</svg>

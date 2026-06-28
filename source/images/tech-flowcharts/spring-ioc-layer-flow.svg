@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="380" viewBox="0 0 960 380" role="img" aria-labelledby="title desc">
+  <title id="title">Spring IoC 与服务分层流程</title>
+  <desc id="desc">Spring 容器管理 Controller、Service、Repository 和 Client 的依赖关系。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#166534"/>
+    </marker>
+    <style>
+      .box { fill: #f0fdf4; stroke: #166534; stroke-width: 2; rx: 8; }
+      .container { fill: #ffffff; stroke: #86efac; stroke-width: 2; rx: 12; }
+      .text { font-family: Arial, "PingFang SC", "Microsoft YaHei", sans-serif; font-size: 18px; fill: #14532d; }
+      .sub { font-size: 14px; fill: #4b5563; }
+      .line { stroke: #166534; stroke-width: 2.4; fill: none; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect x="40" y="45" width="880" height="290" class="container"/>
+  <text x="480" y="78" text-anchor="middle" class="text">Spring IoC Container</text>
+  <rect x="90" y="130" width="150" height="75" class="box"/>
+  <text x="165" y="160" text-anchor="middle" class="text">Controller</text>
+  <text x="165" y="184" text-anchor="middle" class="sub">HTTP 请求</text>
+  <path d="M 240 168 H 310" class="line"/>
+  <rect x="325" y="130" width="150" height="75" class="box"/>
+  <text x="400" y="160" text-anchor="middle" class="text">Service</text>
+  <text x="400" y="184" text-anchor="middle" class="sub">业务和事务</text>
+  <path d="M 475 150 H 545" class="line"/>
+  <path d="M 475 185 H 545" class="line"/>
+  <rect x="560" y="95" width="150" height="75" class="box"/>
+  <text x="635" y="125" text-anchor="middle" class="text">Repository</text>
+  <text x="635" y="149" text-anchor="middle" class="sub">数据库访问</text>
+  <rect x="560" y="210" width="150" height="75" class="box"/>
+  <text x="635" y="240" text-anchor="middle" class="text">Client</text>
+  <text x="635" y="264" text-anchor="middle" class="sub">外部系统</text>
+  <rect x="760" y="130" width="110" height="75" class="box"/>
+  <text x="815" y="160" text-anchor="middle" class="text">Bean</text>
+  <text x="815" y="184" text-anchor="middle" class="sub">依赖注入</text>
+</svg>

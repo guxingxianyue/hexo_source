@@ -1,102 +1,131 @@
-title: Github+hexo 搭建个人独立博客
+---
+title: GitHub Pages + Hexo：个人技术博客的搭建与维护
 date: 2016-01-05 23:47:08
-tags: [技术文章]
----
-## 关于自建独立博客
----
-这里引用某位知友的原话：
-
-	自主权比较高，博客平台的话会有这样那样的限制，技术上，可能会限制插件的代码使用，内容上，各种审查以防触雷以及广告等等。
-
-作为一个技术宅，没有比“show me the code”“show me the writings”更有说服力。当然这话是我说的。
-
-## 什么是hexo
----
-一个基于Node.js的静态博客程序，可以方便的生成静态网页托管在github上，可以绑定自己的域名，用markdown写文章（简直不要太爽）。
-
-	快速、简单且功能强大的 Node.js 博客框架。
-	A fast, simple & powerful blog framework, powered by Node.js.
-
-## 为什么要用hexo
----
-* 不可思议的快速，眨眼即可完成
-* 支持markdown，支持markdown，支持markdown，重要的话说三遍
-* 一道指令即可将文章部署到 GitHub Pages
-* 高扩展性、自定义性
-* 兼容于 Windows & Mac & Linux
-* 易用。不仅部署简单，平时使用中仅需要hexo new、hexo generate、hexo server、hexo deploy四个命令。
-* 轻、文件少、小，易理解，方便自定义，
-
-##	谁能使用hexo
----
-这是一个免费开源的博客程序，任何人都可以使用和修改，整个独立博客搭建过程仅需要用到Github,Git,Markdown,Node.js这样的工具。好多插件、widget都需要自己安装、设置。比较适合那些有一定计算机基础，喜欢折腾的人。下面我们开始吧!
-
-## 搭建hexo博客（一）
----
-**注意：本节教程只针对Windows用户，Linux和Mac用户请移步**
-
-### 安装Git
----
-下载[msysgit](http://pan.baidu.com/s/1bcsvP8 "git"),版本最好不要用高于1.8.5，有bug，至少截至2015-12-7年为止，这个bug是有的，此处用的是1.8.4。
-
-### 安装Node.js
----
-在 Windows 环境下安装 Node.js很简单，仅须[点此下载](http://pan.baidu.com/s/1dDYO1w9)安装文件并一步一步往下执行即可完成安装。
-
-### 安装hexo
----
-利用 npm 命令即可安装。（在任意位置点击鼠标右键，选择Git bash）
-
-		npm install -g hexo
-
-### 创建hexo文件夹
----
-安装完成后，在你喜爱的文件夹下（如H:\hexo），执行以下指令(在H:\hexo内点击鼠标右键，选择Git bash)，Hexo 即会自动在目标文件夹建立网站所需要的所有文件。
-
-		hexo init
-
-### 安装依赖包
+tags: [Hexo, GitHub Pages, 技术博客, 工程实践]
 ---
 
-        npm install
+个人技术博客的价值不只是“有一个能访问的网站”，更重要的是把学习、项目经验和问题复盘沉淀成可检索的资产。对于 Java 后端开发者来说，博客可以记录数据库锁、JVM、并发、供应链业务建模、AI 编程工具等内容，长期来看比零散笔记更容易形成体系。
 
-### 本地查看
+这篇文章用当前项目的实际结构重新整理 Hexo + GitHub Pages 的搭建和维护流程。
+
+## 整体流程
+
+![Hexo 博客发布流程](/images/tech-flowcharts/hexo-blog-workflow.svg)
+
+## Hexo 适合解决什么问题
+
+Hexo 是一个基于 Node.js 的静态博客框架。它把 Markdown 文章转换成 HTML、CSS、JS 等静态文件，再部署到 GitHub Pages。
+
+这种方案的特点是：
+
+1. 内容用 Markdown 管理，适合技术文章。
+2. 静态页面访问快，部署成本低。
+3. 源码仓库和发布仓库可以分离，便于维护。
+4. 不依赖数据库，迁移和备份简单。
+
+当前博客就是典型结构：
+
+```text
+hexo_source 仓库：保存 Hexo 源码、文章、主题、配置
+guxingxianyue.github.io 仓库：保存生成后的静态页面
+```
+
+平时写文章应该主要维护源码仓库，不要直接手改发布仓库里的 HTML。
+
+## 本地启动流程
+
+拉取源码仓库后，进入项目目录：
+
+```bash
+cd /Users/chenjinxing/IdeaProjects/mypy/myhexo
+```
+
+安装依赖：
+
+```bash
+npm install
+```
+
+本地启动：
+
+```bash
+npm run server
+```
+
+浏览器访问：
+
+```text
+http://localhost:4000
+```
+
+如果只是验证静态生成是否正常，可以执行：
+
+```bash
+npm run clean
+npm run generate
+```
+
+生成后的页面会放在 `public/` 目录。
+
+## 写一篇新文章
+
+可以使用 Hexo 命令创建文章：
+
+```bash
+npm run new "MySQL事务隔离级别和MVCC"
+```
+
+也可以直接在 `source/_posts` 下创建 Markdown 文件。文章开头必须有标准 front matter：
+
+```yaml
 ---
-现在我们已经搭建起本地的hexo博客了，执行以下命令(在H:\hexo)，然后到浏览器输入```localhost:4000```看看。
-
-		hexo generate
-		hexo server
-
-至此，本地博客已经搭建起来了，嘘~~~现在只有你自己能看到，别人是看不到的。下面，我们要部署到Github，让所有人都能看到你的博客。
-
-### 注册Github账号
+title: MySQL事务隔离级别和MVCC：订单可见性怎么保证
+date: 2025-04-17 09:50:00
+tags: [MySQL, MVCC, 事务隔离级别, 供应链系统]
 ---
-已有账号可以跳过，没有的，[请在此进行注册](https://www.github.com)，很简单，这里就不介绍了。
+```
 
-### 创建repository
----
-在自己Github主页右下角，创建一个新的repository。比如我的Github账号是guxingxianyue，那么我应该创建的repository名字应该是guxingxianyue.github.io。
+建议每篇技术文章都至少包含四部分：
 
-### 部署到Github
----
-编辑_config.yml(在H:\hexo下)。你在部署时，要把下面的guxingxianyue都换成你的账号名。
+1. 背景：这个技术点解决什么问题。
+2. 原理：核心概念和工作机制。
+3. Demo：用代码或 SQL 说明。
+4. 场景：结合真实业务说明什么时候用、怎么避坑。
 
-	deploy:
-	  type: git
-	  repository: https://github.com/guxingxianyue/guxingxianyue.github.io.git
-	  branch: master
+例如供应链系统里的库存预占文章，不应该只解释 `SELECT ... FOR UPDATE`，还要说明订单创建、库存锁定、扣减、释放和库存流水之间的关系。
 
-### 执行下列指令即可完成部署。
----
+## 部署到 GitHub Pages
 
-    npm install hexo-deployer-git --save(有的哥们竟然不需要这个指令也能部署成功)
-	hexo generate
-	hexo deploy
+确认本地生成成功后，执行部署：
 
-**注意：**有些新用户需要设置ssh，否则上述命令会失败。ssh 的介绍和设置方法请看[官方教程](https://help.github.com/articles/generating-ssh-keys/)不用担心，很简单。
+```bash
+npm run deploy
+```
 
-**记住：**每次修改本地文件后，需要hexo generate才能保存。每次使用命令时，都要在H:\hexo目录下右键选择Git Bash指令窗口。
+这个命令会执行：
 
-Okay,至此博客已经完全搭建起来了，在浏览器访问guxingxianyue.github.io就能看到你的成就了！Good luck。
+```bash
+hexo clean
+hexo generate
+hexo deploy
+```
 
+部署完成后，访问：
 
+```text
+https://guxingxianyue.github.io
+```
+
+如果线上没有立即生效，通常是 GitHub Pages 还在构建。可以等待几十秒后刷新，或者查看 GitHub Pages 的 build 状态。
+
+## 维护建议
+
+博客长期维护时，建议遵守几个规则：
+
+1. 源码仓库保存文章和配置，发布仓库只保存生成结果。
+2. 每篇文章都写标准 front matter，方便归档、标签和后续迁移。
+3. 技术文尽量补流程图、代码示例和业务场景。
+4. 对过时文章保留发布时间，但可以在正文中说明“当前推荐做法”。
+5. 部署前执行 `npm run generate`，避免线上发现构建问题。
+
+博客本质上是个人知识库。Hexo 只是工具，真正重要的是持续把项目经验写成结构化内容，并让每篇文章都能回答一个清晰的问题。

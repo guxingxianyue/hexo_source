@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="420" viewBox="0 0 980 420" role="img" aria-labelledby="title desc">
+  <title id="title">MyBatis 与 Spring 事务流程</title>
+  <desc id="desc">Spring Service 定义事务边界，MyBatis Mapper 执行库存扣减和库存流水写入。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#1d4ed8"/>
+    </marker>
+    <style>
+      .box { fill: #eff6ff; stroke: #1d4ed8; stroke-width: 2; rx: 8; }
+      .tx { fill: #eefdf3; stroke: #15803d; stroke-width: 2; rx: 8; }
+      .warn { fill: #fff7ed; stroke: #c2410c; stroke-width: 2; rx: 8; }
+      .text { font-family: Arial, "PingFang SC", "Microsoft YaHei", sans-serif; font-size: 17px; fill: #172554; }
+      .sub { font-size: 13px; fill: #475569; }
+      .line { stroke: #1d4ed8; stroke-width: 2.4; fill: none; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect x="40" y="165" width="145" height="70" class="box"/>
+  <text x="112" y="195" text-anchor="middle" class="text">Controller</text>
+  <text x="112" y="217" text-anchor="middle" class="sub">接收预占请求</text>
+  <path d="M 185 200 H 265" class="line"/>
+  <rect x="280" y="130" width="180" height="140" class="tx"/>
+  <text x="370" y="166" text-anchor="middle" class="text">@Transactional Service</text>
+  <text x="370" y="194" text-anchor="middle" class="sub">定义一致性边界</text>
+  <text x="370" y="218" text-anchor="middle" class="sub">库存更新 + 流水写入</text>
+  <text x="370" y="242" text-anchor="middle" class="sub">异常时统一回滚</text>
+  <path d="M 460 175 H 550" class="line"/>
+  <path d="M 460 225 H 550" class="line"/>
+  <rect x="565" y="105" width="170" height="90" class="box"/>
+  <text x="650" y="140" text-anchor="middle" class="text">InventoryMapper</text>
+  <text x="650" y="166" text-anchor="middle" class="sub">原子扣减库存</text>
+  <rect x="565" y="215" width="170" height="90" class="box"/>
+  <text x="650" y="250" text-anchor="middle" class="text">InventoryLogMapper</text>
+  <text x="650" y="276" text-anchor="middle" class="sub">写库存流水</text>
+  <path d="M 735 150 H 810" class="line"/>
+  <path d="M 735 260 H 810" class="line"/>
+  <rect x="825" y="165" width="115" height="70" class="box"/>
+  <text x="882" y="195" text-anchor="middle" class="text">MySQL</text>
+  <text x="882" y="217" text-anchor="middle" class="sub">同一事务提交</text>
+  <rect x="285" y="330" width="410" height="55" class="warn"/>
+  <text x="490" y="354" text-anchor="middle" class="text">事务内不要做慢 HTTP 调用</text>
+  <text x="490" y="374" text-anchor="middle" class="sub">远程通知建议事务后用事件、消息或 outbox 表处理</text>
+</svg>

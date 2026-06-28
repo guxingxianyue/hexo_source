@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="360" viewBox="0 0 900 360" role="img" aria-labelledby="title desc">
+  <title id="title">快速排序流程</title>
+  <desc id="desc">选择 pivot，分区，再递归处理左右区间。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#4c1d95"/>
+    </marker>
+    <style>
+      .box { fill: #f5f3ff; stroke: #4c1d95; stroke-width: 2; rx: 8; }
+      .text { font-family: Arial, "PingFang SC", "Microsoft YaHei", sans-serif; font-size: 18px; fill: #2e1065; }
+      .sub { font-size: 14px; fill: #6d28d9; }
+      .line { stroke: #4c1d95; stroke-width: 2.4; fill: none; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect x="55" y="55" width="160" height="75" class="box"/>
+  <text x="135" y="86" text-anchor="middle" class="text">选择 pivot</text>
+  <text x="135" y="112" text-anchor="middle" class="sub">基准值</text>
+  <path d="M 215 92 H 305" class="line"/>
+  <rect x="320" y="55" width="160" height="75" class="box"/>
+  <text x="400" y="86" text-anchor="middle" class="text">分区</text>
+  <text x="400" y="112" text-anchor="middle" class="sub">小于左边，大于右边</text>
+  <path d="M 480 92 H 570" class="line"/>
+  <rect x="585" y="55" width="160" height="75" class="box"/>
+  <text x="665" y="86" text-anchor="middle" class="text">pivot 归位</text>
+  <text x="665" y="112" text-anchor="middle" class="sub">位置已确定</text>
+  <path d="M 665 130 C 620 190, 520 205, 400 230" class="line"/>
+  <path d="M 665 130 C 710 190, 770 205, 790 230" class="line"/>
+  <rect x="250" y="230" width="160" height="75" class="box"/>
+  <text x="330" y="262" text-anchor="middle" class="text">递归左区间</text>
+  <text x="330" y="288" text-anchor="middle" class="sub">继续分治</text>
+  <rect x="675" y="230" width="160" height="75" class="box"/>
+  <text x="755" y="262" text-anchor="middle" class="text">递归右区间</text>
+  <text x="755" y="288" text-anchor="middle" class="sub">继续分治</text>
+  <text x="450" y="340" text-anchor="middle" class="sub">递归终止条件：区间长度为 0 或 1</text>
+</svg>

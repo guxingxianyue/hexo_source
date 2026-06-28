@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="420" viewBox="0 0 980 420" role="img" aria-labelledby="title desc">
+  <title id="title">Redis 数据结构和供应链场景</title>
+  <desc id="desc">Redis 常用数据结构与供应链业务场景的对应关系。</desc>
+  <style>
+    .box { fill: #fff7ed; stroke: #c2410c; stroke-width: 2; rx: 8; }
+    .core { fill: #ffedd5; stroke: #9a3412; stroke-width: 2; rx: 10; }
+    .text { font-family: Arial, "PingFang SC", "Microsoft YaHei", sans-serif; font-size: 17px; fill: #431407; }
+    .sub { font-size: 13px; fill: #7c2d12; }
+    .line { stroke: #c2410c; stroke-width: 2; }
+  </style>
+  <rect x="405" y="165" width="170" height="90" class="core"/>
+  <text x="490" y="200" text-anchor="middle" class="text">Redis</text>
+  <text x="490" y="226" text-anchor="middle" class="sub">低延迟内存数据结构</text>
+  <rect x="80" y="55" width="190" height="70" class="box"/>
+  <text x="175" y="84" text-anchor="middle" class="text">String</text>
+  <text x="175" y="108" text-anchor="middle" class="sub">SKU 缓存、计数器</text>
+  <rect x="80" y="175" width="190" height="70" class="box"/>
+  <text x="175" y="204" text-anchor="middle" class="text">Hash</text>
+  <text x="175" y="228" text-anchor="middle" class="sub">仓库、商品对象</text>
+  <rect x="80" y="295" width="190" height="70" class="box"/>
+  <text x="175" y="324" text-anchor="middle" class="text">Set</text>
+  <text x="175" y="348" text-anchor="middle" class="sub">去重、活动参与</text>
+  <rect x="710" y="55" width="190" height="70" class="box"/>
+  <text x="805" y="84" text-anchor="middle" class="text">ZSet</text>
+  <text x="805" y="108" text-anchor="middle" class="sub">热销商品排行</text>
+  <rect x="710" y="175" width="190" height="70" class="box"/>
+  <text x="805" y="204" text-anchor="middle" class="text">List / Stream</text>
+  <text x="805" y="228" text-anchor="middle" class="sub">轻量队列、事件流</text>
+  <rect x="710" y="295" width="190" height="70" class="box"/>
+  <text x="805" y="324" text-anchor="middle" class="text">Lock</text>
+  <text x="805" y="348" text-anchor="middle" class="sub">幂等和互斥控制</text>
+  <line x1="270" y1="90" x2="405" y2="185" class="line"/>
+  <line x1="270" y1="210" x2="405" y2="210" class="line"/>
+  <line x1="270" y1="330" x2="405" y2="235" class="line"/>
+  <line x1="575" y1="185" x2="710" y2="90" class="line"/>
+  <line x1="575" y1="210" x2="710" y2="210" class="line"/>
+  <line x1="575" y1="235" x2="710" y2="330" class="line"/>
+</svg>

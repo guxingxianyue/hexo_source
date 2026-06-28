@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="420" viewBox="0 0 980 420" role="img" aria-labelledby="title desc">
+  <title id="title">Kafka 集群和供应链事件流</title>
+  <desc id="desc">订单服务发送事件到 Kafka Topic，不同消费者组并行处理库存、仓储和财务业务。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#3730a3"/>
+    </marker>
+    <style>
+      .box { fill: #eef2ff; stroke: #3730a3; stroke-width: 2; rx: 8; }
+      .topic { fill: #e0e7ff; stroke: #3730a3; stroke-width: 2; rx: 8; }
+      .text { font-family: Arial, "PingFang SC", "Microsoft YaHei", sans-serif; font-size: 17px; fill: #1e1b4b; }
+      .sub { font-size: 13px; fill: #475569; }
+      .line { stroke: #3730a3; stroke-width: 2.4; fill: none; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect x="45" y="175" width="150" height="70" class="box"/>
+  <text x="120" y="205" text-anchor="middle" class="text">Order Service</text>
+  <text x="120" y="227" text-anchor="middle" class="sub">发送订单事件</text>
+  <path d="M 195 210 H 280" class="line"/>
+  <rect x="295" y="120" width="230" height="180" class="topic"/>
+  <text x="410" y="150" text-anchor="middle" class="text">Topic: order-created</text>
+  <text x="410" y="180" text-anchor="middle" class="sub">Partition 0 | Leader + Replica</text>
+  <text x="410" y="210" text-anchor="middle" class="sub">Partition 1 | Leader + Replica</text>
+  <text x="410" y="240" text-anchor="middle" class="sub">Partition 2 | Leader + Replica</text>
+  <text x="410" y="270" text-anchor="middle" class="sub">key = orderNo 保证单订单顺序</text>
+  <path d="M 525 160 H 610" class="line"/>
+  <path d="M 525 210 H 610" class="line"/>
+  <path d="M 525 260 H 610" class="line"/>
+  <rect x="625" y="70" width="210" height="65" class="box"/>
+  <text x="730" y="98" text-anchor="middle" class="text">Inventory Group</text>
+  <text x="730" y="120" text-anchor="middle" class="sub">预占库存，保证幂等</text>
+  <rect x="625" y="175" width="210" height="65" class="box"/>
+  <text x="730" y="203" text-anchor="middle" class="text">WMS Group</text>
+  <text x="730" y="225" text-anchor="middle" class="sub">生成出库任务</text>
+  <rect x="625" y="280" width="210" height="65" class="box"/>
+  <text x="730" y="308" text-anchor="middle" class="text">Finance Group</text>
+  <text x="730" y="330" text-anchor="middle" class="sub">创建应收记录</text>
+  <text x="490" y="375" text-anchor="middle" class="sub">Kafka 解耦链路，但业务仍需幂等、补偿、监控和告警</text>
+</svg>

@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="420" viewBox="0 0 980 420" role="img" aria-labelledby="title desc">
+  <title id="title">Java 多线程业务处理流程</title>
+  <desc id="desc">订单详情查询中使用多线程并行聚合下游服务，同时通过线程池和一致性边界控制风险。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#344966"/>
+    </marker>
+    <style>
+      .box { fill: #f8fafc; stroke: #344966; stroke-width: 2; rx: 8; }
+      .warn { fill: #fff4e6; stroke: #b26a00; stroke-width: 2; rx: 8; }
+      .ok { fill: #eaf6ef; stroke: #2f6f4e; stroke-width: 2; rx: 8; }
+      .text { font-family: Arial, "PingFang SC", "Microsoft YaHei", sans-serif; font-size: 17px; fill: #172033; }
+      .sub { font-size: 13px; fill: #566071; }
+      .line { stroke: #344966; stroke-width: 2.4; fill: none; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect x="40" y="170" width="150" height="70" class="box"/>
+  <text x="115" y="200" text-anchor="middle" class="text">订单详情请求</text>
+  <text x="115" y="222" text-anchor="middle" class="sub">Order Detail API</text>
+  <path d="M 190 205 H 275" class="line"/>
+  <rect x="290" y="150" width="150" height="110" class="ok"/>
+  <text x="365" y="185" text-anchor="middle" class="text">业务线程池</text>
+  <text x="365" y="210" text-anchor="middle" class="sub">限流、队列、拒绝策略</text>
+  <text x="365" y="232" text-anchor="middle" class="sub">避免无限创建线程</text>
+  <path d="M 440 180 C 505 100, 545 80, 620 80" class="line"/>
+  <path d="M 440 200 C 505 170, 545 155, 620 155" class="line"/>
+  <path d="M 440 220 C 505 240, 545 255, 620 255" class="line"/>
+  <path d="M 440 240 C 505 315, 545 335, 620 335" class="line"/>
+  <rect x="620" y="45" width="160" height="70" class="box"/>
+  <text x="700" y="75" text-anchor="middle" class="text">订单服务</text>
+  <text x="700" y="97" text-anchor="middle" class="sub">基础信息</text>
+  <rect x="620" y="120" width="160" height="70" class="box"/>
+  <text x="700" y="150" text-anchor="middle" class="text">库存服务</text>
+  <text x="700" y="172" text-anchor="middle" class="sub">可用量、锁定量</text>
+  <rect x="620" y="220" width="160" height="70" class="box"/>
+  <text x="700" y="250" text-anchor="middle" class="text">物流服务</text>
+  <text x="700" y="272" text-anchor="middle" class="sub">轨迹信息</text>
+  <rect x="620" y="300" width="160" height="70" class="box"/>
+  <text x="700" y="330" text-anchor="middle" class="text">财务服务</text>
+  <text x="700" y="352" text-anchor="middle" class="sub">应收金额</text>
+  <path d="M 780 80 C 835 115, 850 150, 875 190" class="line"/>
+  <path d="M 780 155 C 830 170, 850 180, 875 200" class="line"/>
+  <path d="M 780 255 C 830 240, 850 225, 875 210" class="line"/>
+  <path d="M 780 335 C 835 295, 850 250, 875 220" class="line"/>
+  <rect x="875" y="170" width="70" height="70" class="ok"/>
+  <text x="910" y="200" text-anchor="middle" class="text">聚合</text>
+  <text x="910" y="222" text-anchor="middle" class="sub">join</text>
+  <rect x="290" y="315" width="260" height="60" class="warn"/>
+  <text x="420" y="340" text-anchor="middle" class="text">一致性边界</text>
+  <text x="420" y="362" text-anchor="middle" class="sub">库存扣减、状态流转不能只靠本地并发</text>
+</svg>

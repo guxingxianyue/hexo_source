@@ -5,7 +5,7 @@
 # Site
 title: 陈金星写字的地方
 subtitle: less is more
-description: less is more
+description: 陈金星的技术博客，记录 Java 后端、供应链业务系统、数据库、并发编程、JVM、AI 编程工具和工程实践。
 author: Jinxing Chen
 email: chenjinxing666@gmail.com
 language: zh-CN
@@ -78,3 +78,12 @@ deploy:
   type: git
   repository: https://github.com/guxingxianyue/guxingxianyue.github.io.git
   branch: master
+
+# Feed and sitemap
+feed:
+  type: atom
+  path: atom.xml
+  limit: 20
+  content: true
+sitemap:
+  path: sitemap.xml

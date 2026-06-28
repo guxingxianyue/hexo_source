@@ -1,172 +1,118 @@
-title: kafka集群
-date: 2017-01-07 12:16:17
-tags: [分布式]
+---
+title: Kafka集群：分区、副本和供应链事件流
+date: 2017-01-07 21:23:08
+tags: [Kafka, 消息队列, 分布式系统, 供应链系统]
 ---
 
-## Kafka初识
+Kafka 是高吞吐分布式消息系统，适合处理订单事件、库存变更、物流轨迹、仓储作业状态等业务流。学习 Kafka 集群时，不应该只关注配置项，更要理解 Topic、Partition、Replica、Consumer Group 如何共同保证吞吐、扩展性和可用性。
 
-* Kafka使用背景
+## 整体流程
 
-	在我们大量使用分布式数据库、分布式计算集群的时候，是否会遇到这样的一些问题：
-	* 我们想分析下用户行为（pageviews），以便我们设计出更好的广告位
-	* 我想对用户的搜索关键词进行统计，分析出当前的流行趋势
-	* 有些数据，存储数据库浪费，直接存储硬盘效率又低
-	
-* Kafka的定义
+![Kafka 集群和供应链事件流](/images/tech-flowcharts/kafka-cluster-event-flow.svg)
 
-	它是一个分布式消息系统,具有高水平扩展和高吞吐量的特点。
-	
+## Kafka 集群核心概念
 
-## Kafka相关概念
+Kafka 的基本组件包括：
 
-* AMQP协议：是一个标准开放的应用层的消息中间件（Message Oriented Middleware）协议。AMQP定义了通过网络发送的字节流的数据格式。因此兼容性非常好，任何实现AMQP协议的程序都可以和与AMQP协议兼容的其他程序交互，可以很容易做到跨语言，跨平台。
+1. Broker：Kafka 服务节点。
+2. Topic：消息主题，例如 `order-created`。
+3. Partition：Topic 的分区，用于并行写入和消费。
+4. Replica：分区副本，用于容灾。
+5. Leader：当前负责读写的分区副本。
+6. Follower：跟随 Leader 同步数据。
+7. Consumer Group：消费者组，同一组内多个消费者共同消费分区。
 
-* 一些基本的概念
-  * 消费者：（Consumer）：从消息队列中请求消息的客户端应用程序
-  * 生产者：（Producer）：向broker发布消息的应用程序
-  * AMQP服务端（broker）：用来接收生产者发送的消息并将这些消息路由给服务器中的队列，便于fafka将生产者发送的消息，动态的添加到磁盘并给每一条消息一个偏移量，所以对于kafka一个broker就是一个应用程序的实例
+分区是 Kafka 扩展吞吐的关键。一个 Topic 有多个分区，生产者可以并行写入，消费者组内的消费者也可以并行消费。
 
-kafka支持的客户端语言：Kafka客户端支持当前大部分主流语言，包括：C、C++、Erlang、Java、.net、perl、PHP、Python、Ruby、Go、Javascript
-可以使用以上任何一种语言和kafka服务器进行通信（即辨析自己的consumer从kafka集群订阅消息也可以自己写producer程序）
+## 供应链事件流例子
 
-* Kafka架构
+订单创建成功后，订单服务可以发送事件：
 
-	生产者生产消息、kafka集群、消费者获取消息这样一种架构，如下图：
-	
-	![](https://i.imgur.com/fFh8aZr.png)
+```json
+{
+  "eventId": "evt-10001",
+  "eventType": "ORDER_CREATED",
+  "orderNo": "SO202606280001",
+  "warehouseId": 8,
+  "occurredAt": "2026-06-28T10:20:00"
+}
+```
 
-	kafka集群中的消息，是通过Topic（主题）来进行组织的，如下图：
-	
-	![](https://i.imgur.com/yMOoyNJ.png)
+库存服务消费事件后预占库存，仓储服务消费事件后生成出库任务，财务服务消费事件后创建应收记录：
 
-	一些基本的概念：
-	* 主题（Topic）：一个主题类似新闻中的体育、娱乐、教育等分类概念，在实际工程中通常一个业务一个主题。
-	* 分区（Partition）：一个Topic中的消息数据按照多个分区组织，分区是kafka消息队列组织的最小单位，一个分区可以看作是一个FIFO（ First Input First Output的缩写，先入先出队列）的队列。
-	
-	kafka分区是提高kafka性能的关键所在，当你发现你的集群性能不高时，常用手段就是增加Topic的分区，分区里面的消息是按照从新到老的顺序进行组织，消费者从队列头订阅消息，生产者从队列尾添加消息。
+```text
+Order Service -> order-created topic
+Inventory Service -> reserve stock
+WMS Service -> create outbound task
+Finance Service -> create receivable
+```
 
-	工作图：
-	![](https://i.imgur.com/4eSzo4r.png)
+这种事件驱动方式能降低服务之间的同步耦合，但也要求下游具备幂等和补偿能力。
 
-	备份（Replication）：为了保证分布式可靠性，kafka0.8开始对每个分区的数据进行备份（不同的Broker上），防止其中一个Broker宕机造成分区上的数据不可用。
-	
-## Kafka集群搭建
-* 软件环境
-  * 已经搭建好的zookeeper集群(文章最后另写)
-  * 软件版本kafka_2.11-0.9.0.1.tgz
-  * 软件版本kafka_2.11-0.9.0.1.tgz
-  
-* 创建目录并下载安装软件
-		#下载软件
-		wget https://archive.apache.org/dist/kafka/0.9.0.1/kafka_2.11-0.9.0.1.tgz
-		#解压软件
-		tar -xvf kafka_2.11-0.9.0.1.tgz
-* 修改配置文件
+## 分区设计
 
-	主要关注config/server.properties 	
-	
-		broker.id=0  #当前机器在集群中的唯一标识，和zookeeper的myid性质一样
-		port=9092 #当前kafka对外提供服务的端口默认是9092
-		host.name = 120.76.230.134 #这个参数默认是关闭的，在0.8.1有个bug，DNS解析问题，失败率的问题
-		#申明此kafka服务器需要监听的端口号，如果是在本机上跑虚拟机运行可以不用配置本项，默认会使用localhost的地址，如果是在远程服务器上运行则必须配置
-		listeners = PLAINTEXT://120.76.230.134:9092 
-		advertised.host.name = 120.76.230.134
-		advertised.listeners=PLAINTEXT://120.76.230.134:9092
-		log.dirs=/data/kafka/kafkalogs  #消息存放的目录
-		#在log.retention.hours=168 下面新增下面三项
-		message.max.byte=5242880
-		default.replication.factor=2
-		replica.fetch.max.bytes=5242880
-		zookeeper.connect=120.76.230.134:5181,120.76.193.192:5181,120.25.239.155:5181 #zookeeper配置地址
+如果同一订单的事件必须按顺序处理，应使用订单号作为 key：
 
-	
-	每个机子的broker.id、host.name都是不一样的，主要是关注以上几项参数配置。
+```java
+ProducerRecord<String, OrderCreatedEvent> record =
+        new ProducerRecord<>("order-created", event.orderNo(), event);
+kafkaTemplate.send(record);
+```
 
-* 启动Kafka集群并测试
-	
-	启动服务
-	
-		#从后台启动Kafka集群（3台都需要启动）
-		cd /data/kafka/kafka_2.11-0.11.0.1/bin #进入到kafka的bin目录 
-		./kafka-server-start.sh -daemon ../config/server.properties
+相同 key 的消息会进入同一分区，从而在该分区内保持顺序。但这不代表整个 Topic 全局有序，Kafka 只保证单分区内有序。
 
-	检查服务是否启动
+分区数量要结合吞吐和消费者并行度规划。分区太少会限制并发，分区太多会增加元数据、文件句柄和 rebalance 成本。
 
-		#执行命令jps
-		22246 Bootstrap
-		26393 Kafka
+## 副本和可靠性
 
-	创建Topic来验证是否创建成功
+生产环境 Topic 应该配置多个副本：
 
-		#创建Topic
-		./kafka-topics.sh --create --zookeeper 120.76.230.134:5181,120.76.193.192:5181,120.25.239.155:5181 --replication-factor 2 --partitions 1 --topic test
-		
-		#解释
-		--replication-factor 2   #复制两份
-		--partitions 1 #创建1个分区
-		--topic #主题为test
-		
-		#在一台服务器上创建一个发布者
-		#创建一个broker，发布者
-		./kafka-console-producer.sh --broker-list 120.76.230.134:9092 --topic test
-		
-		#在一台服务器上创建一个订阅者
-		./kafka-console-consumer.sh --bootstrap-server 120.76.230.134:9092 --topic test --from-beginning
+```bash
+kafka-topics.sh --create \
+  --topic order-created \
+  --partitions 12 \
+  --replication-factor 3 \
+  --bootstrap-server kafka-1:9092
+```
 
-	测试（在发布者那里发布消息看看订阅者那里是否能正常收到~）：
-	
-* 其他命令	
+生产者可靠性配置：
 
-	大部分命令可以去官方文档查看
-	* 查看topic
-	
-			./kafka-topics.sh --list --zookeeper 120.76.230.134:5181,120.76.193.192:5181,120.25.239.155:5181
-			#就会显示我们创建的所有topic
-	
-	kafka集群搭建完毕
+```properties
+acks=all
+enable.idempotence=true
+retries=3
+```
 
-## zookeeper集群部署
+`acks=all` 表示 Leader 等待 ISR 中副本确认后才认为写入成功。`enable.idempotence=true` 可以降低生产者重试导致重复写入的风险，但业务层仍然要做幂等。
 
-* 为什么是基数
-	
-	* 集群必须有一半以上的机器统一才能成为leader
-	* 一半的机器挂掉 整个集群挂掉
+## 消费幂等
 
-* 去官网下载好zookeeper包，解压
-* 修改配置/conf/zoo.cfg文件
+消息系统通常只能帮你降低丢消息和乱序风险，不能自动解决业务重复处理。消费者必须幂等。
 
-		# 基本事件单元，以毫秒为单位，用来控制心跳和超时
-		tickTime=2000
-		# 参数设定了允许所有跟随者与领导者进行连接并同步的时间，如果在设定的时间段内，半数以上的跟随者未能完成同步，领导者便会宣布放弃领导地位，进行另一次的领导选举
-		# 如果zk集群环境数量确实很大，同步数据的时间会变长，因此这种情况下可以适当调大该参数
-		#集群中的follower服务器(F)与leader服务器(L)之间 初始连接 时能容忍的最多心跳数（tickTime的数量）
-		initLimit=10
-		# 参数设定了允许一个跟随者与一个领导者进行同步的时间，如果在设定的时间段内，跟随者未完成同步，它将会被集群丢弃
-		# 所有关联到这个跟随者的客户端将连接到另外一个跟随着
-		syncLimit=5
-		# 存储持久数据的本地文件系统位置
-		dataDir=/data/zookeeper-3.4.9/data
-		dataLogDir=/data/zookeeper-3.4.9/logs
-		# 监听客户端连接的端口
-		clientPort=5181
-		
-		server.1=120.76.230.134:2888:3888
-		server.2=120.76.193.192:2888:3888
-		server.3=120.25.239.155:2888:3888
+```java
+@Transactional
+public void handle(OrderCreatedEvent event) {
+    if (eventRepository.exists(event.eventId())) {
+        return;
+    }
 
-		#server.1 这个1是服务器的标识也可以是其他的数字， 表示这个是第几号服务器，用来标识服务器，这个标识要写到快照目录下面myid文件里
-		#120.76.230.134为集群里的IP地址，第一个端口是master和slave之间的通信端口，默认是2888，第二个端口是leader选举的端口，集群刚启动的时候选举或者leader挂掉之后进行新的选举的端口默认是3888
+    inventoryService.reserve(event.orderNo(), event.warehouseId());
+    eventRepository.markProcessed(event.eventId());
+}
+```
 
-	zoo_sample.cfg  这个文件是官方给我们的zookeeper的样板文件，给他复制一份命名为zoo.cfg，zoo.cfg是官方指定的文件命名规则。
+对于库存预占这类关键逻辑，建议使用业务唯一键、事件表、状态机或数据库唯一约束保证重复消息不会造成重复扣减。
 
-* 创建myid文件
+## 常见问题
 
-	/data/zookeeper-3.4.9/data目录下要配置myid文件，内容跟server.id相对应，比如:1
-	
-	./zkServer.sh star启动zookeeper，每台都要启动一遍
+第一，消费者堆积。要看是消费者处理慢、分区不够、下游数据库慢，还是单条消息失败反复重试。
 
-* 重要配置说明
+第二，rebalance 频繁。消费者实例不稳定、处理时间过长或超时配置不合理都可能导致 rebalance。
 
-	* myid文件和server.myid  在快照目录下存放的标识本台服务器的文件，他是整个zk集群用来发现彼此的一个重要标识。
+第三，只关注 Kafka 不关注业务补偿。消息发送成功不代表业务最终成功，库存预占失败、仓储创建失败都需要补偿流程。
 
-	* zoo.cfg 文件是zookeeper配置文件 在conf目录里。
+第四，把 Kafka 当 RPC。Kafka 适合异步事件，不适合需要立即返回强一致结果的流程。
+
+## 小结
+
+Kafka 集群的关键是分区提升吞吐、副本提升可用性、消费者组提升并行消费能力。供应链系统中，订单、库存、仓储、物流事件非常适合用 Kafka 解耦，但必须配套幂等、补偿、监控和告警，才能真正成为可靠的事件流基础设施。

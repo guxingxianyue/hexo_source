@@ -1,160 +1,130 @@
-title: JAVA多线程的应用场景和目的
-date: 2016-03-20 21:03:08
-tags: [技术文章]
 ---
-#### 多线程使用的主要目的在于：
+title: Java多线程的应用场景和目的
+date: 2016-03-20 21:03:08
+tags: [Java, 多线程, 并发编程, 供应链系统]
+---
 
-* 吞吐量：你做WEB，容器帮你做了多线程，但是他只能帮你做请求层面的。简单的说，可能就是一个请求一个线程。或多个请求一个线程。如果是单线程，那同时只能处理一个用户的请求。
+Java 多线程的目的不是把代码写复杂，而是在合适的场景里提升吞吐、降低等待时间，并让 CPU、网络、磁盘和下游服务资源得到更充分的利用。是否应该使用多线程，关键不在于“会不会开线程”，而在于能否判断任务之间有没有依赖、瓶颈在哪里、并发后是否会破坏数据一致性。
 
-* 伸缩性：也就是说，你可以通过增加CPU核数来提升性能。如果是单线程，那程序执行到死也就利用了单核，肯定没办法通过增加CPU核数来提升性能。
+## 整体流程
 
-鉴于是做WEB的，第1点可能你几乎不涉及。这里就讲第二点。
+![Java 多线程业务处理流程](/images/tech-flowcharts/java-thread-business-flow.svg)
 
-举个简单的例子：
-假设有个请求，这个请求服务端的处理需要执行3个很缓慢的IO操作（比如数据库查询或文件查询），那么正常的顺序可能是（括号里面代表执行时间）：
+## 多线程解决的核心问题
 
-* a读取文件1  （10ms）
-* b处理1的数据（1ms）
-* c读取文件2  （10ms）
-* d处理2的数据（1ms）
-* e读取文件3  （10ms）
-* f处理3的数据（1ms）
-* g整合1、2、3的数据结果 （1ms）
+多线程常见目标有三类：
 
-单线程总共就需要34ms。
-那如果你在这个请求内，把ab、cd、ef分别分给3个线程去做，就只需要12ms了。
+1. 提升吞吐量：让系统在单位时间内处理更多任务。
+2. 降低等待时间：把互不依赖的 IO 操作并行执行，缩短整体响应时间。
+3. 提高资源利用率：当一个线程等待数据库、Redis、HTTP 接口时，其他线程可以继续执行。
 
-所以多线程不是没怎么用，而是，你平常要善于发现一些可优化的点。然后评估方案是否应该使用。
-假设还是上面那个相同的问题：但是每个步骤的执行时间不一样了。
+但多线程不是默认答案。对于 CPU 密集型任务，线程数超过 CPU 核数太多会带来上下文切换；对于数据库密集型任务，线程过多可能把连接池和数据库压垮；对于共享数据修改，如果没有并发控制，会出现脏数据、重复扣减、状态错乱。
 
-* a读取文件1  （1ms）
-* b处理1的数据（1ms）
-* c读取文件2  （1ms）
-* d处理2的数据（1ms）
-* e读取文件3  （28ms）
-* f处理3的数据（1ms）
-* g整合1、2、3的数据结果 （1ms）
+## 供应链场景：订单详情聚合
 
-单线程总共就需要34ms。
-如果还是按上面的划分方案（上面方案和木桶原理一样，耗时取决于最慢的那个线程的执行速度），在这个例子中是第三个线程，执行29ms。
-那么最后这个请求耗时是30ms。比起不用单线程，就节省了4ms。但是有可能线程调度切换也要花费个1、2ms。因此，这个方案显得优势就不明显了，
-还带来程序复杂度提升。不太值得。
+订单详情页通常需要展示订单基础信息、库存状态、物流轨迹、应收金额。它们来自不同模块，彼此没有强依赖：
 
-那么现在优化的点，就不是第一个例子那样的任务分割多线程完成。而是优化文件3的读取速度。
-可能是采用缓存和减少一些重复读取。
-首先，假设有一种情况，所有用户都请求这个请求，那其实相当于所有用户都需要读取文件3。那你想想，100个人进行了这个请求，相当于你花在读取
-这个文件上的时间就是28×100=2800ms了。那么，如果你把文件缓存起来，那只要第一个用户的请求读取了，第二个用户不需要读取了，从内存取是很
-快速的，可能1ms都不到。
+```text
+订单基础信息 -> OMS
+库存状态     -> Inventory Service
+物流轨迹     -> TMS
+应收金额     -> Finance Service
+```
 
-伪代码：
+如果串行执行，每个接口耗时都会累加：
 
-	public class MyServlet extends Servlet{
-	    private static Map<String, String> fileName2Data = new HashMap<String, String>();
-	    private void processFile3(String fName){
-	        String data = fileName2Data.get(fName);
-	        if(data==null){
-	            data = readFromFile(fName);    //耗时28ms
-	            fileName2Data.put(fName, data);
-	        }
-	        //process with data
-	    }
-	}
+```text
+订单 30ms + 库存 40ms + 物流 80ms + 财务 50ms = 200ms
+```
 
-看起来好像还不错，建立一个文件名和文件数据的映射。如果读取一个map中已经存在的数据，那么就不不用读取文件了。
-可是问题在于，Servlet是并发，上面会导致一个很严重的问题，死循环。因为，HashMap在并发修改的时候，可能是导致循环链表的构成！！！
-（具体你可以自行阅读HashMap源码）如果你没接触过多线程，可能到时候发现服务器没请求也巨卡，也不知道什么情况！
-好的，那就用ConcurrentHashMap，正如他的名字一样，他是一个线程安全的HashMap，这样能轻松解决问题。
+如果并行查询，整体耗时更接近最慢的那个任务：
 
-	public class MyServlet extends Servlet{
-	    private static ConcurrentHashMap<String, String> fileName2Data = new ConcurrentHashMap<String, String>();
-	    private void processFile3(String fName){
-	        String data = fileName2Data.get(fName);
-	        if(data==null){
-	            data = readFromFile(fName);    //耗时28ms
-	            fileName2Data.put(fName, data);
-	        }
-	        //process with data
-	    }
-	}
+```text
+max(30ms, 40ms, 80ms, 50ms) + 聚合成本
+```
 
-这样真的解决问题了吗，这样虽然只要有用户访问过文件a，那另一个用户想访问文件a，也会从fileName2Data中拿数据，然后也不会引起死循环。
+示例代码：
 
-可是，如果你觉得这样就已经完了，那你把多线程也想的太简单了，骚年！
-你会发现，1000个用户首次访问同一个文件的时候，居然读取了1000次文件（这是最极端的，可能只有几百）。What the fuckin hell!!!
+```java
+public OrderDetail queryOrderDetail(long orderId) {
+    CompletableFuture<Order> orderFuture =
+            CompletableFuture.supplyAsync(() -> orderService.get(orderId), bizExecutor);
+    CompletableFuture<InventoryView> inventoryFuture =
+            CompletableFuture.supplyAsync(() -> inventoryService.viewByOrder(orderId), bizExecutor);
+    CompletableFuture<TrackInfo> trackFuture =
+            CompletableFuture.supplyAsync(() -> trackService.query(orderId), bizExecutor);
+    CompletableFuture<Receivable> receivableFuture =
+            CompletableFuture.supplyAsync(() -> financeService.receivable(orderId), bizExecutor);
 
-难道代码错了吗！
+    CompletableFuture.allOf(orderFuture, inventoryFuture, trackFuture, receivableFuture).join();
 
-好好分析下。Servlet是多线程的，那么
+    return new OrderDetail(
+            orderFuture.join(),
+            inventoryFuture.join(),
+            trackFuture.join(),
+            receivableFuture.join()
+    );
+}
+```
 
-	public class MyServlet extends Servlet{
-	    private static ConcurrentHashMap<String, String> fileName2Data = new ConcurrentHashMap<String, String>();
-	    private void processFile3(String fName){
-	        String data = fileName2Data.get(fName);
-	        //“偶然”-- 1000个线程同时到这里，同时发现data为null
-	        if(data==null){
-	            data = readFromFile(fName);    //耗时28ms
-	            fileName2Data.put(fName, data);
-	        }
-	        //process with data
-	    }
-	}
+这里的关键点是：这些查询互不依赖，且主要耗时在 IO 等待上，因此适合并行。
 
-上面注释的“偶然”，这是完全有可能的，因此，这样做还是有问题。
+## 不适合并发的情况
 
-因此，可以自己简单的封装一个任务来处理。
+下面这种库存扣减逻辑不能简单并行：
 
-	public class MyServlet extends Servlet{
+```java
+public void reserveStock(String skuCode, int qty) {
+    int available = inventoryRepository.queryAvailable(skuCode);
+    if (available < qty) {
+        throw new BizException("库存不足");
+    }
+    inventoryRepository.decreaseAvailable(skuCode, qty);
+    inventoryRepository.increaseLocked(skuCode, qty);
+}
+```
 
-		private static ConcurrentHashMap<String, FutureTask<String>> fileName2Data = new ConcurrentHashMap<String, FutureTask<String>>();
-	    
-		private static ExecutorService exec = Executors.newCachedThreadPool();
-	    
-	    
-		private void processFile3(String fName){
-	        FutureTask<String> data = fileName2Data.get(fName);
-	        //“偶然”-- 1000个线程同时到这里，同时发现data为null
-	        if(data == null){
-	            data = newFutureTask(fName);
-	            FutureTask<String> old = fileName2Data.putIfAbsent(fName, data);
-	            if(old == null){
-	            	exec.execute(data);
-	            }else{
-	            	data = old;
-	            }
-	        }
-	        Object d = null ;
-	        try {
-				d = data.get();
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (ExecutionException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-	        System.out.println(Thread.currentThread().getName() + "method->processFile3" + d);
-	    }
-	     
-	    private FutureTask<String> newFutureTask(final String file){
-	        return  new FutureTask<String>(new Callable<String>(){
-	            public String call(){
-	                return readFromFile(file);
-	            }
-	 
-	            private String readFromFile(String file){
-	            	System.out.println(Thread.currentThread().getName() + "method->readFromFile,do readFromFile");
-	            	return " do readFromFile";
-	            }
-	        });
-	    }
-	}
+如果多个线程同时读到相同库存，再分别扣减，就可能超卖。库存预占必须依赖数据库行锁、乐观锁、原子更新或 Redis Lua 等机制保护一致性：
 
-多线程最多的场景：web服务器本身；各种专用服务器（如游戏服务器）；
+```sql
+UPDATE scm_inventory
+SET available_qty = available_qty - #{qty},
+    locked_qty = locked_qty + #{qty}
+WHERE sku_code = #{skuCode}
+  AND available_qty >= #{qty};
+```
 
-多线程的常见应用场景：
+再通过影响行数判断是否预占成功。
 
-* 后台任务，例如：定时向大量（100w以上）的用户发送邮件；
-* 异步处理，例如：发微博、记录日志等；
-* 分布式计算
+## 线程池必须受控
 
+生产系统不要为每个请求随意 `new Thread()`。线程创建和销毁有成本，线程数量失控还会耗尽内存、连接池和下游接口容量。
 
+推荐使用明确的业务线程池：
+
+```java
+ThreadPoolExecutor bizExecutor = new ThreadPoolExecutor(
+        16,
+        32,
+        60,
+        TimeUnit.SECONDS,
+        new ArrayBlockingQueue<>(1000),
+        new ThreadFactoryBuilder().setNameFormat("order-query-%d").build(),
+        new ThreadPoolExecutor.CallerRunsPolicy()
+);
+```
+
+线程池配置要结合业务压测结果。队列不能无限大，否则流量高峰时请求会堆积很久，用户看到的是长时间等待而不是快速失败。
+
+## 判断是否使用多线程的 checklist
+
+使用多线程前可以问几个问题：
+
+1. 任务之间是否互不依赖。
+2. 瓶颈是 IO 等待还是 CPU 计算。
+3. 并发后是否会修改同一份业务数据。
+4. 线程池、数据库连接池、HTTP 连接池是否有容量上限。
+5. 失败后是否能降级、重试或返回部分结果。
+6. 日志和监控能否定位每个异步任务的耗时和异常。
+
+多线程的收益来自清晰的任务拆分和资源控制。对供应链系统来说，订单聚合查询、采购对账、物流轨迹同步、批量报表生成都可能受益于并发；库存扣减、状态流转、单据审核则必须优先保证一致性。
