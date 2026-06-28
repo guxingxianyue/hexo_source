@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="400" viewBox="0 0 960 400" role="img" aria-labelledby="title desc">
+  <title id="title">Java 并发工具选择流程</title>
+  <desc id="desc">根据等待、限流、异步编排和排队处理选择 Java 并发工具。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#155e75"/>
+    </marker>
+    <style>
+      .box { fill: #ecfeff; stroke: #155e75; stroke-width: 2; rx: 8; }
+      .text { font-family: Arial, "PingFang SC", "Microsoft YaHei", sans-serif; font-size: 17px; fill: #083344; }
+      .sub { font-size: 13px; fill: #475569; }
+      .line { stroke: #155e75; stroke-width: 2.4; fill: none; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect x="55" y="165" width="150" height="70" class="box"/>
+  <text x="130" y="194" text-anchor="middle" class="text">协作问题</text>
+  <text x="130" y="216" text-anchor="middle" class="sub">先描述线程关系</text>
+  <path d="M 205 200 H 280" class="line"/>
+  <rect x="295" y="45" width="180" height="70" class="box"/>
+  <text x="385" y="74" text-anchor="middle" class="text">等待全部完成</text>
+  <text x="385" y="96" text-anchor="middle" class="sub">CountDownLatch</text>
+  <rect x="295" y="135" width="180" height="70" class="box"/>
+  <text x="385" y="164" text-anchor="middle" class="text">限制并发数量</text>
+  <text x="385" y="186" text-anchor="middle" class="sub">Semaphore</text>
+  <rect x="295" y="225" width="180" height="70" class="box"/>
+  <text x="385" y="254" text-anchor="middle" class="text">组合异步结果</text>
+  <text x="385" y="276" text-anchor="middle" class="sub">CompletableFuture</text>
+  <rect x="295" y="315" width="180" height="60" class="box"/>
+  <text x="385" y="342" text-anchor="middle" class="text">任务排队处理</text>
+  <text x="385" y="362" text-anchor="middle" class="sub">BlockingQueue</text>
+  <path d="M 475 80 H 555" class="line"/>
+  <path d="M 475 170 H 555" class="line"/>
+  <path d="M 475 260 H 555" class="line"/>
+  <path d="M 475 345 H 555" class="line"/>
+  <rect x="570" y="45" width="300" height="70" class="box"/>
+  <text x="720" y="74" text-anchor="middle" class="text">采购对账加载多类数据</text>
+  <text x="720" y="96" text-anchor="middle" class="sub">等待入库单、发票、付款记录</text>
+  <rect x="570" y="135" width="300" height="70" class="box"/>
+  <text x="720" y="164" text-anchor="middle" class="text">承运商 API 限流</text>
+  <text x="720" y="186" text-anchor="middle" class="sub">保护下游和自己</text>
+  <rect x="570" y="225" width="300" height="70" class="box"/>
+  <text x="720" y="254" text-anchor="middle" class="text">订单详情聚合</text>
+  <text x="720" y="276" text-anchor="middle" class="sub">库存、物流、财务并行查询</text>
+  <rect x="570" y="315" width="300" height="60" class="box"/>
+  <text x="720" y="342" text-anchor="middle" class="text">仓储波次任务</text>
+  <text x="720" y="362" text-anchor="middle" class="sub">生产者消费者模型</text>
+</svg>

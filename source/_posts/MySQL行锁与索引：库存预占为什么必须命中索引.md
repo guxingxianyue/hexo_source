@@ -8,6 +8,10 @@ InnoDB 的行锁不是直接锁住“表里那一行数据”的抽象概念，�
 
 供应链系统里最容易踩坑的是库存预占。库存表通常按仓库、SKU、批次、库位维度管理，如果查询条件和索引设计不一致，一个订单扣库存可能阻塞另一批无关 SKU 的入库、移库或盘点。
 
+## 行锁和索引命中流程
+
+![MySQL 行锁和索引命中流程](/images/tech-flowcharts/mysql-row-lock-index-flow.svg)
+
 ## 库存表的索引设计
 
 假设库存按仓库和 SKU 汇总：
@@ -117,6 +121,20 @@ WHERE warehouse_id = #{warehouseId}
 
 ## 批量库存预占的加锁顺序
 
+批量预占时，要先把 SKU 或库存记录按稳定顺序排序，再依次更新。这样两个订单即使包含相同 SKU，也会以相同顺序申请锁，降低死锁概率。
+
+```java
+List<OrderItem> sortedItems = order.items().stream()
+        .sorted(Comparator.comparing(OrderItem::skuId))
+        .toList();
+
+for (OrderItem item : sortedItems) {
+    inventoryMapper.reserve(order.warehouseId(), item.skuId(), item.qty());
+}
+```
+
+如果订单明细非常多，不建议在一个长事务里处理全部库存。可以按业务规则拆单、拆仓或先做可用性预检查，再进入短事务执行核心扣减。
+
 一个订单可能包含多个 SKU。批量扣减时，如果两个事务以不同顺序锁 SKU，就容易死锁。
 
 事务 A：
@@ -164,4 +182,3 @@ UNIQUE KEY uk_wh_sku_batch_bin (warehouse_id, sku_id, batch_no, bin_code)
 ## 小结
 
 InnoDB 行锁的关键是索引。供应链系统里，库存、批次、库位、单据明细这些表的数据量大、并发高，锁范围稍微变大就会影响吞吐。写库存类 SQL 时，必须用业务唯一索引定位记录，用条件更新完成判断和修改，并在批量处理时固定加锁顺序。
-

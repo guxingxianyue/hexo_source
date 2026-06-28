@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="430" viewBox="0 0 980 430" role="img" aria-labelledby="title desc">
+  <title id="title">Java 多线程决策流程</title>
+  <desc id="desc">判断供应链业务流程是否适合使用多线程的决策流程图。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#1f4e79"/>
+    </marker>
+    <style>
+      .box { fill: #f4f9ff; stroke: #1f4e79; stroke-width: 2; rx: 8; }
+      .warn { fill: #fff4e6; stroke: #b45309; stroke-width: 2; rx: 8; }
+      .ok { fill: #ecfdf5; stroke: #047857; stroke-width: 2; rx: 8; }
+      .text { font-family: Arial, "PingFang SC", "Microsoft YaHei", sans-serif; font-size: 17px; fill: #17324d; }
+      .sub { font-size: 13px; fill: #4b5563; }
+      .line { stroke: #1f4e79; stroke-width: 2.4; fill: none; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect x="40" y="175" width="150" height="70" class="box"/>
+  <text x="115" y="204" text-anchor="middle" class="text">业务流程</text>
+  <text x="115" y="226" text-anchor="middle" class="sub">订单、库存、物流</text>
+  <path d="M 190 210 H 275" class="line"/>
+  <rect x="290" y="160" width="170" height="100" class="box"/>
+  <text x="375" y="190" text-anchor="middle" class="text">任务是否独立</text>
+  <text x="375" y="214" text-anchor="middle" class="sub">无顺序依赖</text>
+  <text x="375" y="236" text-anchor="middle" class="sub">无共享写入</text>
+  <path d="M 460 190 H 560" class="line"/>
+  <path d="M 375 260 V 330" class="line"/>
+  <rect x="575" y="145" width="170" height="90" class="box"/>
+  <text x="660" y="178" text-anchor="middle" class="text">瓶颈是否 IO</text>
+  <text x="660" y="202" text-anchor="middle" class="sub">数据库、RPC、HTTP</text>
+  <path d="M 745 190 H 830" class="line"/>
+  <rect x="845" y="145" width="105" height="90" class="ok"/>
+  <text x="897" y="178" text-anchor="middle" class="text">可并发</text>
+  <text x="897" y="202" text-anchor="middle" class="sub">线程池限流</text>
+  <rect x="290" y="330" width="170" height="70" class="warn"/>
+  <text x="375" y="358" text-anchor="middle" class="text">保持串行</text>
+  <text x="375" y="380" text-anchor="middle" class="sub">事务或状态机保护</text>
+  <rect x="575" y="270" width="290" height="70" class="warn"/>
+  <text x="720" y="298" text-anchor="middle" class="text">下游有容量限制时必须限流</text>
+  <text x="720" y="320" text-anchor="middle" class="sub">连接池、QPS、队列长度、超时都要纳入设计</text>
+</svg>

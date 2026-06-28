@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="390" viewBox="0 0 960 390" role="img" aria-labelledby="title desc">
+  <title id="title">synchronized 与 Monitor 互斥流程</title>
+  <desc id="desc">线程进入 synchronized 代码块时竞争对象 Monitor，成功后执行状态转换，退出时释放锁。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#1e3a8a"/>
+    </marker>
+    <style>
+      .box { fill: #eff6ff; stroke: #1e3a8a; stroke-width: 2; rx: 8; }
+      .state { fill: #f0fdf4; stroke: #15803d; stroke-width: 2; rx: 8; }
+      .text { font-family: Arial, "PingFang SC", "Microsoft YaHei", sans-serif; font-size: 17px; fill: #172554; }
+      .sub { font-size: 13px; fill: #4b5563; }
+      .line { stroke: #1e3a8a; stroke-width: 2.4; fill: none; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect x="45" y="80" width="150" height="70" class="box"/>
+  <text x="120" y="109" text-anchor="middle" class="text">线程 A/B</text>
+  <text x="120" y="131" text-anchor="middle" class="sub">进入同步方法</text>
+  <path d="M 195 115 H 285" class="line"/>
+  <rect x="300" y="80" width="160" height="70" class="box"/>
+  <text x="380" y="109" text-anchor="middle" class="text">竞争 Monitor</text>
+  <text x="380" y="131" text-anchor="middle" class="sub">同一对象锁</text>
+  <path d="M 460 115 H 550" class="line"/>
+  <rect x="565" y="80" width="165" height="70" class="state"/>
+  <text x="647" y="109" text-anchor="middle" class="text">执行临界区</text>
+  <text x="647" y="131" text-anchor="middle" class="sub">状态转换互斥</text>
+  <path d="M 730 115 H 820" class="line"/>
+  <rect x="835" y="80" width="90" height="70" class="box"/>
+  <text x="880" y="109" text-anchor="middle" class="text">释放锁</text>
+  <text x="880" y="131" text-anchor="middle" class="sub">唤醒竞争</text>
+  <rect x="250" y="235" width="460" height="70" class="state"/>
+  <text x="480" y="264" text-anchor="middle" class="text">仓库作业状态机</text>
+  <text x="480" y="286" text-anchor="middle" class="sub">CREATED -> PICKING -> PACKED -> SHIPPED</text>
+  <path d="M 647 150 V 235" class="line"/>
+</svg>

@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="420" viewBox="0 0 980 420" role="img" aria-labelledby="title desc">
+  <title id="title">读写锁和 StampedLock 缓存流程</title>
+  <desc id="desc">读多写少缓存中读写锁和 StampedLock 乐观读的流程。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#166534"/>
+    </marker>
+    <style>
+      .box { fill: #f0fdf4; stroke: #166534; stroke-width: 2; rx: 8; }
+      .warn { fill: #fff7ed; stroke: #c2410c; stroke-width: 2; rx: 8; }
+      .text { font-family: Arial, "PingFang SC", "Microsoft YaHei", sans-serif; font-size: 17px; fill: #14532d; }
+      .sub { font-size: 13px; fill: #4b5563; }
+      .line { stroke: #166534; stroke-width: 2.4; fill: none; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect x="50" y="75" width="150" height="70" class="box"/>
+  <text x="125" y="104" text-anchor="middle" class="text">多读线程</text>
+  <text x="125" y="126" text-anchor="middle" class="sub">价格/库存快照</text>
+  <path d="M 200 110 H 285" class="line"/>
+  <rect x="300" y="75" width="170" height="70" class="box"/>
+  <text x="385" y="104" text-anchor="middle" class="text">读锁共享</text>
+  <text x="385" y="126" text-anchor="middle" class="sub">读读不互斥</text>
+  <path d="M 470 110 H 555" class="line"/>
+  <rect x="570" y="75" width="170" height="70" class="box"/>
+  <text x="655" y="104" text-anchor="middle" class="text">不可变缓存</text>
+  <text x="655" y="126" text-anchor="middle" class="sub">避免返回可变对象</text>
+  <rect x="50" y="245" width="150" height="70" class="warn"/>
+  <text x="125" y="274" text-anchor="middle" class="text">刷新线程</text>
+  <text x="125" y="296" text-anchor="middle" class="sub">加载新规则</text>
+  <path d="M 200 280 H 285" class="line"/>
+  <rect x="300" y="245" width="170" height="70" class="warn"/>
+  <text x="385" y="274" text-anchor="middle" class="text">写锁独占</text>
+  <text x="385" y="296" text-anchor="middle" class="sub">整体替换引用</text>
+  <path d="M 470 280 H 555" class="line"/>
+  <rect x="570" y="245" width="170" height="70" class="box"/>
+  <text x="655" y="274" text-anchor="middle" class="text">StampedLock</text>
+  <text x="655" y="296" text-anchor="middle" class="sub">乐观读后 validate</text>
+  <rect x="780" y="160" width="160" height="70" class="warn"/>
+  <text x="860" y="189" text-anchor="middle" class="text">边界</text>
+  <text x="860" y="211" text-anchor="middle" class="sub">不保护跨实例库存事实</text>
+</svg>

@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="420" viewBox="0 0 980 420" role="img" aria-labelledby="title desc">
+  <title id="title">MySQL 悲观锁和乐观锁选择流程</title>
+  <desc id="desc">根据冲突概率、事务长度和用户体验选择悲观锁、乐观锁或状态条件更新。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#6d28d9"/>
+    </marker>
+    <style>
+      .box { fill: #faf5ff; stroke: #6d28d9; stroke-width: 2; rx: 8; }
+      .ok { fill: #ecfdf5; stroke: #047857; stroke-width: 2; rx: 8; }
+      .warn { fill: #fff7ed; stroke: #c2410c; stroke-width: 2; rx: 8; }
+      .text { font-family: Arial, "PingFang SC", "Microsoft YaHei", sans-serif; font-size: 17px; fill: #3b0764; }
+      .sub { font-size: 13px; fill: #4b5563; }
+      .line { stroke: #6d28d9; stroke-width: 2.4; fill: none; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect x="45" y="165" width="150" height="75" class="box"/>
+  <text x="120" y="196" text-anchor="middle" class="text">单据变更</text>
+  <text x="120" y="220" text-anchor="middle" class="sub">审核、取消、过账</text>
+  <path d="M 195 202 H 285" class="line"/>
+  <rect x="300" y="80" width="190" height="80" class="warn"/>
+  <text x="395" y="112" text-anchor="middle" class="text">冲突高/代价大</text>
+  <text x="395" y="136" text-anchor="middle" class="sub">FOR UPDATE 悲观锁</text>
+  <rect x="300" y="245" width="190" height="80" class="ok"/>
+  <text x="395" y="277" text-anchor="middle" class="text">冲突低/可重试</text>
+  <text x="395" y="301" text-anchor="middle" class="sub">version 乐观锁</text>
+  <path d="M 490 120 H 590" class="line"/>
+  <path d="M 490 285 H 590" class="line"/>
+  <rect x="605" y="80" width="175" height="80" class="box"/>
+  <text x="692" y="112" text-anchor="middle" class="text">事务内短流程</text>
+  <text x="692" y="136" text-anchor="middle" class="sub">校验状态并更新</text>
+  <rect x="605" y="245" width="175" height="80" class="box"/>
+  <text x="692" y="277" text-anchor="middle" class="text">条件更新</text>
+  <text x="692" y="301" text-anchor="middle" class="sub">影响行数判断</text>
+  <rect x="815" y="165" width="120" height="75" class="box"/>
+  <text x="875" y="196" text-anchor="middle" class="text">幂等和审计</text>
+  <text x="875" y="220" text-anchor="middle" class="sub">日志、重试、提示</text>
+</svg>

@@ -257,7 +257,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2022/09/17/SQL%E9%87%8C%E9%9D%A2%E5%90%84%E7%A7%8D%E9%94%81%E7%9A%84%E5%8E%9F%E7%90%86/" data-id="cuidFUYfA3MH0Vs4rd-3fX6JJ" class="article-share-link">Share</a>
+      <a data-url="https://guxingxianyue.github.io/2022/09/17/SQL%E9%87%8C%E9%9D%A2%E5%90%84%E7%A7%8D%E9%94%81%E7%9A%84%E5%8E%9F%E7%90%86/" data-id="cuidwuRhj8tesUGdvyXIviz_h" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SQL/" rel="tag">SQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%BA%8B%E5%8A%A1/" rel="tag">事务</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="tag">数据库</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%94%81/" rel="tag">锁</a></li></ul>
@@ -292,6 +292,7 @@
     <div class="article-entry" itemprop="articleBody">
       
         <p>Java 多线程最终要落到数据结构和排查能力上。供应链系统里，仓储任务调度、库存缓存、波次队列、接口指标都会用到并发集合和原子类。选择正确的数据结构，可以减少手写锁；具备排查能力，才能在线上出现卡顿时定位问题。</p>
+<h2 id="数据结构和排查流程"><a href="#数据结构和排查流程" class="headerlink" title="数据结构和排查流程"></a>数据结构和排查流程</h2><p><img src="/images/tech-flowcharts/concurrent-collections-troubleshooting-flow.svg" alt="并发集合和线程排查流程"></p>
 <h2 id="ConcurrentHashMap：本地任务状态缓存"><a href="#ConcurrentHashMap：本地任务状态缓存" class="headerlink" title="ConcurrentHashMap：本地任务状态缓存"></a>ConcurrentHashMap：本地任务状态缓存</h2><p>仓储系统可能需要缓存正在处理的上架任务，避免同一个任务在当前实例内重复提交：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">PutawayTaskRegistry</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> ConcurrentHashMap&lt;Long, PutawayTask&gt; runningTasks = <span class="keyword">new</span> <span class="title class_">ConcurrentHashMap</span>&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">register</span><span class="params">(PutawayTask task)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> runningTasks.putIfAbsent(task.id(), task) == <span class="literal">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">unregister</span><span class="params">(Long taskId)</span> &#123;</span><br><span class="line">        runningTasks.remove(taskId);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
@@ -333,12 +334,21 @@
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">thread -b</span><br></pre></td></tr></table></figure>
 
 <p>重点看线程是否大量 <code>BLOCKED</code>，以及堆栈里等待的是哪把锁。</p>
+<h2 id="线上排查顺序"><a href="#线上排查顺序" class="headerlink" title="线上排查顺序"></a>线上排查顺序</h2><p>仓储任务卡顿时，可以按这个顺序排查：</p>
+<ol>
+<li>看线程池：活跃线程数、队列长度、拒绝次数是否异常。</li>
+<li>看线程状态：<code>jstack</code> 或 Arthas <code>thread</code> 查看是否大量 <code>BLOCKED</code>、<code>WAITING</code>。</li>
+<li>看锁对象：定位堆栈里等待的是 Java 对象锁、数据库锁，还是队列阻塞。</li>
+<li>看业务状态：仓储任务是否卡在同一个波次、库位、SKU 或外部 WMS 调用。</li>
+<li>看数据一致性：确认任务状态机是否允许重复执行、失败重试和人工恢复。</li>
+</ol>
+<p>排查时不要只看到 <code>ConcurrentHashMap</code> 就认为线程安全已经解决。并发集合只能保证集合自身操作安全，不能自动保证“任务状态 + 数据库记录 + 外部调用”的业务一致性。</p>
 <h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>并发集合和原子类能减少手写锁，让并发代码更清晰。供应链系统里，<code>ConcurrentHashMap</code> 适合本地任务注册，<code>BlockingQueue</code> 适合生产者消费者，<code>CopyOnWriteArrayList</code> 适合读多写少规则，<code>AtomicReference</code> 适合配置快照替换。核心业务数据仍然要用数据库状态机和事务保护。线上卡顿时，要能用 <code>jstack</code>、Arthas 定位线程阻塞和死锁。</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2022/05/30/Java%E5%B9%B6%E5%8F%91%E9%9B%86%E5%90%88%E4%B8%8E%E6%8E%92%E6%9F%A5%EF%BC%9A%E4%BB%93%E5%82%A8%E4%BB%BB%E5%8A%A1%E5%B9%B6%E5%8F%91%E5%AE%89%E5%85%A8%E6%80%8E%E4%B9%88%E8%90%BD%E5%9C%B0/" data-id="cuidNFku9l-iDPPD8d-lnuN2N" class="article-share-link">Share</a>
+      <a data-url="https://guxingxianyue.github.io/2022/05/30/Java%E5%B9%B6%E5%8F%91%E9%9B%86%E5%90%88%E4%B8%8E%E6%8E%92%E6%9F%A5%EF%BC%9A%E4%BB%93%E5%82%A8%E4%BB%BB%E5%8A%A1%E5%B9%B6%E5%8F%91%E5%AE%89%E5%85%A8%E6%80%8E%E4%B9%88%E8%90%BD%E5%9C%B0/" data-id="cuidpf4KWZpGNMCSywDvIVlS8" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/BlockingQueue/" rel="tag">BlockingQueue</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CAS/" rel="tag">CAS</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ConcurrentHashMap/" rel="tag">ConcurrentHashMap</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%BB%93%E5%82%A8%E7%B3%BB%E7%BB%9F/" rel="tag">仓储系统</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%AD%BB%E9%94%81/" rel="tag">死锁</a></li></ul>
@@ -373,6 +383,7 @@
     <div class="article-entry" itemprop="articleBody">
       
         <p>Java 并发工具类解决的是线程之间的协作问题。供应链系统里，很多流程不是简单加锁，而是多个任务并行执行后汇总结果，或者限制同时访问某个下游系统的并发量。常用工具包括 <code>CountDownLatch</code>、<code>Semaphore</code>、<code>CompletableFuture</code>。</p>
+<h2 id="工具选择流程"><a href="#工具选择流程" class="headerlink" title="工具选择流程"></a>工具选择流程</h2><p><img src="/images/tech-flowcharts/concurrency-tools-selection-flow.svg" alt="Java 并发工具选择流程"></p>
 <h2 id="CountDownLatch：等待多个任务完成"><a href="#CountDownLatch：等待多个任务完成" class="headerlink" title="CountDownLatch：等待多个任务完成"></a>CountDownLatch：等待多个任务完成</h2><p>采购对账时，需要同时加载三类数据：</p>
 <ul>
 <li>采购入库单。</li>
@@ -395,12 +406,43 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">CompletableFuture&lt;TrackInfo&gt; trackFuture =</span><br><span class="line">    CompletableFuture</span><br><span class="line">        .supplyAsync(() -&gt; trackService.queryByOrder(orderId), executor)</span><br><span class="line">        .exceptionally(e -&gt; TrackInfo.empty(<span class="string">&quot;物流轨迹暂不可用&quot;</span>));</span><br></pre></td></tr></table></figure>
 
 <p>供应链系统的详情页通常允许部分信息降级，比如物流轨迹临时失败不应该导致整个订单详情不可用。但结算、扣库存这类核心流程不能随意吞异常。</p>
+<h2 id="选择建议"><a href="#选择建议" class="headerlink" title="选择建议"></a>选择建议</h2><p>不同工具适合不同问题：</p>
+<table>
+<thead>
+<tr>
+<th>工具</th>
+<th>解决的问题</th>
+<th>供应链例子</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>CountDownLatch</code></td>
+<td>等待多个任务全部完成</td>
+<td>采购对账同时加载入库单、发票、付款记录</td>
+</tr>
+<tr>
+<td><code>Semaphore</code></td>
+<td>控制同时访问数量</td>
+<td>限制承运商轨迹接口并发</td>
+</tr>
+<tr>
+<td><code>CompletableFuture</code></td>
+<td>异步编排和结果聚合</td>
+<td>订单详情并行查询库存、物流、财务</td>
+</tr>
+<tr>
+<td><code>BlockingQueue</code></td>
+<td>生产者消费者</td>
+<td>仓储波次任务排队处理</td>
+</tr>
+</tbody></table>
+<p>选择工具时先描述线程之间的关系：是等待、限流、结果组合，还是任务排队。关系清楚了，工具选择通常就清楚了。不要为了使用高级 API 而把简单流程写复杂。</p>
 <h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>并发工具类的价值是让线程协作更清晰。<code>CountDownLatch</code> 适合等待多个并行任务完成；<code>Semaphore</code> 适合限制下游并发；<code>CompletableFuture</code> 适合异步任务编排。供应链系统使用这些工具时，必须区分查询类流程和交易类流程：查询可以并行和降级，交易必须保证状态一致、异常可追踪。</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2022/05/23/Java%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB%EF%BC%9A%E9%87%87%E8%B4%AD%E5%AF%B9%E8%B4%A6%E5%92%8C%E5%BA%93%E5%AD%98%E6%B1%87%E6%80%BB%E5%A6%82%E4%BD%95%E5%B9%B6%E8%A1%8C%E5%8D%8F%E4%BD%9C/" data-id="cuidKcoePnLZPX8Ek5NjYkQex" class="article-share-link">Share</a>
+      <a data-url="https://guxingxianyue.github.io/2022/05/23/Java%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB%EF%BC%9A%E9%87%87%E8%B4%AD%E5%AF%B9%E8%B4%A6%E5%92%8C%E5%BA%93%E5%AD%98%E6%B1%87%E6%80%BB%E5%A6%82%E4%BD%95%E5%B9%B6%E8%A1%8C%E5%8D%8F%E4%BD%9C/" data-id="cuidg3AkUlW9_9e16oysvioLx" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CompletableFuture/" rel="tag">CompletableFuture</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CountDownLatch/" rel="tag">CountDownLatch</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Semaphore/" rel="tag">Semaphore</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F/" rel="tag">供应链系统</a></li></ul>
@@ -435,6 +477,7 @@
     <div class="article-entry" itemprop="articleBody">
       
         <p>线程池是 Java 多线程在业务系统中最常用的落地方式。它解决两个问题：复用线程，减少创建销毁成本；限制并发，避免请求无限堆积压垮系统。供应链系统里的订单履约、库存同步、物流轨迹拉取、报表生成，都应该用线程池管理并发。</p>
+<h2 id="履约线程池流程"><a href="#履约线程池流程" class="headerlink" title="履约线程池流程"></a>履约线程池流程</h2><p><img src="/images/tech-flowcharts/thread-pool-fulfillment-flow.svg" alt="订单履约线程池流程"></p>
 <h2 id="不要无限创建线程"><a href="#不要无限创建线程" class="headerlink" title="不要无限创建线程"></a>不要无限创建线程</h2><p>错误示例：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (Long orderId : orderIds) &#123;</span><br><span class="line">    <span class="keyword">new</span> <span class="title class_">Thread</span>(() -&gt; fulfillmentService.fulfill(orderId)).start();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
@@ -483,12 +526,23 @@
 <li>单任务耗时是否变长。</li>
 </ul>
 <p>如果队列持续增长，不要只加线程。要确认瓶颈是数据库、外部接口、锁等待还是代码慢。</p>
+<h2 id="容量估算"><a href="#容量估算" class="headerlink" title="容量估算"></a>容量估算</h2><p>线程池参数要从业务容量倒推，而不是凭经验随手写。以订单履约为例：</p>
+<ol>
+<li>单个履约任务平均耗时 200ms。</li>
+<li>其中 150ms 在等待数据库、库存服务、WMS 或 TMS。</li>
+<li>目标吞吐是每秒 80 单。</li>
+</ol>
+<p>粗略估算并发数：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">并发数 = 目标吞吐 * 平均耗时</span><br><span class="line">      = 80 * 0.2</span><br><span class="line">      = 16</span><br></pre></td></tr></table></figure>
+
+<p>所以核心线程数可以从 16 附近开始压测，再结合 CPU、数据库连接池、WMS 限流和错误率调整。队列大小也要有业务含义，例如最多允许堆积 1000 单，超过后让调用方降级、延迟重试或进入消息队列，而不是无限排队。</p>
+<p>线程池调优的目标是稳定吞吐，不是把线程数调到最大。高峰期如果队列持续上涨，说明系统消费能力不足，需要扩容、拆批、限流或优化单任务耗时。</p>
 <h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>线程池的作用是稳定地控制并发，而不是无上限地提高并发。供应链系统中，线程池适合订单履约、库存同步、物流轨迹拉取等后台任务。设计时要使用有界队列、明确拒绝策略、处理任务异常、保证业务幂等，并持续监控线程池运行状态。</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2022/05/16/Java%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E6%88%98%EF%BC%9A%E8%AE%A2%E5%8D%95%E5%B1%A5%E7%BA%A6%E4%BB%BB%E5%8A%A1%E5%A6%82%E4%BD%95%E7%A8%B3%E5%AE%9A%E6%8F%90%E5%90%9E%E5%90%90/" data-id="cuidNM0fhPS2BcKxLb8U_bFjS" class="article-share-link">Share</a>
+      <a data-url="https://guxingxianyue.github.io/2022/05/16/Java%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E6%88%98%EF%BC%9A%E8%AE%A2%E5%8D%95%E5%B1%A5%E7%BA%A6%E4%BB%BB%E5%8A%A1%E5%A6%82%E4%BD%95%E7%A8%B3%E5%AE%9A%E6%8F%90%E5%90%9E%E5%90%90/" data-id="cuidkhNxfQKVBOzpwnyt2yKnF" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ThreadPoolExecutor/" rel="tag">ThreadPoolExecutor</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F/" rel="tag">供应链系统</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%BA%BF%E7%A8%8B%E6%B1%A0/" rel="tag">线程池</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E8%AE%A2%E5%8D%95%E5%B1%A5%E7%BA%A6/" rel="tag">订单履约</a></li></ul>
@@ -523,6 +577,7 @@
     <div class="article-entry" itemprop="articleBody">
       
         <p>Java 多线程的核心问题可以归纳为三类：原子性、可见性、有序性。Java 内存模型，也就是 JMM，定义了线程之间如何看见彼此的写入，以及哪些同步动作能建立 happens-before 关系。供应链系统里，库存同步、价格缓存、仓库配置刷新都离不开这些基础。</p>
+<h2 id="可见性和互斥流程"><a href="#可见性和互斥流程" class="headerlink" title="可见性和互斥流程"></a>可见性和互斥流程</h2><p><img src="/images/tech-flowcharts/jmm-visibility-lock-flow.svg" alt="JMM 可见性和锁边界流程"></p>
 <h2 id="可见性问题"><a href="#可见性问题" class="headerlink" title="可见性问题"></a>可见性问题</h2><p>库存同步任务通常有一个停止标志：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">InventorySyncJob</span> <span class="keyword">implements</span> <span class="title class_">Runnable</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="type">boolean</span> <span class="variable">running</span> <span class="operator">=</span> <span class="literal">true</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">stop</span><span class="params">()</span> &#123;</span><br><span class="line">        running = <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">run</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">while</span> (running) &#123;</span><br><span class="line">            syncOnce();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
@@ -552,12 +607,24 @@
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span> scm_inventory</span><br><span class="line"><span class="keyword">SET</span> available_qty <span class="operator">=</span> available_qty <span class="operator">-</span> #&#123;qty&#125;,</span><br><span class="line">    locked_qty <span class="operator">=</span> locked_qty <span class="operator">+</span> #&#123;qty&#125;</span><br><span class="line"><span class="keyword">WHERE</span> warehouse_id <span class="operator">=</span> #&#123;warehouseId&#125;</span><br><span class="line">  <span class="keyword">AND</span> sku_id <span class="operator">=</span> #&#123;skuId&#125;</span><br><span class="line">  <span class="keyword">AND</span> available_qty <span class="operator">&gt;=</span> #&#123;qty&#125;;</span><br></pre></td></tr></table></figure>
 
 <p>Java 锁适合保护本地缓存、内存队列、对象状态；数据库事务和行锁负责保护最终业务数据。</p>
+<h2 id="happens-before-怎么理解"><a href="#happens-before-怎么理解" class="headerlink" title="happens-before 怎么理解"></a>happens-before 怎么理解</h2><p>JMM 里最实用的判断工具是 happens-before。它不是描述时间先后，而是描述一个线程的写入是否对另一个线程可见。</p>
+<p>常见规则包括：</p>
+<ol>
+<li>对一个 <code>volatile</code> 变量的写，happens-before 后续对这个变量的读。</li>
+<li>对一个锁的解锁，happens-before 后续对同一把锁的加锁。</li>
+<li>线程 <code>start()</code> 之前的操作，happens-before 新线程中的操作。</li>
+<li>一个线程中的操作，按程序顺序 happens-before 后续操作。</li>
+</ol>
+<p>例如库存规则缓存刷新时，可以使用整体替换引用：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">InventoryRuleHolder</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">volatile</span> <span class="type">InventoryRuleSnapshot</span> <span class="variable">snapshot</span> <span class="operator">=</span> InventoryRuleSnapshot.empty();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">refresh</span><span class="params">()</span> &#123;</span><br><span class="line">        snapshot = inventoryRuleRepository.loadSnapshot();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> InventoryRuleSnapshot <span class="title function_">current</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> snapshot;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里 <code>volatile</code> 保证查询线程能看到新的快照引用。但快照对象本身应该是不可变的，否则引用可见不代表内部集合并发修改安全。</p>
 <h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>JMM 是理解 Java 多线程的基础。<code>volatile</code> 解决可见性和有序性，不解决复合操作原子性；<code>synchronized</code> 解决单 JVM 内共享状态的互斥；数据库锁解决跨实例的业务数据一致性。供应链系统里要明确每把锁保护的对象，不能用本地锁替代数据库并发控制。</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2022/05/10/Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E4%B8%8E%E9%94%81%EF%BC%9A%E5%BA%93%E5%AD%98%E5%90%8C%E6%AD%A5%E4%B8%AD%E7%9A%84%E5%8F%AF%E8%A7%81%E6%80%A7%E5%92%8C%E4%BA%92%E6%96%A5/" data-id="cuidUxQ4r8_DNj36a6RRISFEq" class="article-share-link">Share</a>
+      <a data-url="https://guxingxianyue.github.io/2022/05/10/Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E4%B8%8E%E9%94%81%EF%BC%9A%E5%BA%93%E5%AD%98%E5%90%8C%E6%AD%A5%E4%B8%AD%E7%9A%84%E5%8F%AF%E8%A7%81%E6%80%A7%E5%92%8C%E4%BA%92%E6%96%A5/" data-id="cuidFwJElwtQW6Cx4vjFgzuD-" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JMM/" rel="tag">JMM</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/synchronized/" rel="tag">synchronized</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/volatile/" rel="tag">volatile</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F/" rel="tag">供应链系统</a></li></ul>

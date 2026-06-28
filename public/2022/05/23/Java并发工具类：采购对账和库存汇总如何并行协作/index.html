@@ -5,15 +5,16 @@
   
   <title>Java并发工具类：采购对账和库存汇总如何并行协作 | 陈金星写字的地方</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="Java 并发工具类解决的是线程之间的协作问题。供应链系统里，很多流程不是简单加锁，而是多个任务并行执行后汇总结果，或者限制同时访问某个下游系统的并发量。常用工具包括 CountDownLatch、Semaphore、CompletableFuture。 CountDownLatch：等待多个任务完成采购对账时，需要同时加载三类数据：  采购入库单。 供应商发票。 付款记录。  三类数据查询互不依">
+  <meta name="description" content="Java 并发工具类解决的是线程之间的协作问题。供应链系统里，很多流程不是简单加锁，而是多个任务并行执行后汇总结果，或者限制同时访问某个下游系统的并发量。常用工具包括 CountDownLatch、Semaphore、CompletableFuture。 工具选择流程 CountDownLatch：等待多个任务完成采购对账时，需要同时加载三类数据：  采购入库单。 供应商发票。 付款记录。  三类">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Java并发工具类：采购对账和库存汇总如何并行协作">
 <meta property="og:url" content="https://guxingxianyue.github.io/2022/05/23/Java%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB%EF%BC%9A%E9%87%87%E8%B4%AD%E5%AF%B9%E8%B4%A6%E5%92%8C%E5%BA%93%E5%AD%98%E6%B1%87%E6%80%BB%E5%A6%82%E4%BD%95%E5%B9%B6%E8%A1%8C%E5%8D%8F%E4%BD%9C/index.html">
 <meta property="og:site_name" content="陈金星写字的地方">
-<meta property="og:description" content="Java 并发工具类解决的是线程之间的协作问题。供应链系统里，很多流程不是简单加锁，而是多个任务并行执行后汇总结果，或者限制同时访问某个下游系统的并发量。常用工具包括 CountDownLatch、Semaphore、CompletableFuture。 CountDownLatch：等待多个任务完成采购对账时，需要同时加载三类数据：  采购入库单。 供应商发票。 付款记录。  三类数据查询互不依">
+<meta property="og:description" content="Java 并发工具类解决的是线程之间的协作问题。供应链系统里，很多流程不是简单加锁，而是多个任务并行执行后汇总结果，或者限制同时访问某个下游系统的并发量。常用工具包括 CountDownLatch、Semaphore、CompletableFuture。 工具选择流程 CountDownLatch：等待多个任务完成采购对账时，需要同时加载三类数据：  采购入库单。 供应商发票。 付款记录。  三类">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://guxingxianyue.github.io/images/tech-flowcharts/concurrency-tools-selection-flow.svg">
 <meta property="article:published_time" content="2022-05-23T01:50:00.000Z">
-<meta property="article:modified_time" content="2026-06-27T14:15:35.614Z">
+<meta property="article:modified_time" content="2026-06-28T08:15:55.102Z">
 <meta property="article:author" content="Jinxing Chen">
 <meta property="article:tag" content="CompletableFuture">
 <meta property="article:tag" content="CountDownLatch">
@@ -21,6 +22,7 @@
 <meta property="article:tag" content="Semaphore">
 <meta property="article:tag" content="供应链系统">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://guxingxianyue.github.io/images/tech-flowcharts/concurrency-tools-selection-flow.svg">
   
     <link rel="alternative" href="/atom.xml" title="陈金星写字的地方" type="application/atom+xml">
   
@@ -93,6 +95,7 @@
     <div class="article-entry" itemprop="articleBody">
       
         <p>Java 并发工具类解决的是线程之间的协作问题。供应链系统里，很多流程不是简单加锁，而是多个任务并行执行后汇总结果，或者限制同时访问某个下游系统的并发量。常用工具包括 <code>CountDownLatch</code>、<code>Semaphore</code>、<code>CompletableFuture</code>。</p>
+<h2 id="工具选择流程"><a href="#工具选择流程" class="headerlink" title="工具选择流程"></a>工具选择流程</h2><p><img src="/images/tech-flowcharts/concurrency-tools-selection-flow.svg" alt="Java 并发工具选择流程"></p>
 <h2 id="CountDownLatch：等待多个任务完成"><a href="#CountDownLatch：等待多个任务完成" class="headerlink" title="CountDownLatch：等待多个任务完成"></a>CountDownLatch：等待多个任务完成</h2><p>采购对账时，需要同时加载三类数据：</p>
 <ul>
 <li>采购入库单。</li>
@@ -115,12 +118,43 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">CompletableFuture&lt;TrackInfo&gt; trackFuture =</span><br><span class="line">    CompletableFuture</span><br><span class="line">        .supplyAsync(() -&gt; trackService.queryByOrder(orderId), executor)</span><br><span class="line">        .exceptionally(e -&gt; TrackInfo.empty(<span class="string">&quot;物流轨迹暂不可用&quot;</span>));</span><br></pre></td></tr></table></figure>
 
 <p>供应链系统的详情页通常允许部分信息降级，比如物流轨迹临时失败不应该导致整个订单详情不可用。但结算、扣库存这类核心流程不能随意吞异常。</p>
+<h2 id="选择建议"><a href="#选择建议" class="headerlink" title="选择建议"></a>选择建议</h2><p>不同工具适合不同问题：</p>
+<table>
+<thead>
+<tr>
+<th>工具</th>
+<th>解决的问题</th>
+<th>供应链例子</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>CountDownLatch</code></td>
+<td>等待多个任务全部完成</td>
+<td>采购对账同时加载入库单、发票、付款记录</td>
+</tr>
+<tr>
+<td><code>Semaphore</code></td>
+<td>控制同时访问数量</td>
+<td>限制承运商轨迹接口并发</td>
+</tr>
+<tr>
+<td><code>CompletableFuture</code></td>
+<td>异步编排和结果聚合</td>
+<td>订单详情并行查询库存、物流、财务</td>
+</tr>
+<tr>
+<td><code>BlockingQueue</code></td>
+<td>生产者消费者</td>
+<td>仓储波次任务排队处理</td>
+</tr>
+</tbody></table>
+<p>选择工具时先描述线程之间的关系：是等待、限流、结果组合，还是任务排队。关系清楚了，工具选择通常就清楚了。不要为了使用高级 API 而把简单流程写复杂。</p>
 <h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>并发工具类的价值是让线程协作更清晰。<code>CountDownLatch</code> 适合等待多个并行任务完成；<code>Semaphore</code> 适合限制下游并发；<code>CompletableFuture</code> 适合异步任务编排。供应链系统使用这些工具时，必须区分查询类流程和交易类流程：查询可以并行和降级，交易必须保证状态一致、异常可追踪。</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2022/05/23/Java%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB%EF%BC%9A%E9%87%87%E8%B4%AD%E5%AF%B9%E8%B4%A6%E5%92%8C%E5%BA%93%E5%AD%98%E6%B1%87%E6%80%BB%E5%A6%82%E4%BD%95%E5%B9%B6%E8%A1%8C%E5%8D%8F%E4%BD%9C/" data-id="cuidKcoePnLZPX8Ek5NjYkQex" class="article-share-link">Share</a>
+      <a data-url="https://guxingxianyue.github.io/2022/05/23/Java%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%E7%B1%BB%EF%BC%9A%E9%87%87%E8%B4%AD%E5%AF%B9%E8%B4%A6%E5%92%8C%E5%BA%93%E5%AD%98%E6%B1%87%E6%80%BB%E5%A6%82%E4%BD%95%E5%B9%B6%E8%A1%8C%E5%8D%8F%E4%BD%9C/" data-id="cuidg3AkUlW9_9e16oysvioLx" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CompletableFuture/" rel="tag">CompletableFuture</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CountDownLatch/" rel="tag">CountDownLatch</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Semaphore/" rel="tag">Semaphore</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F/" rel="tag">供应链系统</a></li></ul>

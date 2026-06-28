@@ -5,15 +5,16 @@
   
   <title>Java线程池实战：订单履约任务如何稳定提吞吐 | 陈金星写字的地方</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="线程池是 Java 多线程在业务系统中最常用的落地方式。它解决两个问题：复用线程，减少创建销毁成本；限制并发，避免请求无限堆积压垮系统。供应链系统里的订单履约、库存同步、物流轨迹拉取、报表生成，都应该用线程池管理并发。 不要无限创建线程错误示例： 123for (Long orderId : orderIds) &#123;    new Thread(() -&gt; fulfillmentSe">
+  <meta name="description" content="线程池是 Java 多线程在业务系统中最常用的落地方式。它解决两个问题：复用线程，减少创建销毁成本；限制并发，避免请求无限堆积压垮系统。供应链系统里的订单履约、库存同步、物流轨迹拉取、报表生成，都应该用线程池管理并发。 履约线程池流程 不要无限创建线程错误示例： 123for (Long orderId : orderIds) &#123;    new Thread(() -&gt; fulfi">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Java线程池实战：订单履约任务如何稳定提吞吐">
 <meta property="og:url" content="https://guxingxianyue.github.io/2022/05/16/Java%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E6%88%98%EF%BC%9A%E8%AE%A2%E5%8D%95%E5%B1%A5%E7%BA%A6%E4%BB%BB%E5%8A%A1%E5%A6%82%E4%BD%95%E7%A8%B3%E5%AE%9A%E6%8F%90%E5%90%9E%E5%90%90/index.html">
 <meta property="og:site_name" content="陈金星写字的地方">
-<meta property="og:description" content="线程池是 Java 多线程在业务系统中最常用的落地方式。它解决两个问题：复用线程，减少创建销毁成本；限制并发，避免请求无限堆积压垮系统。供应链系统里的订单履约、库存同步、物流轨迹拉取、报表生成，都应该用线程池管理并发。 不要无限创建线程错误示例： 123for (Long orderId : orderIds) &#123;    new Thread(() -&gt; fulfillmentSe">
+<meta property="og:description" content="线程池是 Java 多线程在业务系统中最常用的落地方式。它解决两个问题：复用线程，减少创建销毁成本；限制并发，避免请求无限堆积压垮系统。供应链系统里的订单履约、库存同步、物流轨迹拉取、报表生成，都应该用线程池管理并发。 履约线程池流程 不要无限创建线程错误示例： 123for (Long orderId : orderIds) &#123;    new Thread(() -&gt; fulfi">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://guxingxianyue.github.io/images/tech-flowcharts/thread-pool-fulfillment-flow.svg">
 <meta property="article:published_time" content="2022-05-16T02:00:00.000Z">
-<meta property="article:modified_time" content="2026-06-27T14:15:35.614Z">
+<meta property="article:modified_time" content="2026-06-28T08:15:55.102Z">
 <meta property="article:author" content="Jinxing Chen">
 <meta property="article:tag" content="Java">
 <meta property="article:tag" content="ThreadPoolExecutor">
@@ -21,6 +22,7 @@
 <meta property="article:tag" content="线程池">
 <meta property="article:tag" content="订单履约">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://guxingxianyue.github.io/images/tech-flowcharts/thread-pool-fulfillment-flow.svg">
   
     <link rel="alternative" href="/atom.xml" title="陈金星写字的地方" type="application/atom+xml">
   
@@ -93,6 +95,7 @@
     <div class="article-entry" itemprop="articleBody">
       
         <p>线程池是 Java 多线程在业务系统中最常用的落地方式。它解决两个问题：复用线程，减少创建销毁成本；限制并发，避免请求无限堆积压垮系统。供应链系统里的订单履约、库存同步、物流轨迹拉取、报表生成，都应该用线程池管理并发。</p>
+<h2 id="履约线程池流程"><a href="#履约线程池流程" class="headerlink" title="履约线程池流程"></a>履约线程池流程</h2><p><img src="/images/tech-flowcharts/thread-pool-fulfillment-flow.svg" alt="订单履约线程池流程"></p>
 <h2 id="不要无限创建线程"><a href="#不要无限创建线程" class="headerlink" title="不要无限创建线程"></a>不要无限创建线程</h2><p>错误示例：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (Long orderId : orderIds) &#123;</span><br><span class="line">    <span class="keyword">new</span> <span class="title class_">Thread</span>(() -&gt; fulfillmentService.fulfill(orderId)).start();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
@@ -141,12 +144,23 @@
 <li>单任务耗时是否变长。</li>
 </ul>
 <p>如果队列持续增长，不要只加线程。要确认瓶颈是数据库、外部接口、锁等待还是代码慢。</p>
+<h2 id="容量估算"><a href="#容量估算" class="headerlink" title="容量估算"></a>容量估算</h2><p>线程池参数要从业务容量倒推，而不是凭经验随手写。以订单履约为例：</p>
+<ol>
+<li>单个履约任务平均耗时 200ms。</li>
+<li>其中 150ms 在等待数据库、库存服务、WMS 或 TMS。</li>
+<li>目标吞吐是每秒 80 单。</li>
+</ol>
+<p>粗略估算并发数：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">并发数 = 目标吞吐 * 平均耗时</span><br><span class="line">      = 80 * 0.2</span><br><span class="line">      = 16</span><br></pre></td></tr></table></figure>
+
+<p>所以核心线程数可以从 16 附近开始压测，再结合 CPU、数据库连接池、WMS 限流和错误率调整。队列大小也要有业务含义，例如最多允许堆积 1000 单，超过后让调用方降级、延迟重试或进入消息队列，而不是无限排队。</p>
+<p>线程池调优的目标是稳定吞吐，不是把线程数调到最大。高峰期如果队列持续上涨，说明系统消费能力不足，需要扩容、拆批、限流或优化单任务耗时。</p>
 <h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>线程池的作用是稳定地控制并发，而不是无上限地提高并发。供应链系统中，线程池适合订单履约、库存同步、物流轨迹拉取等后台任务。设计时要使用有界队列、明确拒绝策略、处理任务异常、保证业务幂等，并持续监控线程池运行状态。</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2022/05/16/Java%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E6%88%98%EF%BC%9A%E8%AE%A2%E5%8D%95%E5%B1%A5%E7%BA%A6%E4%BB%BB%E5%8A%A1%E5%A6%82%E4%BD%95%E7%A8%B3%E5%AE%9A%E6%8F%90%E5%90%9E%E5%90%90/" data-id="cuidNM0fhPS2BcKxLb8U_bFjS" class="article-share-link">Share</a>
+      <a data-url="https://guxingxianyue.github.io/2022/05/16/Java%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%AE%9E%E6%88%98%EF%BC%9A%E8%AE%A2%E5%8D%95%E5%B1%A5%E7%BA%A6%E4%BB%BB%E5%8A%A1%E5%A6%82%E4%BD%95%E7%A8%B3%E5%AE%9A%E6%8F%90%E5%90%9E%E5%90%90/" data-id="cuidkhNxfQKVBOzpwnyt2yKnF" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ThreadPoolExecutor/" rel="tag">ThreadPoolExecutor</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F/" rel="tag">供应链系统</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%BA%BF%E7%A8%8B%E6%B1%A0/" rel="tag">线程池</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E8%AE%A2%E5%8D%95%E5%B1%A5%E7%BA%A6/" rel="tag">订单履约</a></li></ul>

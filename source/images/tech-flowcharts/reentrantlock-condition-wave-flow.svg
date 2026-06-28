@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="420" viewBox="0 0 980 420" role="img" aria-labelledby="title desc">
+  <title id="title">ReentrantLock 和 Condition 波次队列流程</title>
+  <desc id="desc">波次生成线程和拣货工作线程通过 ReentrantLock、notFull、notEmpty 协作。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#92400e"/>
+    </marker>
+    <style>
+      .box { fill: #fffbeb; stroke: #92400e; stroke-width: 2; rx: 8; }
+      .queue { fill: #ecfdf5; stroke: #047857; stroke-width: 2; rx: 8; }
+      .text { font-family: Arial, "PingFang SC", "Microsoft YaHei", sans-serif; font-size: 17px; fill: #451a03; }
+      .sub { font-size: 13px; fill: #57534e; }
+      .line { stroke: #92400e; stroke-width: 2.4; fill: none; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect x="55" y="95" width="170" height="75" class="box"/>
+  <text x="140" y="126" text-anchor="middle" class="text">波次生成线程</text>
+  <text x="140" y="150" text-anchor="middle" class="sub">put(wave)</text>
+  <path d="M 225 132 H 310" class="line"/>
+  <rect x="325" y="95" width="160" height="75" class="box"/>
+  <text x="405" y="126" text-anchor="middle" class="text">notFull</text>
+  <text x="405" y="150" text-anchor="middle" class="sub">队列满则等待</text>
+  <path d="M 485 132 H 570" class="line"/>
+  <rect x="585" y="95" width="160" height="75" class="queue"/>
+  <text x="665" y="126" text-anchor="middle" class="text">波次队列</text>
+  <text x="665" y="150" text-anchor="middle" class="sub">受 lock 保护</text>
+  <path d="M 665 170 V 245" class="line"/>
+  <rect x="585" y="245" width="160" height="75" class="box"/>
+  <text x="665" y="276" text-anchor="middle" class="text">notEmpty</text>
+  <text x="665" y="300" text-anchor="middle" class="sub">队列空则等待</text>
+  <path d="M 585 282 H 500" class="line"/>
+  <rect x="315" y="245" width="170" height="75" class="box"/>
+  <text x="400" y="276" text-anchor="middle" class="text">拣货工作线程</text>
+  <text x="400" y="300" text-anchor="middle" class="sub">take(wave)</text>
+  <rect x="785" y="165" width="145" height="80" class="queue"/>
+  <text x="857" y="198" text-anchor="middle" class="text">数据库状态机</text>
+  <text x="857" y="222" text-anchor="middle" class="sub">防重复处理</text>
+  <path d="M 745 132 C 790 140, 820 150, 845 165" class="line"/>
+</svg>

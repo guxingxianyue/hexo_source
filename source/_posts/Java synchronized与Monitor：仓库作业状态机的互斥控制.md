@@ -8,6 +8,10 @@ tags: [Java, synchronized, Monitor, 并发编程, 仓储系统]
 
 需要先明确边界：`synchronized` 只在当前 JVM 内有效。如果系统部署了多个实例，它不能保护数据库里的订单或库存。跨实例一致性仍然要依赖数据库锁、唯一约束、分布式锁或消息幂等。
 
+## Monitor 互斥流程
+
+![synchronized 与 Monitor 互斥流程](/images/tech-flowcharts/synchronized-monitor-state-flow.svg)
+
 ## 仓库作业状态机例子
 
 仓库作业单可能有这些状态：
@@ -180,4 +184,3 @@ Java 的 `synchronized` 只适合保护当前实例内的辅助状态，比如�
 ## 小结
 
 `synchronized` 的优点是简单、语义清晰、异常退出自动释放锁。它适合小范围、短时间、单 JVM 内的互斥。供应链系统使用它时，必须控制锁对象、缩小锁范围、避免锁住远程调用，并明确它不能替代数据库并发控制。
-

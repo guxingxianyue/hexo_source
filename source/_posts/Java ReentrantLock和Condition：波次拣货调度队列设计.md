@@ -8,6 +8,10 @@ tags: [Java, ReentrantLock, Condition, 并发队列, 仓储系统]
 
 在供应链仓储系统里，波次拣货是一个很适合解释 `ReentrantLock` 的场景。订单进入仓库后，系统会把多个订单合并成拣货波次。波次生成线程负责投放任务，拣货线程负责消费任务。如果没有合适的等待和唤醒机制，要么线程空转浪费 CPU，要么任务延迟处理。
 
+## 波次队列协作流程
+
+![ReentrantLock 和 Condition 波次队列流程](/images/tech-flowcharts/reentrantlock-condition-wave-flow.svg)
+
 ## 一个波次队列
 
 需求如下：
@@ -145,4 +149,3 @@ public void process(PickWave wave) {
 ## 小结
 
 `ReentrantLock` 适合需要超时、可中断、多个等待条件的并发控制。供应链系统里的波次队列、任务调度、仓库计划重算都能用它解释。但真实项目中，能用成熟并发容器就先用并发容器；数据库状态变更必须继续依赖条件更新，不能只靠 JVM 锁。
-

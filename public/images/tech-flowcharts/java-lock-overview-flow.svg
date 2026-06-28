@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="420" viewBox="0 0 980 420" role="img" aria-labelledby="title desc">
+  <title id="title">Java 锁选择流程</title>
+  <desc id="desc">根据共享状态、等待条件、读写比例和跨实例一致性选择 Java 锁或数据库锁。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#4c1d95"/>
+    </marker>
+    <style>
+      .box { fill: #f5f3ff; stroke: #4c1d95; stroke-width: 2; rx: 8; }
+      .db { fill: #ecfdf5; stroke: #047857; stroke-width: 2; rx: 8; }
+      .warn { fill: #fff7ed; stroke: #c2410c; stroke-width: 2; rx: 8; }
+      .text { font-family: Arial, "PingFang SC", "Microsoft YaHei", sans-serif; font-size: 17px; fill: #2e1065; }
+      .sub { font-size: 13px; fill: #4b5563; }
+      .line { stroke: #4c1d95; stroke-width: 2.4; fill: none; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect x="40" y="170" width="150" height="80" class="box"/>
+  <text x="115" y="202" text-anchor="middle" class="text">共享状态</text>
+  <text x="115" y="226" text-anchor="middle" class="sub">先确认保护对象</text>
+  <path d="M 190 210 H 280" class="line"/>
+  <rect x="295" y="55" width="180" height="75" class="box"/>
+  <text x="385" y="86" text-anchor="middle" class="text">简单互斥</text>
+  <text x="385" y="110" text-anchor="middle" class="sub">synchronized</text>
+  <rect x="295" y="150" width="180" height="75" class="box"/>
+  <text x="385" y="181" text-anchor="middle" class="text">条件等待</text>
+  <text x="385" y="205" text-anchor="middle" class="sub">ReentrantLock + Condition</text>
+  <rect x="295" y="245" width="180" height="75" class="box"/>
+  <text x="385" y="276" text-anchor="middle" class="text">读多写少</text>
+  <text x="385" y="300" text-anchor="middle" class="sub">ReadWriteLock</text>
+  <rect x="295" y="340" width="180" height="60" class="box"/>
+  <text x="385" y="365" text-anchor="middle" class="text">计数和引用</text>
+  <text x="385" y="386" text-anchor="middle" class="sub">Atomic / LongAdder</text>
+  <path d="M 475 190 H 580" class="line"/>
+  <rect x="595" y="155" width="160" height="80" class="warn"/>
+  <text x="675" y="187" text-anchor="middle" class="text">单 JVM 有效</text>
+  <text x="675" y="211" text-anchor="middle" class="sub">本地缓存、队列</text>
+  <path d="M 755 195 H 825" class="line"/>
+  <rect x="840" y="155" width="110" height="80" class="db"/>
+  <text x="895" y="187" text-anchor="middle" class="text">跨实例数据</text>
+  <text x="895" y="211" text-anchor="middle" class="sub">数据库锁</text>
+</svg>

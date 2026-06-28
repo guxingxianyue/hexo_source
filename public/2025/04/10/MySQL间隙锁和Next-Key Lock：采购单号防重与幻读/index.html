@@ -12,8 +12,9 @@
 <meta property="og:site_name" content="陈金星写字的地方">
 <meta property="og:description" content="间隙锁是 MySQL 锁体系里最容易让人困惑的一类锁。它锁的不是已经存在的记录，而是索引记录之间的“空隙”。在 InnoDB 的可重复读隔离级别下，间隙锁和 Next-Key Lock 用来阻止其他事务在某个范围内插入新记录，从而避免当前读场景下的幻读。 供应链系统里，采购单号、入库批次号、结算期间号这类数据经常要求“范围内唯一”或“按规则递增”。如果只检查已有记录，不理解间隙锁，就很容易在高并发">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://guxingxianyue.github.io/images/tech-flowcharts/mysql-next-key-phantom-flow.svg">
 <meta property="article:published_time" content="2025-04-10T01:45:00.000Z">
-<meta property="article:modified_time" content="2026-06-27T06:48:55.386Z">
+<meta property="article:modified_time" content="2026-06-28T08:20:50.383Z">
 <meta property="article:author" content="Jinxing Chen">
 <meta property="article:tag" content="MySQL">
 <meta property="article:tag" content="Next-Key Lock">
@@ -21,6 +22,7 @@
 <meta property="article:tag" content="采购系统">
 <meta property="article:tag" content="间隙锁">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://guxingxianyue.github.io/images/tech-flowcharts/mysql-next-key-phantom-flow.svg">
   
     <link rel="alternative" href="/atom.xml" title="陈金星写字的地方" type="application/atom+xml">
   
@@ -94,6 +96,7 @@
       
         <p>间隙锁是 MySQL 锁体系里最容易让人困惑的一类锁。它锁的不是已经存在的记录，而是索引记录之间的“空隙”。在 InnoDB 的可重复读隔离级别下，间隙锁和 Next-Key Lock 用来阻止其他事务在某个范围内插入新记录，从而避免当前读场景下的幻读。</p>
 <p>供应链系统里，采购单号、入库批次号、结算期间号这类数据经常要求“范围内唯一”或“按规则递增”。如果只检查已有记录，不理解间隙锁，就很容易在高并发下出现重复单号或范围判断不一致。</p>
+<h2 id="间隙锁和防重流程"><a href="#间隙锁和防重流程" class="headerlink" title="间隙锁和防重流程"></a>间隙锁和防重流程</h2><p><img src="/images/tech-flowcharts/mysql-next-key-phantom-flow.svg" alt="MySQL 间隙锁和 Next-Key Lock 流程"></p>
 <h2 id="什么是幻读"><a href="#什么是幻读" class="headerlink" title="什么是幻读"></a>什么是幻读</h2><p>假设采购系统要求同一个供应商在同一天不能创建重复外部单号：</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE TABLE</span> scm_purchase_order (</span><br><span class="line">  id <span class="type">BIGINT</span> <span class="keyword">PRIMARY KEY</span> AUTO_INCREMENT,</span><br><span class="line">  supplier_id <span class="type">BIGINT</span> <span class="keyword">NOT NULL</span>,</span><br><span class="line">  external_no <span class="type">VARCHAR</span>(<span class="number">64</span>) <span class="keyword">NOT NULL</span>,</span><br><span class="line">  order_date <span class="type">DATE</span> <span class="keyword">NOT NULL</span>,</span><br><span class="line">  status <span class="type">VARCHAR</span>(<span class="number">32</span>) <span class="keyword">NOT NULL</span>,</span><br><span class="line">  KEY idx_supplier_date_no (supplier_id, order_date, external_no)</span><br><span class="line">) ENGINE<span class="operator">=</span>InnoDB;</span><br></pre></td></tr></table></figure>
 
@@ -146,7 +149,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2025/04/10/MySQL%E9%97%B4%E9%9A%99%E9%94%81%E5%92%8CNext-Key%20Lock%EF%BC%9A%E9%87%87%E8%B4%AD%E5%8D%95%E5%8F%B7%E9%98%B2%E9%87%8D%E4%B8%8E%E5%B9%BB%E8%AF%BB/" data-id="cuidTYN1Z1foX37_8p6EgZCtj" class="article-share-link">Share</a>
+      <a data-url="https://guxingxianyue.github.io/2025/04/10/MySQL%E9%97%B4%E9%9A%99%E9%94%81%E5%92%8CNext-Key%20Lock%EF%BC%9A%E9%87%87%E8%B4%AD%E5%8D%95%E5%8F%B7%E9%98%B2%E9%87%8D%E4%B8%8E%E5%B9%BB%E8%AF%BB/" data-id="cuidOc2CPE4MftY80Y7nCjrRA" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Next-Key-Lock/" rel="tag">Next-Key Lock</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%B9%BB%E8%AF%BB/" rel="tag">幻读</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%87%87%E8%B4%AD%E7%B3%BB%E7%BB%9F/" rel="tag">采购系统</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%97%B4%E9%9A%99%E9%94%81/" rel="tag">间隙锁</a></li></ul>

@@ -6,6 +6,10 @@ tags: [Java, ConcurrentHashMap, BlockingQueue, CAS, 死锁, 仓储系统]
 
 Java 多线程最终要落到数据结构和排查能力上。供应链系统里，仓储任务调度、库存缓存、波次队列、接口指标都会用到并发集合和原子类。选择正确的数据结构，可以减少手写锁；具备排查能力，才能在线上出现卡顿时定位问题。
 
+## 数据结构和排查流程
+
+![并发集合和线程排查流程](/images/tech-flowcharts/concurrent-collections-troubleshooting-flow.svg)
+
 ## ConcurrentHashMap：本地任务状态缓存
 
 仓储系统可能需要缓存正在处理的上架任务，避免同一个任务在当前实例内重复提交：
@@ -183,7 +187,18 @@ thread -b
 
 重点看线程是否大量 `BLOCKED`，以及堆栈里等待的是哪把锁。
 
+## 线上排查顺序
+
+仓储任务卡顿时，可以按这个顺序排查：
+
+1. 看线程池：活跃线程数、队列长度、拒绝次数是否异常。
+2. 看线程状态：`jstack` 或 Arthas `thread` 查看是否大量 `BLOCKED`、`WAITING`。
+3. 看锁对象：定位堆栈里等待的是 Java 对象锁、数据库锁，还是队列阻塞。
+4. 看业务状态：仓储任务是否卡在同一个波次、库位、SKU 或外部 WMS 调用。
+5. 看数据一致性：确认任务状态机是否允许重复执行、失败重试和人工恢复。
+
+排查时不要只看到 `ConcurrentHashMap` 就认为线程安全已经解决。并发集合只能保证集合自身操作安全，不能自动保证“任务状态 + 数据库记录 + 外部调用”的业务一致性。
+
 ## 小结
 
 并发集合和原子类能减少手写锁，让并发代码更清晰。供应链系统里，`ConcurrentHashMap` 适合本地任务注册，`BlockingQueue` 适合生产者消费者，`CopyOnWriteArrayList` 适合读多写少规则，`AtomicReference` 适合配置快照替换。核心业务数据仍然要用数据库状态机和事务保护。线上卡顿时，要能用 `jstack`、Arthas 定位线程阻塞和死锁。
-

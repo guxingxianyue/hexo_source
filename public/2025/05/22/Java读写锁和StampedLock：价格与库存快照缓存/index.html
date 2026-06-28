@@ -5,15 +5,16 @@
   
   <title>Java读写锁和StampedLock：价格与库存快照缓存 | 陈金星写字的地方</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="读写锁适合读多写少的场景。供应链系统里有大量这种数据：商品基础资料、供应商等级、仓库配置、价格策略、库存快照。读请求频繁，写请求相对较少。如果用普通互斥锁，读读之间也会互相阻塞，吞吐会被压低。 ReentrantReadWriteLock 的规则是：读读共享，读写互斥，写写互斥。StampedLock 在此基础上提供乐观读，适合对性能要求更高但代码复杂度可控的场景。 价格策略缓存假设订单试算接口需">
+  <meta name="description" content="读写锁适合读多写少的场景。供应链系统里有大量这种数据：商品基础资料、供应商等级、仓库配置、价格策略、库存快照。读请求频繁，写请求相对较少。如果用普通互斥锁，读读之间也会互相阻塞，吞吐会被压低。 ReentrantReadWriteLock 的规则是：读读共享，读写互斥，写写互斥。StampedLock 在此基础上提供乐观读，适合对性能要求更高但代码复杂度可控的场景。 缓存读写流程 价格策略缓存假设">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Java读写锁和StampedLock：价格与库存快照缓存">
 <meta property="og:url" content="https://guxingxianyue.github.io/2025/05/22/Java%E8%AF%BB%E5%86%99%E9%94%81%E5%92%8CStampedLock%EF%BC%9A%E4%BB%B7%E6%A0%BC%E4%B8%8E%E5%BA%93%E5%AD%98%E5%BF%AB%E7%85%A7%E7%BC%93%E5%AD%98/index.html">
 <meta property="og:site_name" content="陈金星写字的地方">
-<meta property="og:description" content="读写锁适合读多写少的场景。供应链系统里有大量这种数据：商品基础资料、供应商等级、仓库配置、价格策略、库存快照。读请求频繁，写请求相对较少。如果用普通互斥锁，读读之间也会互相阻塞，吞吐会被压低。 ReentrantReadWriteLock 的规则是：读读共享，读写互斥，写写互斥。StampedLock 在此基础上提供乐观读，适合对性能要求更高但代码复杂度可控的场景。 价格策略缓存假设订单试算接口需">
+<meta property="og:description" content="读写锁适合读多写少的场景。供应链系统里有大量这种数据：商品基础资料、供应商等级、仓库配置、价格策略、库存快照。读请求频繁，写请求相对较少。如果用普通互斥锁，读读之间也会互相阻塞，吞吐会被压低。 ReentrantReadWriteLock 的规则是：读读共享，读写互斥，写写互斥。StampedLock 在此基础上提供乐观读，适合对性能要求更高但代码复杂度可控的场景。 缓存读写流程 价格策略缓存假设">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://guxingxianyue.github.io/images/tech-flowcharts/readwrite-stamped-cache-flow.svg">
 <meta property="article:published_time" content="2025-05-22T02:00:00.000Z">
-<meta property="article:modified_time" content="2026-06-27T06:51:15.750Z">
+<meta property="article:modified_time" content="2026-06-28T08:18:31.423Z">
 <meta property="article:author" content="Jinxing Chen">
 <meta property="article:tag" content="Java">
 <meta property="article:tag" content="ReadWriteLock">
@@ -21,6 +22,7 @@
 <meta property="article:tag" content="供应链系统">
 <meta property="article:tag" content="缓存">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://guxingxianyue.github.io/images/tech-flowcharts/readwrite-stamped-cache-flow.svg">
   
     <link rel="alternative" href="/atom.xml" title="陈金星写字的地方" type="application/atom+xml">
   
@@ -94,6 +96,7 @@
       
         <p>读写锁适合读多写少的场景。供应链系统里有大量这种数据：商品基础资料、供应商等级、仓库配置、价格策略、库存快照。读请求频繁，写请求相对较少。如果用普通互斥锁，读读之间也会互相阻塞，吞吐会被压低。</p>
 <p><code>ReentrantReadWriteLock</code> 的规则是：读读共享，读写互斥，写写互斥。<code>StampedLock</code> 在此基础上提供乐观读，适合对性能要求更高但代码复杂度可控的场景。</p>
+<h2 id="缓存读写流程"><a href="#缓存读写流程" class="headerlink" title="缓存读写流程"></a>缓存读写流程</h2><p><img src="/images/tech-flowcharts/readwrite-stamped-cache-flow.svg" alt="读写锁和 StampedLock 缓存流程"></p>
 <h2 id="价格策略缓存"><a href="#价格策略缓存" class="headerlink" title="价格策略缓存"></a>价格策略缓存</h2><p>假设订单试算接口需要频繁读取供应商价格策略：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">PricePolicyCache</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">ReentrantReadWriteLock</span> <span class="variable">rwLock</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ReentrantReadWriteLock</span>();</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">Lock</span> <span class="variable">readLock</span> <span class="operator">=</span> rwLock.readLock();</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">Lock</span> <span class="variable">writeLock</span> <span class="operator">=</span> rwLock.writeLock();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> Map&lt;Long, PricePolicy&gt; policies = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> PricePolicy <span class="title function_">get</span><span class="params">(<span class="type">long</span> supplierId)</span> &#123;</span><br><span class="line">        readLock.lock();</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> policies.get(supplierId);</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            readLock.unlock();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">refresh</span><span class="params">(Map&lt;Long, PricePolicy&gt; latest)</span> &#123;</span><br><span class="line">        writeLock.lock();</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            policies = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;(latest);</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            writeLock.unlock();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
@@ -114,12 +117,19 @@
 <p>乐观读适合写入很少的场景。如果写入频繁，乐观读经常验证失败，反而增加复杂度。</p>
 <h2 id="StampedLock-的注意点"><a href="#StampedLock-的注意点" class="headerlink" title="StampedLock 的注意点"></a>StampedLock 的注意点</h2><p><code>StampedLock</code> 不是可重入锁。同一线程重复获取写锁可能把自己卡住。它也不直接配合 <code>Condition</code>。因此它适合局部、简单、性能敏感的缓存或数值快照，不适合复杂业务流程锁。</p>
 <p>供应链系统里，仓库维度的实时库存核心数据不应该只靠本地 <code>StampedLock</code> 控制。因为多实例部署下，每个 JVM 都有自己的锁。它适合保护本地缓存视图，最终一致性仍然依赖数据库和消息刷新。</p>
+<h2 id="选择边界"><a href="#选择边界" class="headerlink" title="选择边界"></a>选择边界</h2><p>读写锁适合本地内存视图，不适合直接保护核心库存事实。可以这样区分：</p>
+<ol>
+<li>价格策略、仓库配置、库存展示快照：可以使用本地读写锁优化读取。</li>
+<li>库存可售量、订单扣减、付款状态：必须以数据库或库存服务为准。</li>
+<li>写入频率高的缓存：读写锁收益会下降，应该考虑分段、无锁快照或外部缓存。</li>
+<li>跨实例一致性：本地锁无效，需要数据库条件更新、消息顺序、幂等和版本控制。</li>
+</ol>
 <h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>读写锁适合读多写少的本地共享数据。供应链系统里的价格策略、仓库配置、库存快照缓存都可以使用。选择上，普通读多写少用 <code>ReentrantReadWriteLock</code>；极高频读取、低频刷新、逻辑简单时可以评估 <code>StampedLock</code>。不管使用哪种锁，都要避免返回可变对象，并明确它只保护单 JVM 内存。</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2025/05/22/Java%E8%AF%BB%E5%86%99%E9%94%81%E5%92%8CStampedLock%EF%BC%9A%E4%BB%B7%E6%A0%BC%E4%B8%8E%E5%BA%93%E5%AD%98%E5%BF%AB%E7%85%A7%E7%BC%93%E5%AD%98/" data-id="cuidx4FmX-JCBSwhN0kKG6vXH" class="article-share-link">Share</a>
+      <a data-url="https://guxingxianyue.github.io/2025/05/22/Java%E8%AF%BB%E5%86%99%E9%94%81%E5%92%8CStampedLock%EF%BC%9A%E4%BB%B7%E6%A0%BC%E4%B8%8E%E5%BA%93%E5%AD%98%E5%BF%AB%E7%85%A7%E7%BC%93%E5%AD%98/" data-id="cuidpbNAui_IBN8XkPOgSvfR_" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ReadWriteLock/" rel="tag">ReadWriteLock</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/StampedLock/" rel="tag">StampedLock</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F/" rel="tag">供应链系统</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%BC%93%E5%AD%98/" rel="tag">缓存</a></li></ul>

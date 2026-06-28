@@ -5,15 +5,16 @@
   
   <title>MySQL死锁与锁等待排查：入库上架和库存流水案例 | 陈金星写字的地方</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="死锁不是 MySQL 的异常行为，而是并发系统的正常风险。只要多个事务以不同顺序持有资源并等待对方，就可能死锁。InnoDB 会自动检测死锁，并回滚其中一个事务。业务系统需要做的是降低死锁概率，并在发生死锁时能快速定位和恢复。 供应链系统里，入库上架、库存转移、订单扣减都容易出现死锁，因为这些流程通常会同时更新库存主表、库存流水表、批次表和单据状态。 入库上架死锁案例入库上架时，系统要把待上架数量">
+  <meta name="description" content="死锁不是 MySQL 的异常行为，而是并发系统的正常风险。只要多个事务以不同顺序持有资源并等待对方，就可能死锁。InnoDB 会自动检测死锁，并回滚其中一个事务。业务系统需要做的是降低死锁概率，并在发生死锁时能快速定位和恢复。 供应链系统里，入库上架、库存转移、订单扣减都容易出现死锁，因为这些流程通常会同时更新库存主表、库存流水表、批次表和单据状态。 死锁排查流程 入库上架死锁案例入库上架时，系统">
 <meta property="og:type" content="article">
 <meta property="og:title" content="MySQL死锁与锁等待排查：入库上架和库存流水案例">
 <meta property="og:url" content="https://guxingxianyue.github.io/2025/05/15/MySQL%E6%AD%BB%E9%94%81%E4%B8%8E%E9%94%81%E7%AD%89%E5%BE%85%E6%8E%92%E6%9F%A5%EF%BC%9A%E5%85%A5%E5%BA%93%E4%B8%8A%E6%9E%B6%E5%92%8C%E5%BA%93%E5%AD%98%E6%B5%81%E6%B0%B4%E6%A1%88%E4%BE%8B/index.html">
 <meta property="og:site_name" content="陈金星写字的地方">
-<meta property="og:description" content="死锁不是 MySQL 的异常行为，而是并发系统的正常风险。只要多个事务以不同顺序持有资源并等待对方，就可能死锁。InnoDB 会自动检测死锁，并回滚其中一个事务。业务系统需要做的是降低死锁概率，并在发生死锁时能快速定位和恢复。 供应链系统里，入库上架、库存转移、订单扣减都容易出现死锁，因为这些流程通常会同时更新库存主表、库存流水表、批次表和单据状态。 入库上架死锁案例入库上架时，系统要把待上架数量">
+<meta property="og:description" content="死锁不是 MySQL 的异常行为，而是并发系统的正常风险。只要多个事务以不同顺序持有资源并等待对方，就可能死锁。InnoDB 会自动检测死锁，并回滚其中一个事务。业务系统需要做的是降低死锁概率，并在发生死锁时能快速定位和恢复。 供应链系统里，入库上架、库存转移、订单扣减都容易出现死锁，因为这些流程通常会同时更新库存主表、库存流水表、批次表和单据状态。 死锁排查流程 入库上架死锁案例入库上架时，系统">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://guxingxianyue.github.io/images/tech-flowcharts/mysql-deadlock-troubleshooting-flow.svg">
 <meta property="article:published_time" content="2025-05-15T01:40:00.000Z">
-<meta property="article:modified_time" content="2026-06-27T06:51:15.749Z">
+<meta property="article:modified_time" content="2026-06-28T08:20:50.383Z">
 <meta property="article:author" content="Jinxing Chen">
 <meta property="article:tag" content="InnoDB">
 <meta property="article:tag" content="MySQL">
@@ -21,6 +22,7 @@
 <meta property="article:tag" content="死锁">
 <meta property="article:tag" content="锁等待">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://guxingxianyue.github.io/images/tech-flowcharts/mysql-deadlock-troubleshooting-flow.svg">
   
     <link rel="alternative" href="/atom.xml" title="陈金星写字的地方" type="application/atom+xml">
   
@@ -94,6 +96,7 @@
       
         <p>死锁不是 MySQL 的异常行为，而是并发系统的正常风险。只要多个事务以不同顺序持有资源并等待对方，就可能死锁。InnoDB 会自动检测死锁，并回滚其中一个事务。业务系统需要做的是降低死锁概率，并在发生死锁时能快速定位和恢复。</p>
 <p>供应链系统里，入库上架、库存转移、订单扣减都容易出现死锁，因为这些流程通常会同时更新库存主表、库存流水表、批次表和单据状态。</p>
+<h2 id="死锁排查流程"><a href="#死锁排查流程" class="headerlink" title="死锁排查流程"></a>死锁排查流程</h2><p><img src="/images/tech-flowcharts/mysql-deadlock-troubleshooting-flow.svg" alt="MySQL 死锁和锁等待排查流程"></p>
 <h2 id="入库上架死锁案例"><a href="#入库上架死锁案例" class="headerlink" title="入库上架死锁案例"></a>入库上架死锁案例</h2><p>入库上架时，系统要把待上架数量转成可用库存：</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span> scm_inventory</span><br><span class="line"><span class="keyword">SET</span> available_qty <span class="operator">=</span> available_qty <span class="operator">+</span> <span class="number">10</span></span><br><span class="line"><span class="keyword">WHERE</span> warehouse_id <span class="operator">=</span> <span class="number">8</span> <span class="keyword">AND</span> sku_id <span class="operator">=</span> <span class="number">1001</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">INSERT INTO</span> scm_inventory_log(...)</span><br><span class="line"><span class="keyword">VALUES</span> (...);</span><br><span class="line"></span><br><span class="line"><span class="keyword">UPDATE</span> scm_receipt_detail</span><br><span class="line"><span class="keyword">SET</span> putaway_qty <span class="operator">=</span> putaway_qty <span class="operator">+</span> <span class="number">10</span></span><br><span class="line"><span class="keyword">WHERE</span> receipt_id <span class="operator">=</span> <span class="number">5001</span> <span class="keyword">AND</span> sku_id <span class="operator">=</span> <span class="number">1001</span>;</span><br></pre></td></tr></table></figure>
 
@@ -158,7 +161,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2025/05/15/MySQL%E6%AD%BB%E9%94%81%E4%B8%8E%E9%94%81%E7%AD%89%E5%BE%85%E6%8E%92%E6%9F%A5%EF%BC%9A%E5%85%A5%E5%BA%93%E4%B8%8A%E6%9E%B6%E5%92%8C%E5%BA%93%E5%AD%98%E6%B5%81%E6%B0%B4%E6%A1%88%E4%BE%8B/" data-id="cuidAgs5mO8NCdKrdP-7otIsj" class="article-share-link">Share</a>
+      <a data-url="https://guxingxianyue.github.io/2025/05/15/MySQL%E6%AD%BB%E9%94%81%E4%B8%8E%E9%94%81%E7%AD%89%E5%BE%85%E6%8E%92%E6%9F%A5%EF%BC%9A%E5%85%A5%E5%BA%93%E4%B8%8A%E6%9E%B6%E5%92%8C%E5%BA%93%E5%AD%98%E6%B5%81%E6%B0%B4%E6%A1%88%E4%BE%8B/" data-id="cuidhCEPpJBym90SZU5WF57Ms" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/InnoDB/" rel="tag">InnoDB</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%BB%93%E5%82%A8%E7%B3%BB%E7%BB%9F/" rel="tag">仓储系统</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%AD%BB%E9%94%81/" rel="tag">死锁</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%94%81%E7%AD%89%E5%BE%85/" rel="tag">锁等待</a></li></ul>

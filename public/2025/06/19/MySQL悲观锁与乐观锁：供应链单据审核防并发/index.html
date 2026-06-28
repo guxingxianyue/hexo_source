@@ -5,15 +5,16 @@
   
   <title>MySQL悲观锁与乐观锁：供应链单据审核防并发 | 陈金星写字的地方</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="悲观锁和乐观锁不是 MySQL 独有的语法，而是两种并发控制思想。悲观锁假设冲突很常见，所以先加锁再修改。乐观锁假设冲突不多，所以先尝试更新，更新时验证版本或状态。 供应链系统里，单据审核、防重复提交、库存预占、结算过账都需要在这两种策略之间做选择。选择标准不是哪个更高级，而是冲突概率、业务代价、事务长度和用户体验。 悲观锁：先锁住再处理采购单审核可以使用 FOR UPDATE： 12345678">
+  <meta name="description" content="悲观锁和乐观锁不是 MySQL 独有的语法，而是两种并发控制思想。悲观锁假设冲突很常见，所以先加锁再修改。乐观锁假设冲突不多，所以先尝试更新，更新时验证版本或状态。 供应链系统里，单据审核、防重复提交、库存预占、结算过账都需要在这两种策略之间做选择。选择标准不是哪个更高级，而是冲突概率、业务代价、事务长度和用户体验。 悲观锁和乐观锁选择流程 悲观锁：先锁住再处理采购单审核可以使用 FOR UPDA">
 <meta property="og:type" content="article">
 <meta property="og:title" content="MySQL悲观锁与乐观锁：供应链单据审核防并发">
 <meta property="og:url" content="https://guxingxianyue.github.io/2025/06/19/MySQL%E6%82%B2%E8%A7%82%E9%94%81%E4%B8%8E%E4%B9%90%E8%A7%82%E9%94%81%EF%BC%9A%E4%BE%9B%E5%BA%94%E9%93%BE%E5%8D%95%E6%8D%AE%E5%AE%A1%E6%A0%B8%E9%98%B2%E5%B9%B6%E5%8F%91/index.html">
 <meta property="og:site_name" content="陈金星写字的地方">
-<meta property="og:description" content="悲观锁和乐观锁不是 MySQL 独有的语法，而是两种并发控制思想。悲观锁假设冲突很常见，所以先加锁再修改。乐观锁假设冲突不多，所以先尝试更新，更新时验证版本或状态。 供应链系统里，单据审核、防重复提交、库存预占、结算过账都需要在这两种策略之间做选择。选择标准不是哪个更高级，而是冲突概率、业务代价、事务长度和用户体验。 悲观锁：先锁住再处理采购单审核可以使用 FOR UPDATE： 12345678">
+<meta property="og:description" content="悲观锁和乐观锁不是 MySQL 独有的语法，而是两种并发控制思想。悲观锁假设冲突很常见，所以先加锁再修改。乐观锁假设冲突不多，所以先尝试更新，更新时验证版本或状态。 供应链系统里，单据审核、防重复提交、库存预占、结算过账都需要在这两种策略之间做选择。选择标准不是哪个更高级，而是冲突概率、业务代价、事务长度和用户体验。 悲观锁和乐观锁选择流程 悲观锁：先锁住再处理采购单审核可以使用 FOR UPDA">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://guxingxianyue.github.io/images/tech-flowcharts/mysql-pessimistic-optimistic-flow.svg">
 <meta property="article:published_time" content="2025-06-19T01:40:00.000Z">
-<meta property="article:modified_time" content="2026-06-27T06:51:15.750Z">
+<meta property="article:modified_time" content="2026-06-28T08:20:50.384Z">
 <meta property="article:author" content="Jinxing Chen">
 <meta property="article:tag" content="MySQL">
 <meta property="article:tag" content="乐观锁">
@@ -21,6 +22,7 @@
 <meta property="article:tag" content="单据审核">
 <meta property="article:tag" content="悲观锁">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://guxingxianyue.github.io/images/tech-flowcharts/mysql-pessimistic-optimistic-flow.svg">
   
     <link rel="alternative" href="/atom.xml" title="陈金星写字的地方" type="application/atom+xml">
   
@@ -94,6 +96,7 @@
       
         <p>悲观锁和乐观锁不是 MySQL 独有的语法，而是两种并发控制思想。悲观锁假设冲突很常见，所以先加锁再修改。乐观锁假设冲突不多，所以先尝试更新，更新时验证版本或状态。</p>
 <p>供应链系统里，单据审核、防重复提交、库存预占、结算过账都需要在这两种策略之间做选择。选择标准不是哪个更高级，而是冲突概率、业务代价、事务长度和用户体验。</p>
+<h2 id="悲观锁和乐观锁选择流程"><a href="#悲观锁和乐观锁选择流程" class="headerlink" title="悲观锁和乐观锁选择流程"></a>悲观锁和乐观锁选择流程</h2><p><img src="/images/tech-flowcharts/mysql-pessimistic-optimistic-flow.svg" alt="MySQL 悲观锁和乐观锁选择流程"></p>
 <h2 id="悲观锁：先锁住再处理"><a href="#悲观锁：先锁住再处理" class="headerlink" title="悲观锁：先锁住再处理"></a>悲观锁：先锁住再处理</h2><p>采购单审核可以使用 <code>FOR UPDATE</code>：</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">START</span> TRANSACTION;</span><br><span class="line"></span><br><span class="line"><span class="keyword">SELECT</span> id, status, total_amount</span><br><span class="line"><span class="keyword">FROM</span> scm_purchase_order</span><br><span class="line"><span class="keyword">WHERE</span> id <span class="operator">=</span> <span class="number">9001</span></span><br><span class="line"><span class="keyword">FOR</span> <span class="keyword">UPDATE</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">UPDATE</span> scm_purchase_order</span><br><span class="line"><span class="keyword">SET</span> status <span class="operator">=</span> <span class="string">&#x27;APPROVED&#x27;</span>,</span><br><span class="line">    approved_by <span class="operator">=</span> <span class="number">101</span>,</span><br><span class="line">    approved_at <span class="operator">=</span> NOW()</span><br><span class="line"><span class="keyword">WHERE</span> id <span class="operator">=</span> <span class="number">9001</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">COMMIT</span>;</span><br></pre></td></tr></table></figure>
 
@@ -137,7 +140,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2025/06/19/MySQL%E6%82%B2%E8%A7%82%E9%94%81%E4%B8%8E%E4%B9%90%E8%A7%82%E9%94%81%EF%BC%9A%E4%BE%9B%E5%BA%94%E9%93%BE%E5%8D%95%E6%8D%AE%E5%AE%A1%E6%A0%B8%E9%98%B2%E5%B9%B6%E5%8F%91/" data-id="cuid-6Y7bv_2a7PUy3QrRZd9L" class="article-share-link">Share</a>
+      <a data-url="https://guxingxianyue.github.io/2025/06/19/MySQL%E6%82%B2%E8%A7%82%E9%94%81%E4%B8%8E%E4%B9%90%E8%A7%82%E9%94%81%EF%BC%9A%E4%BE%9B%E5%BA%94%E9%93%BE%E5%8D%95%E6%8D%AE%E5%AE%A1%E6%A0%B8%E9%98%B2%E5%B9%B6%E5%8F%91/" data-id="cuid7JCpwsQsWB7EyhYjk4X1q" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%B9%90%E8%A7%82%E9%94%81/" rel="tag">乐观锁</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F/" rel="tag">供应链系统</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%8D%95%E6%8D%AE%E5%AE%A1%E6%A0%B8/" rel="tag">单据审核</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%82%B2%E8%A7%82%E9%94%81/" rel="tag">悲观锁</a></li></ul>

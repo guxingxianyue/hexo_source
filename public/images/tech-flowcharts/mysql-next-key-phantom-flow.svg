@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="420" viewBox="0 0 980 420" role="img" aria-labelledby="title desc">
+  <title id="title">MySQL 间隙锁和 Next-Key Lock 流程</title>
+  <desc id="desc">范围当前读通过记录锁和间隙锁阻止其他事务插入范围内新记录。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#7c2d12"/>
+    </marker>
+    <style>
+      .box { fill: #fff7ed; stroke: #7c2d12; stroke-width: 2; rx: 8; }
+      .ok { fill: #ecfdf5; stroke: #047857; stroke-width: 2; rx: 8; }
+      .text { font-family: Arial, "PingFang SC", "Microsoft YaHei", sans-serif; font-size: 17px; fill: #431407; }
+      .sub { font-size: 13px; fill: #4b5563; }
+      .line { stroke: #7c2d12; stroke-width: 2.4; fill: none; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect x="45" y="155" width="165" height="80" class="box"/>
+  <text x="127" y="187" text-anchor="middle" class="text">范围当前读</text>
+  <text x="127" y="211" text-anchor="middle" class="sub">FOR UPDATE</text>
+  <path d="M 210 195 H 300" class="line"/>
+  <rect x="315" y="75" width="175" height="80" class="box"/>
+  <text x="402" y="107" text-anchor="middle" class="text">记录锁</text>
+  <text x="402" y="131" text-anchor="middle" class="sub">锁已有索引记录</text>
+  <rect x="315" y="235" width="175" height="80" class="box"/>
+  <text x="402" y="267" text-anchor="middle" class="text">间隙锁</text>
+  <text x="402" y="291" text-anchor="middle" class="sub">锁索引间隙</text>
+  <path d="M 490 115 H 580" class="line"/>
+  <path d="M 490 275 H 580" class="line"/>
+  <rect x="595" y="155" width="175" height="80" class="ok"/>
+  <text x="682" y="187" text-anchor="middle" class="text">Next-Key Lock</text>
+  <text x="682" y="211" text-anchor="middle" class="sub">记录锁 + 间隙锁</text>
+  <path d="M 770 195 H 855" class="line"/>
+  <rect x="870" y="155" width="80" height="80" class="ok"/>
+  <text x="910" y="187" text-anchor="middle" class="text">防幻读</text>
+  <text x="910" y="211" text-anchor="middle" class="sub">阻止插入</text>
+</svg>

@@ -89,6 +89,7 @@
       
         <p>Java 锁解决的是 JVM 内多个线程同时访问共享对象的问题。供应链系统虽然最终数据在数据库里，但 Java 应用层也有大量共享状态：本地缓存、任务队列、单据处理器、库存同步批次、报表聚合结果。如果这些状态没有并发控制，数据库锁也救不了应用层的混乱。</p>
 <p>Java 锁的学习路线可以从四层理解：<code>synchronized</code>、<code>volatile</code>、<code>java.util.concurrent.locks</code>、AQS&#x2F;CAS。业务上要回答的不是“哪个锁更高级”，而是“这个共享数据是否必须互斥，是否需要等待条件，是否读多写少，是否可以用无锁原子变量”。</p>
+<h2 id="Java-锁选择流程"><a href="#Java-锁选择流程" class="headerlink" title="Java 锁选择流程"></a>Java 锁选择流程</h2><p><img src="/images/tech-flowcharts/java-lock-overview-flow.svg" alt="Java 锁选择流程"></p>
 <h2 id="一个供应链单据处理例子"><a href="#一个供应链单据处理例子" class="headerlink" title="一个供应链单据处理例子"></a>一个供应链单据处理例子</h2><p>假设系统里有一个本地任务分发器，把待审核采购单放到内存队列里，由多个工作线程消费：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">PurchaseApproveWorker</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Queue&lt;Long&gt; queue = <span class="keyword">new</span> <span class="title class_">ArrayDeque</span>&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">submit</span><span class="params">(Long purchaseOrderId)</span> &#123;</span><br><span class="line">        queue.add(purchaseOrderId);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> Long <span class="title function_">poll</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> queue.poll();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
@@ -135,7 +136,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2025/03/20/Java%E9%94%81%E6%80%BB%E8%A7%88%EF%BC%9A%E4%BB%8Esynchronized%E5%88%B0AQS%E4%BF%9D%E6%8A%A4%E4%BE%9B%E5%BA%94%E9%93%BE%E5%8D%95%E6%8D%AE/" data-id="cuido9fD4Jb4hjV3fUdW93rtw" class="article-share-link">Share</a>
+      <a data-url="https://guxingxianyue.github.io/2025/03/20/Java%E9%94%81%E6%80%BB%E8%A7%88%EF%BC%9A%E4%BB%8Esynchronized%E5%88%B0AQS%E4%BF%9D%E6%8A%A4%E4%BE%9B%E5%BA%94%E9%93%BE%E5%8D%95%E6%8D%AE/" data-id="cuidlYw9j5btVagr3KqBlyX8o" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/AQS/" rel="tag">AQS</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F/" rel="tag">供应链系统</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" rel="tag">并发编程</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%94%81/" rel="tag">锁</a></li></ul>
@@ -171,6 +172,7 @@
       
         <p>供应链系统里的并发问题通常不是抽象的“线程安全”，而是非常具体的业务错误：库存被扣成负数、同一张采购单被重复审核、同一个批次被两个上架任务同时占用、同一笔应付单被重复生成。MySQL 锁的价值就在这里，它让多个事务在修改同一批业务数据时有确定的顺序。</p>
 <p>理解 MySQL 锁，不能只背表锁、行锁、共享锁、排他锁这些名词。更重要的是搞清楚四个问题：锁的对象是什么，锁什么时候加上，锁什么时候释放，不同锁之间是否兼容。</p>
+<h2 id="MySQL-锁设计流程"><a href="#MySQL-锁设计流程" class="headerlink" title="MySQL 锁设计流程"></a>MySQL 锁设计流程</h2><p><img src="/images/tech-flowcharts/mysql-lock-overview-supply-flow.svg" alt="MySQL 锁设计流程"></p>
 <h2 id="供应链里的典型并发场景"><a href="#供应链里的典型并发场景" class="headerlink" title="供应链里的典型并发场景"></a>供应链里的典型并发场景</h2><p>假设有一张库存表：</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE TABLE</span> scm_inventory (</span><br><span class="line">  id <span class="type">BIGINT</span> <span class="keyword">PRIMARY KEY</span> AUTO_INCREMENT,</span><br><span class="line">  warehouse_id <span class="type">BIGINT</span> <span class="keyword">NOT NULL</span>,</span><br><span class="line">  sku_id <span class="type">BIGINT</span> <span class="keyword">NOT NULL</span>,</span><br><span class="line">  available_qty <span class="type">INT</span> <span class="keyword">NOT NULL</span>,</span><br><span class="line">  locked_qty <span class="type">INT</span> <span class="keyword">NOT NULL</span>,</span><br><span class="line">  version <span class="type">INT</span> <span class="keyword">NOT NULL</span> <span class="keyword">DEFAULT</span> <span class="number">0</span>,</span><br><span class="line">  <span class="keyword">UNIQUE</span> KEY uk_wh_sku (warehouse_id, sku_id)</span><br><span class="line">) ENGINE<span class="operator">=</span>InnoDB;</span><br></pre></td></tr></table></figure>
 
@@ -219,7 +221,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2025/03/06/MySQL%E9%94%81%E6%80%BB%E8%A7%88%EF%BC%9A%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F%E9%87%8C%E7%9A%84%E5%B9%B6%E5%8F%91%E4%B8%80%E8%87%B4%E6%80%A7/" data-id="cuidXklnLcr8K8VuoA7tgT3zL" class="article-share-link">Share</a>
+      <a data-url="https://guxingxianyue.github.io/2025/03/06/MySQL%E9%94%81%E6%80%BB%E8%A7%88%EF%BC%9A%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F%E9%87%8C%E7%9A%84%E5%B9%B6%E5%8F%91%E4%B8%80%E8%87%B4%E6%80%A7/" data-id="cuidOzd9gF2wo_uDFquPfRW6n" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/InnoDB/" rel="tag">InnoDB</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%BA%8B%E5%8A%A1/" rel="tag">事务</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F/" rel="tag">供应链系统</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%94%81/" rel="tag">锁</a></li></ul>
@@ -362,7 +364,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2024/11/06/erp%E7%B3%BB%E7%BB%9F%E6%8A%A5%E8%A1%A8%E7%BB%9F%E8%AE%A1/" data-id="cuidqzKS4geIgdyvsZ3iU6-wn" class="article-share-link">Share</a>
+      <a data-url="https://guxingxianyue.github.io/2024/11/06/erp%E7%B3%BB%E7%BB%9F%E6%8A%A5%E8%A1%A8%E7%BB%9F%E8%AE%A1/" data-id="cuidzQ90C9fX-5u734omxq2aW" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ERP/" rel="tag">ERP</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%8A%A5%E8%A1%A8%E7%BB%9F%E8%AE%A1/" rel="tag">报表统计</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E5%88%86%E6%9E%90/" rel="tag">数据分析</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%B3%BB%E7%BB%9F%E4%BC%98%E5%8C%96/" rel="tag">系统优化</a></li></ul>
@@ -512,7 +514,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2024/08/24/MySQL%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" data-id="cuidgKFr7GXxqi5ROI0B8b1Tb" class="article-share-link">Share</a>
+      <a data-url="https://guxingxianyue.github.io/2024/08/24/MySQL%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" data-id="cuidFoOR6t-IAtbHCdgue-QHJ" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SQL%E4%BC%98%E5%8C%96/" rel="tag">SQL优化</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F/" rel="tag">供应链系统</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="tag">数据库</a></li></ul>
@@ -600,7 +602,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2024/05/12/Java%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E9%87%8C%E9%9D%A2%E7%9A%84CAP%E7%90%86%E8%AE%BA/" data-id="cuidKNGg5wes-Du_sJFVv2BgE" class="article-share-link">Share</a>
+      <a data-url="https://guxingxianyue.github.io/2024/05/12/Java%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E9%87%8C%E9%9D%A2%E7%9A%84CAP%E7%90%86%E8%AE%BA/" data-id="cuidu1dASiUsHJvgHgU0Px2ea" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CAP/" rel="tag">CAP</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/" rel="tag">分布式系统</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/" rel="tag">架构设计</a></li></ul>

@@ -6,6 +6,10 @@ tags: [Java, JMM, synchronized, volatile, 供应链系统]
 
 Java 多线程的核心问题可以归纳为三类：原子性、可见性、有序性。Java 内存模型，也就是 JMM，定义了线程之间如何看见彼此的写入，以及哪些同步动作能建立 happens-before 关系。供应链系统里，库存同步、价格缓存、仓库配置刷新都离不开这些基础。
 
+## 可见性和互斥流程
+
+![JMM 可见性和锁边界流程](/images/tech-flowcharts/jmm-visibility-lock-flow.svg)
+
 ## 可见性问题
 
 库存同步任务通常有一个停止标志：
@@ -150,7 +154,35 @@ WHERE warehouse_id = #{warehouseId}
 
 Java 锁适合保护本地缓存、内存队列、对象状态；数据库事务和行锁负责保护最终业务数据。
 
+## happens-before 怎么理解
+
+JMM 里最实用的判断工具是 happens-before。它不是描述时间先后，而是描述一个线程的写入是否对另一个线程可见。
+
+常见规则包括：
+
+1. 对一个 `volatile` 变量的写，happens-before 后续对这个变量的读。
+2. 对一个锁的解锁，happens-before 后续对同一把锁的加锁。
+3. 线程 `start()` 之前的操作，happens-before 新线程中的操作。
+4. 一个线程中的操作，按程序顺序 happens-before 后续操作。
+
+例如库存规则缓存刷新时，可以使用整体替换引用：
+
+```java
+public class InventoryRuleHolder {
+    private volatile InventoryRuleSnapshot snapshot = InventoryRuleSnapshot.empty();
+
+    public void refresh() {
+        snapshot = inventoryRuleRepository.loadSnapshot();
+    }
+
+    public InventoryRuleSnapshot current() {
+        return snapshot;
+    }
+}
+```
+
+这里 `volatile` 保证查询线程能看到新的快照引用。但快照对象本身应该是不可变的，否则引用可见不代表内部集合并发修改安全。
+
 ## 小结
 
 JMM 是理解 Java 多线程的基础。`volatile` 解决可见性和有序性，不解决复合操作原子性；`synchronized` 解决单 JVM 内共享状态的互斥；数据库锁解决跨实例的业务数据一致性。供应链系统里要明确每把锁保护的对象，不能用本地锁替代数据库并发控制。
-

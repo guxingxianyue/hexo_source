@@ -88,6 +88,7 @@
     <div class="article-entry" itemprop="articleBody">
       
         <p>Java 多线程不是为了把代码写复杂，而是为了在合适的业务场景里提高吞吐、降低等待时间、充分利用 CPU 和 IO 资源。供应链系统里有大量典型场景：订单创建后要校验库存、校验客户信用、计算运费、匹配促销、写操作日志；仓库出库时要生成波次、分配库位、通知 WMS、刷新库存快照。这些动作有些可以并行，有些必须串行，多线程的价值就是把这两类工作区分清楚。</p>
+<h2 id="并发决策流程"><a href="#并发决策流程" class="headerlink" title="并发决策流程"></a>并发决策流程</h2><p><img src="/images/tech-flowcharts/java-concurrency-decision-flow.svg" alt="Java 多线程决策流程"></p>
 <h2 id="线程和进程"><a href="#线程和进程" class="headerlink" title="线程和进程"></a>线程和进程</h2><p>进程是操作系统资源分配的基本单位，线程是 CPU 调度执行的基本单位。一个 Java 应用进程里可以有很多线程，比如 Tomcat 请求线程、业务线程池线程、GC 线程、定时任务线程。</p>
 <p>在供应链系统中，一个订单接口请求通常由一个 Web 容器线程处理。如果接口里所有操作都串行执行，请求耗时会被每一步累加。如果某些步骤没有依赖关系，就可以并行执行。</p>
 <h2 id="线程生命周期"><a href="#线程生命周期" class="headerlink" title="线程生命周期"></a>线程生命周期</h2><p>Java 线程常见状态包括：</p>
@@ -133,12 +134,21 @@
 <li>业务要求强事务一致性，不能拆成并发步骤。</li>
 </ul>
 <p>比如订单扣库存不能简单把每个 SKU 丢给不同线程同时扣。如果一个订单内多个 SKU 需要同一个事务保证全部成功或全部失败，并行拆分反而会增加补偿复杂度。</p>
+<h2 id="落地判断标准"><a href="#落地判断标准" class="headerlink" title="落地判断标准"></a>落地判断标准</h2><p>判断一个供应链流程是否适合多线程，可以按下面的顺序确认：</p>
+<ol>
+<li>是否存在互不依赖的子任务。订单详情聚合、库存报表查询、物流轨迹批量拉取通常适合。</li>
+<li>是否主要等待 IO。数据库、RPC、HTTP 调用占主导时，并发更容易产生收益。</li>
+<li>是否会修改同一份业务事实。库存余额、订单状态、付款状态这类数据必须先保证一致性。</li>
+<li>下游是否有容量限制。承运商接口、WMS 接口、数据库连接池都需要限流。</li>
+<li>失败结果能否被处理。查询类任务可以降级，交易类任务必须明确回滚或补偿。</li>
+</ol>
+<p>多线程优化前后要记录耗时、吞吐、错误率、队列长度和下游压力。只看单次请求变快是不够的，系统还要在高峰流量下保持稳定。</p>
 <h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>Java 多线程首先是一种工程手段，不是语法技巧。供应链系统使用多线程，核心收益是提升吞吐、缩短 IO 密集型流程耗时、让后台批处理更高效。使用前必须判断任务是否独立、是否共享状态、是否需要事务一致性。能并行的校验和查询可以并行，涉及最终库存和单据状态的数据修改必须保持清晰的事务边界。</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2022/05/05/Java%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%9F%BA%E7%A1%80%EF%BC%9A%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E5%B9%B6%E5%8F%91%E5%A4%84%E7%90%86/" data-id="cuidNvL6t3DpQb9FzllQL9yHL" class="article-share-link">Share</a>
+      <a data-url="https://guxingxianyue.github.io/2022/05/05/Java%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%9F%BA%E7%A1%80%EF%BC%9A%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E5%B9%B6%E5%8F%91%E5%A4%84%E7%90%86/" data-id="cuidEXQJlgz6Dwy9_x3KRJ-uj" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F/" rel="tag">供应链系统</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" rel="tag">多线程</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" rel="tag">并发编程</a></li></ul>
@@ -213,7 +223,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2017/05/10/redis%E5%85%A5%E9%97%A8/" data-id="cuidRhm1zLottkjm9mFhbDQmm" class="article-share-link">Share</a>
+      <a data-url="https://guxingxianyue.github.io/2017/05/10/redis%E5%85%A5%E9%97%A8/" data-id="cuidi19yYwlCRh7AUV8kEedUi" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Redis/" rel="tag">Redis</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F/" rel="tag">供应链系统</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" rel="tag">数据结构</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%BC%93%E5%AD%98/" rel="tag">缓存</a></li></ul>
@@ -292,7 +302,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2017/01/07/kafka%E9%9B%86%E7%BE%A4/" data-id="cuidI-yc5kQ66GFp486dnnV6o" class="article-share-link">Share</a>
+      <a data-url="https://guxingxianyue.github.io/2017/01/07/kafka%E9%9B%86%E7%BE%A4/" data-id="cuid63TYrtIzt2Oh903pxuJV-" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Kafka/" rel="tag">Kafka</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F/" rel="tag">供应链系统</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/" rel="tag">分布式系统</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" rel="tag">消息队列</a></li></ul>
@@ -361,7 +371,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2016/06/04/%E5%BF%AB%E9%80%9F%E6%8E%92%E5%BA%8F/" data-id="cuid00CQLXTJioZlrlG6a8IGi" class="article-share-link">Share</a>
+      <a data-url="https://guxingxianyue.github.io/2016/06/04/%E5%BF%AB%E9%80%9F%E6%8E%92%E5%BA%8F/" data-id="cuidC7JRkfpCRPOB5TsaLHtfI" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F/" rel="tag">供应链系统</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%BF%AB%E9%80%9F%E6%8E%92%E5%BA%8F/" rel="tag">快速排序</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/" rel="tag">数据结构与算法</a></li></ul>
@@ -428,7 +438,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2016/06/03/%E5%86%92%E6%B3%A1%E6%8E%92%E5%BA%8F/" data-id="cuidA-h0WgkuLBrQhF0o7laeJ" class="article-share-link">Share</a>
+      <a data-url="https://guxingxianyue.github.io/2016/06/03/%E5%86%92%E6%B3%A1%E6%8E%92%E5%BA%8F/" data-id="cuidz3OHNavhLpsOWMxN1cfnc" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F/" rel="tag">供应链系统</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%8E%92%E5%BA%8F%E7%AE%97%E6%B3%95/" rel="tag">排序算法</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/" rel="tag">数据结构与算法</a></li></ul>

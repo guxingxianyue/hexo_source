@@ -8,6 +8,10 @@ tags: [MySQL, MVCC, 事务隔离级别, InnoDB, 订单系统]
 
 理解 MVCC 的关键是区分快照读和当前读。普通 `SELECT` 多数情况下是快照读，`SELECT FOR UPDATE`、`UPDATE`、`DELETE` 是当前读。很多锁问题来自把这两类读混在一起理解。
 
+## MVCC 和当前读流程
+
+![MySQL MVCC 和当前读流程](/images/tech-flowcharts/mysql-mvcc-isolation-flow.svg)
+
 ## 隔离级别解决什么问题
 
 常见并发异常包括：
@@ -127,4 +131,3 @@ WHERE warehouse_id = 8
 ## 小结
 
 MVCC 解决的是读写并发下的一致性读，不是所有并发修改的万能保护。供应链系统要区分快照读和当前读：查询列表依赖 MVCC，状态变更依赖锁和条件更新。把业务状态写进 SQL 条件，是比单纯依赖 Java 判断更可靠的并发控制方式。
-

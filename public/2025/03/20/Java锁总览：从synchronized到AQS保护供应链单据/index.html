@@ -12,8 +12,9 @@
 <meta property="og:site_name" content="陈金星写字的地方">
 <meta property="og:description" content="Java 锁解决的是 JVM 内多个线程同时访问共享对象的问题。供应链系统虽然最终数据在数据库里，但 Java 应用层也有大量共享状态：本地缓存、任务队列、单据处理器、库存同步批次、报表聚合结果。如果这些状态没有并发控制，数据库锁也救不了应用层的混乱。 Java 锁的学习路线可以从四层理解：synchronized、volatile、java.util.concurrent.locks、AQS&amp;#">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://guxingxianyue.github.io/images/tech-flowcharts/java-lock-overview-flow.svg">
 <meta property="article:published_time" content="2025-03-20T02:15:00.000Z">
-<meta property="article:modified_time" content="2026-06-27T06:46:21.659Z">
+<meta property="article:modified_time" content="2026-06-28T08:18:31.422Z">
 <meta property="article:author" content="Jinxing Chen">
 <meta property="article:tag" content="AQS">
 <meta property="article:tag" content="Java">
@@ -21,6 +22,7 @@
 <meta property="article:tag" content="并发编程">
 <meta property="article:tag" content="锁">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://guxingxianyue.github.io/images/tech-flowcharts/java-lock-overview-flow.svg">
   
     <link rel="alternative" href="/atom.xml" title="陈金星写字的地方" type="application/atom+xml">
   
@@ -94,6 +96,7 @@
       
         <p>Java 锁解决的是 JVM 内多个线程同时访问共享对象的问题。供应链系统虽然最终数据在数据库里，但 Java 应用层也有大量共享状态：本地缓存、任务队列、单据处理器、库存同步批次、报表聚合结果。如果这些状态没有并发控制，数据库锁也救不了应用层的混乱。</p>
 <p>Java 锁的学习路线可以从四层理解：<code>synchronized</code>、<code>volatile</code>、<code>java.util.concurrent.locks</code>、AQS&#x2F;CAS。业务上要回答的不是“哪个锁更高级”，而是“这个共享数据是否必须互斥，是否需要等待条件，是否读多写少，是否可以用无锁原子变量”。</p>
+<h2 id="Java-锁选择流程"><a href="#Java-锁选择流程" class="headerlink" title="Java 锁选择流程"></a>Java 锁选择流程</h2><p><img src="/images/tech-flowcharts/java-lock-overview-flow.svg" alt="Java 锁选择流程"></p>
 <h2 id="一个供应链单据处理例子"><a href="#一个供应链单据处理例子" class="headerlink" title="一个供应链单据处理例子"></a>一个供应链单据处理例子</h2><p>假设系统里有一个本地任务分发器，把待审核采购单放到内存队列里，由多个工作线程消费：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">PurchaseApproveWorker</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Queue&lt;Long&gt; queue = <span class="keyword">new</span> <span class="title class_">ArrayDeque</span>&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">submit</span><span class="params">(Long purchaseOrderId)</span> &#123;</span><br><span class="line">        queue.add(purchaseOrderId);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> Long <span class="title function_">poll</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> queue.poll();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
@@ -140,7 +143,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2025/03/20/Java%E9%94%81%E6%80%BB%E8%A7%88%EF%BC%9A%E4%BB%8Esynchronized%E5%88%B0AQS%E4%BF%9D%E6%8A%A4%E4%BE%9B%E5%BA%94%E9%93%BE%E5%8D%95%E6%8D%AE/" data-id="cuido9fD4Jb4hjV3fUdW93rtw" class="article-share-link">Share</a>
+      <a data-url="https://guxingxianyue.github.io/2025/03/20/Java%E9%94%81%E6%80%BB%E8%A7%88%EF%BC%9A%E4%BB%8Esynchronized%E5%88%B0AQS%E4%BF%9D%E6%8A%A4%E4%BE%9B%E5%BA%94%E9%93%BE%E5%8D%95%E6%8D%AE/" data-id="cuidlYw9j5btVagr3KqBlyX8o" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/AQS/" rel="tag">AQS</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F/" rel="tag">供应链系统</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" rel="tag">并发编程</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%94%81/" rel="tag">锁</a></li></ul>

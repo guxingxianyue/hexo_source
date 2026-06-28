@@ -89,6 +89,7 @@
       
         <p>悲观锁和乐观锁不是 MySQL 独有的语法，而是两种并发控制思想。悲观锁假设冲突很常见，所以先加锁再修改。乐观锁假设冲突不多，所以先尝试更新，更新时验证版本或状态。</p>
 <p>供应链系统里，单据审核、防重复提交、库存预占、结算过账都需要在这两种策略之间做选择。选择标准不是哪个更高级，而是冲突概率、业务代价、事务长度和用户体验。</p>
+<h2 id="悲观锁和乐观锁选择流程"><a href="#悲观锁和乐观锁选择流程" class="headerlink" title="悲观锁和乐观锁选择流程"></a>悲观锁和乐观锁选择流程</h2><p><img src="/images/tech-flowcharts/mysql-pessimistic-optimistic-flow.svg" alt="MySQL 悲观锁和乐观锁选择流程"></p>
 <h2 id="悲观锁：先锁住再处理"><a href="#悲观锁：先锁住再处理" class="headerlink" title="悲观锁：先锁住再处理"></a>悲观锁：先锁住再处理</h2><p>采购单审核可以使用 <code>FOR UPDATE</code>：</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">START</span> TRANSACTION;</span><br><span class="line"></span><br><span class="line"><span class="keyword">SELECT</span> id, status, total_amount</span><br><span class="line"><span class="keyword">FROM</span> scm_purchase_order</span><br><span class="line"><span class="keyword">WHERE</span> id <span class="operator">=</span> <span class="number">9001</span></span><br><span class="line"><span class="keyword">FOR</span> <span class="keyword">UPDATE</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">UPDATE</span> scm_purchase_order</span><br><span class="line"><span class="keyword">SET</span> status <span class="operator">=</span> <span class="string">&#x27;APPROVED&#x27;</span>,</span><br><span class="line">    approved_by <span class="operator">=</span> <span class="number">101</span>,</span><br><span class="line">    approved_at <span class="operator">=</span> NOW()</span><br><span class="line"><span class="keyword">WHERE</span> id <span class="operator">=</span> <span class="number">9001</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">COMMIT</span>;</span><br></pre></td></tr></table></figure>
 
@@ -132,7 +133,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2025/06/19/MySQL%E6%82%B2%E8%A7%82%E9%94%81%E4%B8%8E%E4%B9%90%E8%A7%82%E9%94%81%EF%BC%9A%E4%BE%9B%E5%BA%94%E9%93%BE%E5%8D%95%E6%8D%AE%E5%AE%A1%E6%A0%B8%E9%98%B2%E5%B9%B6%E5%8F%91/" data-id="cuid-6Y7bv_2a7PUy3QrRZd9L" class="article-share-link">Share</a>
+      <a data-url="https://guxingxianyue.github.io/2025/06/19/MySQL%E6%82%B2%E8%A7%82%E9%94%81%E4%B8%8E%E4%B9%90%E8%A7%82%E9%94%81%EF%BC%9A%E4%BE%9B%E5%BA%94%E9%93%BE%E5%8D%95%E6%8D%AE%E5%AE%A1%E6%A0%B8%E9%98%B2%E5%B9%B6%E5%8F%91/" data-id="cuid7JCpwsQsWB7EyhYjk4X1q" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%B9%90%E8%A7%82%E9%94%81/" rel="tag">乐观锁</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F/" rel="tag">供应链系统</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%8D%95%E6%8D%AE%E5%AE%A1%E6%A0%B8/" rel="tag">单据审核</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%82%B2%E8%A7%82%E9%94%81/" rel="tag">悲观锁</a></li></ul>
@@ -168,6 +169,7 @@
       
         <p>CAS 是 Compare And Swap，比较并交换。它是很多无锁并发工具的基础。Java 里的 <code>AtomicInteger</code>、<code>AtomicLong</code>、<code>AtomicReference</code>、<code>LongAdder</code> 都和 CAS 思路有关。</p>
 <p>供应链系统里，CAS 适合应用层内存计数、指标统计、状态引用切换。它不适合替代数据库里的库存扣减。库存是跨节点共享的业务数据，最终必须由数据库条件更新、唯一约束或专门库存服务保证一致。</p>
+<h2 id="CAS-和指标统计流程"><a href="#CAS-和指标统计流程" class="headerlink" title="CAS 和指标统计流程"></a>CAS 和指标统计流程</h2><p><img src="/images/tech-flowcharts/cas-atomic-metrics-flow.svg" alt="CAS 原子类和指标统计流程"></p>
 <h2 id="AtomicInteger-的基本用法"><a href="#AtomicInteger-的基本用法" class="headerlink" title="AtomicInteger 的基本用法"></a>AtomicInteger 的基本用法</h2><p>库存同步任务需要统计本轮处理成功数：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">InventorySyncMetrics</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">AtomicInteger</span> <span class="variable">success</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">AtomicInteger</span>();</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">AtomicInteger</span> <span class="variable">failed</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">AtomicInteger</span>();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">markSuccess</span><span class="params">()</span> &#123;</span><br><span class="line">        success.incrementAndGet();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">markFailed</span><span class="params">()</span> &#123;</span><br><span class="line">        failed.incrementAndGet();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">successCount</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> success.get();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
@@ -208,12 +210,25 @@
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span> scm_purchase_order</span><br><span class="line"><span class="keyword">SET</span> status <span class="operator">=</span> <span class="string">&#x27;APPROVED&#x27;</span>,</span><br><span class="line">    version <span class="operator">=</span> version <span class="operator">+</span> <span class="number">1</span></span><br><span class="line"><span class="keyword">WHERE</span> id <span class="operator">=</span> #&#123;id&#125;</span><br><span class="line">  <span class="keyword">AND</span> status <span class="operator">=</span> <span class="string">&#x27;WAIT_APPROVE&#x27;</span></span><br><span class="line">  <span class="keyword">AND</span> version <span class="operator">=</span> #&#123;version&#125;;</span><br></pre></td></tr></table></figure>
 
 <p>区别在于 Java CAS 只作用于当前 JVM 内存，数据库乐观锁作用于持久化数据，能被多个应用实例共同遵守。</p>
+<h2 id="使用边界"><a href="#使用边界" class="headerlink" title="使用边界"></a>使用边界</h2><p>CAS 和原子类适合三类数据：</p>
+<ol>
+<li>指标：接口调用次数、同步成功数、失败数。</li>
+<li>引用：不可变配置、策略快照、路由规则版本。</li>
+<li>本地状态：单 JVM 内的轻量状态切换。</li>
+</ol>
+<p>不适合三类数据：</p>
+<ol>
+<li>需要事务回滚的数据，例如库存扣减。</li>
+<li>需要跨实例一致的数据，例如订单审核状态。</li>
+<li>需要审计流水的数据，例如财务结算和库存流水。</li>
+</ol>
+<p>如果一个数据需要“查得出历史、失败能回滚、多个实例共同遵守”，就应该进入数据库事务和业务状态机，而不是停留在 JVM 原子变量里。</p>
 <h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>CAS 和原子类适合低成本地保护内存状态，尤其是计数、配置引用、轻量状态切换。供应链系统可以用它们做同步指标、缓存版本、任务状态引用。但库存扣减、单据审核、结算过账这些核心数据必须使用数据库条件更新或事务锁。不要把 JVM 内的原子性误认为全系统一致性。</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2025/06/05/Java%20CAS%E3%80%81Atomic%E5%92%8CLongAdder%EF%BC%9A%E5%BA%93%E5%AD%98%E8%AE%A1%E6%95%B0%E4%B8%8E%E5%B9%B6%E5%8F%91%E6%8C%87%E6%A0%87/" data-id="cuid0kftHiqnKsKYb4rWZlt7j" class="article-share-link">Share</a>
+      <a data-url="https://guxingxianyue.github.io/2025/06/05/Java%20CAS%E3%80%81Atomic%E5%92%8CLongAdder%EF%BC%9A%E5%BA%93%E5%AD%98%E8%AE%A1%E6%95%B0%E4%B8%8E%E5%B9%B6%E5%8F%91%E6%8C%87%E6%A0%87/" data-id="cuidU2Ou7OIE4pK3qiDn5crcm" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Atomic/" rel="tag">Atomic</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CAS/" rel="tag">CAS</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/LongAdder/" rel="tag">LongAdder</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" rel="tag">并发编程</a></li></ul>
@@ -249,6 +264,7 @@
       
         <p>读写锁适合读多写少的场景。供应链系统里有大量这种数据：商品基础资料、供应商等级、仓库配置、价格策略、库存快照。读请求频繁，写请求相对较少。如果用普通互斥锁，读读之间也会互相阻塞，吞吐会被压低。</p>
 <p><code>ReentrantReadWriteLock</code> 的规则是：读读共享，读写互斥，写写互斥。<code>StampedLock</code> 在此基础上提供乐观读，适合对性能要求更高但代码复杂度可控的场景。</p>
+<h2 id="缓存读写流程"><a href="#缓存读写流程" class="headerlink" title="缓存读写流程"></a>缓存读写流程</h2><p><img src="/images/tech-flowcharts/readwrite-stamped-cache-flow.svg" alt="读写锁和 StampedLock 缓存流程"></p>
 <h2 id="价格策略缓存"><a href="#价格策略缓存" class="headerlink" title="价格策略缓存"></a>价格策略缓存</h2><p>假设订单试算接口需要频繁读取供应商价格策略：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">PricePolicyCache</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">ReentrantReadWriteLock</span> <span class="variable">rwLock</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ReentrantReadWriteLock</span>();</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">Lock</span> <span class="variable">readLock</span> <span class="operator">=</span> rwLock.readLock();</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">Lock</span> <span class="variable">writeLock</span> <span class="operator">=</span> rwLock.writeLock();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> Map&lt;Long, PricePolicy&gt; policies = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> PricePolicy <span class="title function_">get</span><span class="params">(<span class="type">long</span> supplierId)</span> &#123;</span><br><span class="line">        readLock.lock();</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> policies.get(supplierId);</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            readLock.unlock();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">refresh</span><span class="params">(Map&lt;Long, PricePolicy&gt; latest)</span> &#123;</span><br><span class="line">        writeLock.lock();</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            policies = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;(latest);</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            writeLock.unlock();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
@@ -269,12 +285,19 @@
 <p>乐观读适合写入很少的场景。如果写入频繁，乐观读经常验证失败，反而增加复杂度。</p>
 <h2 id="StampedLock-的注意点"><a href="#StampedLock-的注意点" class="headerlink" title="StampedLock 的注意点"></a>StampedLock 的注意点</h2><p><code>StampedLock</code> 不是可重入锁。同一线程重复获取写锁可能把自己卡住。它也不直接配合 <code>Condition</code>。因此它适合局部、简单、性能敏感的缓存或数值快照，不适合复杂业务流程锁。</p>
 <p>供应链系统里，仓库维度的实时库存核心数据不应该只靠本地 <code>StampedLock</code> 控制。因为多实例部署下，每个 JVM 都有自己的锁。它适合保护本地缓存视图，最终一致性仍然依赖数据库和消息刷新。</p>
+<h2 id="选择边界"><a href="#选择边界" class="headerlink" title="选择边界"></a>选择边界</h2><p>读写锁适合本地内存视图，不适合直接保护核心库存事实。可以这样区分：</p>
+<ol>
+<li>价格策略、仓库配置、库存展示快照：可以使用本地读写锁优化读取。</li>
+<li>库存可售量、订单扣减、付款状态：必须以数据库或库存服务为准。</li>
+<li>写入频率高的缓存：读写锁收益会下降，应该考虑分段、无锁快照或外部缓存。</li>
+<li>跨实例一致性：本地锁无效，需要数据库条件更新、消息顺序、幂等和版本控制。</li>
+</ol>
 <h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>读写锁适合读多写少的本地共享数据。供应链系统里的价格策略、仓库配置、库存快照缓存都可以使用。选择上，普通读多写少用 <code>ReentrantReadWriteLock</code>；极高频读取、低频刷新、逻辑简单时可以评估 <code>StampedLock</code>。不管使用哪种锁，都要避免返回可变对象，并明确它只保护单 JVM 内存。</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2025/05/22/Java%E8%AF%BB%E5%86%99%E9%94%81%E5%92%8CStampedLock%EF%BC%9A%E4%BB%B7%E6%A0%BC%E4%B8%8E%E5%BA%93%E5%AD%98%E5%BF%AB%E7%85%A7%E7%BC%93%E5%AD%98/" data-id="cuidx4FmX-JCBSwhN0kKG6vXH" class="article-share-link">Share</a>
+      <a data-url="https://guxingxianyue.github.io/2025/05/22/Java%E8%AF%BB%E5%86%99%E9%94%81%E5%92%8CStampedLock%EF%BC%9A%E4%BB%B7%E6%A0%BC%E4%B8%8E%E5%BA%93%E5%AD%98%E5%BF%AB%E7%85%A7%E7%BC%93%E5%AD%98/" data-id="cuidpbNAui_IBN8XkPOgSvfR_" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ReadWriteLock/" rel="tag">ReadWriteLock</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/StampedLock/" rel="tag">StampedLock</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F/" rel="tag">供应链系统</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%BC%93%E5%AD%98/" rel="tag">缓存</a></li></ul>
@@ -310,6 +333,7 @@
       
         <p>死锁不是 MySQL 的异常行为，而是并发系统的正常风险。只要多个事务以不同顺序持有资源并等待对方，就可能死锁。InnoDB 会自动检测死锁，并回滚其中一个事务。业务系统需要做的是降低死锁概率，并在发生死锁时能快速定位和恢复。</p>
 <p>供应链系统里，入库上架、库存转移、订单扣减都容易出现死锁，因为这些流程通常会同时更新库存主表、库存流水表、批次表和单据状态。</p>
+<h2 id="死锁排查流程"><a href="#死锁排查流程" class="headerlink" title="死锁排查流程"></a>死锁排查流程</h2><p><img src="/images/tech-flowcharts/mysql-deadlock-troubleshooting-flow.svg" alt="MySQL 死锁和锁等待排查流程"></p>
 <h2 id="入库上架死锁案例"><a href="#入库上架死锁案例" class="headerlink" title="入库上架死锁案例"></a>入库上架死锁案例</h2><p>入库上架时，系统要把待上架数量转成可用库存：</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span> scm_inventory</span><br><span class="line"><span class="keyword">SET</span> available_qty <span class="operator">=</span> available_qty <span class="operator">+</span> <span class="number">10</span></span><br><span class="line"><span class="keyword">WHERE</span> warehouse_id <span class="operator">=</span> <span class="number">8</span> <span class="keyword">AND</span> sku_id <span class="operator">=</span> <span class="number">1001</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">INSERT INTO</span> scm_inventory_log(...)</span><br><span class="line"><span class="keyword">VALUES</span> (...);</span><br><span class="line"></span><br><span class="line"><span class="keyword">UPDATE</span> scm_receipt_detail</span><br><span class="line"><span class="keyword">SET</span> putaway_qty <span class="operator">=</span> putaway_qty <span class="operator">+</span> <span class="number">10</span></span><br><span class="line"><span class="keyword">WHERE</span> receipt_id <span class="operator">=</span> <span class="number">5001</span> <span class="keyword">AND</span> sku_id <span class="operator">=</span> <span class="number">1001</span>;</span><br></pre></td></tr></table></figure>
 
@@ -374,7 +398,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2025/05/15/MySQL%E6%AD%BB%E9%94%81%E4%B8%8E%E9%94%81%E7%AD%89%E5%BE%85%E6%8E%92%E6%9F%A5%EF%BC%9A%E5%85%A5%E5%BA%93%E4%B8%8A%E6%9E%B6%E5%92%8C%E5%BA%93%E5%AD%98%E6%B5%81%E6%B0%B4%E6%A1%88%E4%BE%8B/" data-id="cuidAgs5mO8NCdKrdP-7otIsj" class="article-share-link">Share</a>
+      <a data-url="https://guxingxianyue.github.io/2025/05/15/MySQL%E6%AD%BB%E9%94%81%E4%B8%8E%E9%94%81%E7%AD%89%E5%BE%85%E6%8E%92%E6%9F%A5%EF%BC%9A%E5%85%A5%E5%BA%93%E4%B8%8A%E6%9E%B6%E5%92%8C%E5%BA%93%E5%AD%98%E6%B5%81%E6%B0%B4%E6%A1%88%E4%BE%8B/" data-id="cuidhCEPpJBym90SZU5WF57Ms" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/InnoDB/" rel="tag">InnoDB</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%BB%93%E5%82%A8%E7%B3%BB%E7%BB%9F/" rel="tag">仓储系统</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%AD%BB%E9%94%81/" rel="tag">死锁</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%94%81%E7%AD%89%E5%BE%85/" rel="tag">锁等待</a></li></ul>
@@ -410,6 +434,7 @@
       
         <p><code>ReentrantLock</code> 是 Java 显式锁。相比 <code>synchronized</code>，它提供了更丰富的控制能力：可以尝试加锁、可以响应中断、可以设置公平锁，还可以通过多个 <code>Condition</code> 管理不同等待条件。</p>
 <p>在供应链仓储系统里，波次拣货是一个很适合解释 <code>ReentrantLock</code> 的场景。订单进入仓库后，系统会把多个订单合并成拣货波次。波次生成线程负责投放任务，拣货线程负责消费任务。如果没有合适的等待和唤醒机制，要么线程空转浪费 CPU，要么任务延迟处理。</p>
+<h2 id="波次队列协作流程"><a href="#波次队列协作流程" class="headerlink" title="波次队列协作流程"></a>波次队列协作流程</h2><p><img src="/images/tech-flowcharts/reentrantlock-condition-wave-flow.svg" alt="ReentrantLock 和 Condition 波次队列流程"></p>
 <h2 id="一个波次队列"><a href="#一个波次队列" class="headerlink" title="一个波次队列"></a>一个波次队列</h2><p>需求如下：</p>
 <ul>
 <li>波次生成器把 <code>PickWave</code> 放入队列。</li>
@@ -449,7 +474,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2025/05/08/Java%20ReentrantLock%E5%92%8CCondition%EF%BC%9A%E6%B3%A2%E6%AC%A1%E6%8B%A3%E8%B4%A7%E8%B0%83%E5%BA%A6%E9%98%9F%E5%88%97%E8%AE%BE%E8%AE%A1/" data-id="cuidCz45XZ9Zs7kf5B8jN60LP" class="article-share-link">Share</a>
+      <a data-url="https://guxingxianyue.github.io/2025/05/08/Java%20ReentrantLock%E5%92%8CCondition%EF%BC%9A%E6%B3%A2%E6%AC%A1%E6%8B%A3%E8%B4%A7%E8%B0%83%E5%BA%A6%E9%98%9F%E5%88%97%E8%AE%BE%E8%AE%A1/" data-id="cuidjEoFDzVg7Hr60vLWqN8y1" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Condition/" rel="tag">Condition</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ReentrantLock/" rel="tag">ReentrantLock</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%BB%93%E5%82%A8%E7%B3%BB%E7%BB%9F/" rel="tag">仓储系统</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91%E9%98%9F%E5%88%97/" rel="tag">并发队列</a></li></ul>

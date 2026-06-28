@@ -6,6 +6,10 @@ tags: [Java, CountDownLatch, Semaphore, CompletableFuture, 供应链系统]
 
 Java 并发工具类解决的是线程之间的协作问题。供应链系统里，很多流程不是简单加锁，而是多个任务并行执行后汇总结果，或者限制同时访问某个下游系统的并发量。常用工具包括 `CountDownLatch`、`Semaphore`、`CompletableFuture`。
 
+## 工具选择流程
+
+![Java 并发工具选择流程](/images/tech-flowcharts/concurrency-tools-selection-flow.svg)
+
 ## CountDownLatch：等待多个任务完成
 
 采购对账时，需要同时加载三类数据：
@@ -129,7 +133,19 @@ CompletableFuture<TrackInfo> trackFuture =
 
 供应链系统的详情页通常允许部分信息降级，比如物流轨迹临时失败不应该导致整个订单详情不可用。但结算、扣库存这类核心流程不能随意吞异常。
 
+## 选择建议
+
+不同工具适合不同问题：
+
+| 工具 | 解决的问题 | 供应链例子 |
+| --- | --- | --- |
+| `CountDownLatch` | 等待多个任务全部完成 | 采购对账同时加载入库单、发票、付款记录 |
+| `Semaphore` | 控制同时访问数量 | 限制承运商轨迹接口并发 |
+| `CompletableFuture` | 异步编排和结果聚合 | 订单详情并行查询库存、物流、财务 |
+| `BlockingQueue` | 生产者消费者 | 仓储波次任务排队处理 |
+
+选择工具时先描述线程之间的关系：是等待、限流、结果组合，还是任务排队。关系清楚了，工具选择通常就清楚了。不要为了使用高级 API 而把简单流程写复杂。
+
 ## 小结
 
 并发工具类的价值是让线程协作更清晰。`CountDownLatch` 适合等待多个并行任务完成；`Semaphore` 适合限制下游并发；`CompletableFuture` 适合异步任务编排。供应链系统使用这些工具时，必须区分查询类流程和交易类流程：查询可以并行和降级，交易必须保证状态一致、异常可追踪。
-

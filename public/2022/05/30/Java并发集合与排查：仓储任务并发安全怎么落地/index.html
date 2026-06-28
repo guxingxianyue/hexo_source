@@ -5,15 +5,16 @@
   
   <title>Java并发集合与排查：仓储任务并发安全怎么落地 | 陈金星写字的地方</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="Java 多线程最终要落到数据结构和排查能力上。供应链系统里，仓储任务调度、库存缓存、波次队列、接口指标都会用到并发集合和原子类。选择正确的数据结构，可以减少手写锁；具备排查能力，才能在线上出现卡顿时定位问题。 ConcurrentHashMap：本地任务状态缓存仓储系统可能需要缓存正在处理的上架任务，避免同一个任务在当前实例内重复提交： 1234567891011public class Put">
+  <meta name="description" content="Java 多线程最终要落到数据结构和排查能力上。供应链系统里，仓储任务调度、库存缓存、波次队列、接口指标都会用到并发集合和原子类。选择正确的数据结构，可以减少手写锁；具备排查能力，才能在线上出现卡顿时定位问题。 数据结构和排查流程 ConcurrentHashMap：本地任务状态缓存仓储系统可能需要缓存正在处理的上架任务，避免同一个任务在当前实例内重复提交： 1234567891011public">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Java并发集合与排查：仓储任务并发安全怎么落地">
 <meta property="og:url" content="https://guxingxianyue.github.io/2022/05/30/Java%E5%B9%B6%E5%8F%91%E9%9B%86%E5%90%88%E4%B8%8E%E6%8E%92%E6%9F%A5%EF%BC%9A%E4%BB%93%E5%82%A8%E4%BB%BB%E5%8A%A1%E5%B9%B6%E5%8F%91%E5%AE%89%E5%85%A8%E6%80%8E%E4%B9%88%E8%90%BD%E5%9C%B0/index.html">
 <meta property="og:site_name" content="陈金星写字的地方">
-<meta property="og:description" content="Java 多线程最终要落到数据结构和排查能力上。供应链系统里，仓储任务调度、库存缓存、波次队列、接口指标都会用到并发集合和原子类。选择正确的数据结构，可以减少手写锁；具备排查能力，才能在线上出现卡顿时定位问题。 ConcurrentHashMap：本地任务状态缓存仓储系统可能需要缓存正在处理的上架任务，避免同一个任务在当前实例内重复提交： 1234567891011public class Put">
+<meta property="og:description" content="Java 多线程最终要落到数据结构和排查能力上。供应链系统里，仓储任务调度、库存缓存、波次队列、接口指标都会用到并发集合和原子类。选择正确的数据结构，可以减少手写锁；具备排查能力，才能在线上出现卡顿时定位问题。 数据结构和排查流程 ConcurrentHashMap：本地任务状态缓存仓储系统可能需要缓存正在处理的上架任务，避免同一个任务在当前实例内重复提交： 1234567891011public">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://guxingxianyue.github.io/images/tech-flowcharts/concurrent-collections-troubleshooting-flow.svg">
 <meta property="article:published_time" content="2022-05-30T02:20:00.000Z">
-<meta property="article:modified_time" content="2026-06-27T14:15:35.614Z">
+<meta property="article:modified_time" content="2026-06-28T08:15:55.103Z">
 <meta property="article:author" content="Jinxing Chen">
 <meta property="article:tag" content="BlockingQueue">
 <meta property="article:tag" content="CAS">
@@ -22,6 +23,7 @@
 <meta property="article:tag" content="仓储系统">
 <meta property="article:tag" content="死锁">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://guxingxianyue.github.io/images/tech-flowcharts/concurrent-collections-troubleshooting-flow.svg">
   
     <link rel="alternative" href="/atom.xml" title="陈金星写字的地方" type="application/atom+xml">
   
@@ -94,6 +96,7 @@
     <div class="article-entry" itemprop="articleBody">
       
         <p>Java 多线程最终要落到数据结构和排查能力上。供应链系统里，仓储任务调度、库存缓存、波次队列、接口指标都会用到并发集合和原子类。选择正确的数据结构，可以减少手写锁；具备排查能力，才能在线上出现卡顿时定位问题。</p>
+<h2 id="数据结构和排查流程"><a href="#数据结构和排查流程" class="headerlink" title="数据结构和排查流程"></a>数据结构和排查流程</h2><p><img src="/images/tech-flowcharts/concurrent-collections-troubleshooting-flow.svg" alt="并发集合和线程排查流程"></p>
 <h2 id="ConcurrentHashMap：本地任务状态缓存"><a href="#ConcurrentHashMap：本地任务状态缓存" class="headerlink" title="ConcurrentHashMap：本地任务状态缓存"></a>ConcurrentHashMap：本地任务状态缓存</h2><p>仓储系统可能需要缓存正在处理的上架任务，避免同一个任务在当前实例内重复提交：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">PutawayTaskRegistry</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> ConcurrentHashMap&lt;Long, PutawayTask&gt; runningTasks = <span class="keyword">new</span> <span class="title class_">ConcurrentHashMap</span>&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">register</span><span class="params">(PutawayTask task)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> runningTasks.putIfAbsent(task.id(), task) == <span class="literal">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">unregister</span><span class="params">(Long taskId)</span> &#123;</span><br><span class="line">        runningTasks.remove(taskId);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
@@ -135,12 +138,21 @@
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">thread -b</span><br></pre></td></tr></table></figure>
 
 <p>重点看线程是否大量 <code>BLOCKED</code>，以及堆栈里等待的是哪把锁。</p>
+<h2 id="线上排查顺序"><a href="#线上排查顺序" class="headerlink" title="线上排查顺序"></a>线上排查顺序</h2><p>仓储任务卡顿时，可以按这个顺序排查：</p>
+<ol>
+<li>看线程池：活跃线程数、队列长度、拒绝次数是否异常。</li>
+<li>看线程状态：<code>jstack</code> 或 Arthas <code>thread</code> 查看是否大量 <code>BLOCKED</code>、<code>WAITING</code>。</li>
+<li>看锁对象：定位堆栈里等待的是 Java 对象锁、数据库锁，还是队列阻塞。</li>
+<li>看业务状态：仓储任务是否卡在同一个波次、库位、SKU 或外部 WMS 调用。</li>
+<li>看数据一致性：确认任务状态机是否允许重复执行、失败重试和人工恢复。</li>
+</ol>
+<p>排查时不要只看到 <code>ConcurrentHashMap</code> 就认为线程安全已经解决。并发集合只能保证集合自身操作安全，不能自动保证“任务状态 + 数据库记录 + 外部调用”的业务一致性。</p>
 <h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>并发集合和原子类能减少手写锁，让并发代码更清晰。供应链系统里，<code>ConcurrentHashMap</code> 适合本地任务注册，<code>BlockingQueue</code> 适合生产者消费者，<code>CopyOnWriteArrayList</code> 适合读多写少规则，<code>AtomicReference</code> 适合配置快照替换。核心业务数据仍然要用数据库状态机和事务保护。线上卡顿时，要能用 <code>jstack</code>、Arthas 定位线程阻塞和死锁。</p>
 
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2022/05/30/Java%E5%B9%B6%E5%8F%91%E9%9B%86%E5%90%88%E4%B8%8E%E6%8E%92%E6%9F%A5%EF%BC%9A%E4%BB%93%E5%82%A8%E4%BB%BB%E5%8A%A1%E5%B9%B6%E5%8F%91%E5%AE%89%E5%85%A8%E6%80%8E%E4%B9%88%E8%90%BD%E5%9C%B0/" data-id="cuidNFku9l-iDPPD8d-lnuN2N" class="article-share-link">Share</a>
+      <a data-url="https://guxingxianyue.github.io/2022/05/30/Java%E5%B9%B6%E5%8F%91%E9%9B%86%E5%90%88%E4%B8%8E%E6%8E%92%E6%9F%A5%EF%BC%9A%E4%BB%93%E5%82%A8%E4%BB%BB%E5%8A%A1%E5%B9%B6%E5%8F%91%E5%AE%89%E5%85%A8%E6%80%8E%E4%B9%88%E8%90%BD%E5%9C%B0/" data-id="cuidpf4KWZpGNMCSywDvIVlS8" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/BlockingQueue/" rel="tag">BlockingQueue</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CAS/" rel="tag">CAS</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ConcurrentHashMap/" rel="tag">ConcurrentHashMap</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%BB%93%E5%82%A8%E7%B3%BB%E7%BB%9F/" rel="tag">仓储系统</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%AD%BB%E9%94%81/" rel="tag">死锁</a></li></ul>

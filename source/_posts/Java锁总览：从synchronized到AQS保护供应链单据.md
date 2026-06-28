@@ -8,6 +8,10 @@ Java 锁解决的是 JVM 内多个线程同时访问共享对象的问题。供�
 
 Java 锁的学习路线可以从四层理解：`synchronized`、`volatile`、`java.util.concurrent.locks`、AQS/CAS。业务上要回答的不是“哪个锁更高级”，而是“这个共享数据是否必须互斥，是否需要等待条件，是否读多写少，是否可以用无锁原子变量”。
 
+## Java 锁选择流程
+
+![Java 锁选择流程](/images/tech-flowcharts/java-lock-overview-flow.svg)
+
 ## 一个供应链单据处理例子
 
 假设系统里有一个本地任务分发器，把待审核采购单放到内存队列里，由多个工作线程消费：
@@ -194,4 +198,3 @@ generatePlanningResult();
 ## 小结
 
 Java 锁和 MySQL 锁保护的范围不同。Java 锁保护 JVM 内存对象，MySQL 锁保护数据库记录。供应链系统里的正确做法通常是两者配合：应用层锁保护本地状态，数据库锁保护最终数据一致性。不要用 Java 本地锁代替数据库并发控制，也不要把所有并发问题都推给数据库。
-

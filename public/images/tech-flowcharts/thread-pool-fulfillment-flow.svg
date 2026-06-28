@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="420" viewBox="0 0 980 420" role="img" aria-labelledby="title desc">
+  <title id="title">订单履约线程池流程</title>
+  <desc id="desc">订单履约批处理通过有界线程池、队列、拒绝策略和监控实现稳定吞吐。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#7c2d12"/>
+    </marker>
+    <style>
+      .box { fill: #fff7ed; stroke: #7c2d12; stroke-width: 2; rx: 8; }
+      .ok { fill: #ecfdf5; stroke: #047857; stroke-width: 2; rx: 8; }
+      .warn { fill: #fef2f2; stroke: #b91c1c; stroke-width: 2; rx: 8; }
+      .text { font-family: Arial, "PingFang SC", "Microsoft YaHei", sans-serif; font-size: 17px; fill: #431407; }
+      .sub { font-size: 13px; fill: #57534e; }
+      .line { stroke: #7c2d12; stroke-width: 2.4; fill: none; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect x="40" y="170" width="140" height="75" class="box"/>
+  <text x="110" y="200" text-anchor="middle" class="text">订单批次</text>
+  <text x="110" y="224" text-anchor="middle" class="sub">待履约任务</text>
+  <path d="M 180 208 H 260" class="line"/>
+  <rect x="275" y="150" width="150" height="115" class="box"/>
+  <text x="350" y="182" text-anchor="middle" class="text">有界队列</text>
+  <text x="350" y="207" text-anchor="middle" class="sub">限制堆积</text>
+  <text x="350" y="229" text-anchor="middle" class="sub">形成反压</text>
+  <path d="M 425 208 H 505" class="line"/>
+  <rect x="520" y="140" width="165" height="135" class="ok"/>
+  <text x="602" y="172" text-anchor="middle" class="text">工作线程</text>
+  <text x="602" y="197" text-anchor="middle" class="sub">库存预占</text>
+  <text x="602" y="219" text-anchor="middle" class="sub">创建拣货任务</text>
+  <text x="602" y="241" text-anchor="middle" class="sub">推进订单状态</text>
+  <path d="M 685 208 H 765" class="line"/>
+  <rect x="780" y="170" width="150" height="75" class="box"/>
+  <text x="855" y="200" text-anchor="middle" class="text">状态机幂等</text>
+  <text x="855" y="224" text-anchor="middle" class="sub">避免重复履约</text>
+  <rect x="275" y="315" width="290" height="60" class="warn"/>
+  <text x="420" y="340" text-anchor="middle" class="text">队列满或下游限流</text>
+  <text x="420" y="362" text-anchor="middle" class="sub">拒绝策略、降级、延迟重试、消息队列</text>
+  <rect x="615" y="315" width="250" height="60" class="box"/>
+  <text x="740" y="340" text-anchor="middle" class="text">监控指标</text>
+  <text x="740" y="362" text-anchor="middle" class="sub">活跃线程、队列、拒绝、耗时</text>
+</svg>
