@@ -94,6 +94,60 @@ tags: [MySQL, MVCC, 事务隔离级别, 供应链系统]
 
 例如供应链系统里的库存预占文章，不应该只解释 `SELECT ... FOR UPDATE`，还要说明订单创建、库存锁定、扣减、释放和库存流水之间的关系。
 
+## 内容质量检查清单
+
+技术博客不要只追求“能发布”，更要保证读者能从文章里得到可复用的经验。每次写完文章，可以按下面的清单检查：
+
+1. 标题是否明确回答一个问题，而不是只写一个技术名词。
+2. 正文是否解释了为什么需要这个技术点。
+3. 是否给出可以运行或接近真实项目的代码、SQL、命令。
+4. 是否说明了适用场景和不适用场景。
+5. 是否把抽象概念落到订单、库存、采购、仓储、对账等业务对象上。
+6. 是否有流程图或结构图帮助读者快速建立整体认识。
+
+例如写 “MySQL 行锁” 时，只说行锁、表锁、间隙锁是不够的。更好的写法是先给出库存预占场景，再说明为什么 `WHERE sku_id = ? AND warehouse_id = ?` 必须命中索引，最后补上死锁排查方式。这样文章才像工程复盘，而不是概念摘抄。
+
+## 从旧电脑迁移时要注意什么
+
+如果博客是从旧电脑迁移过来的，优先确认三个东西：
+
+1. 源码仓库是否完整，包括 `source/_posts`、主题、`package.json`、`_config.yml`。
+2. Node.js 版本和依赖是否能正常安装。
+3. 部署密钥或 GitHub 登录状态是否可用。
+
+迁移后建议先不要直接部署，先执行：
+
+```bash
+npm install
+npm run clean
+npm run generate
+```
+
+如果生成成功，再启动本地服务：
+
+```bash
+npm run server
+```
+
+浏览器确认归档页、文章页、图片路径都正常后，再执行 `npm run deploy`。这样可以避免把本地缺图、front matter 错误、依赖缺失等问题发布到线上。
+
+## 推荐的日常发布节奏
+
+日常维护可以按这个顺序执行：
+
+```bash
+git pull origin master
+npm run new "文章标题"
+npm run generate
+git status
+git add source public db.json
+git commit -m "Add xxx post"
+git push origin master
+npm run deploy
+```
+
+这里要注意，`public/` 是生成结果，`source/_posts` 才是文章源文件。如果只是修改文章内容，先改 Markdown，再重新生成，不要直接改 `public/` 里的 HTML。直接改生成结果，下一次 `hexo generate` 就会被覆盖。
+
 ## 部署到 GitHub Pages
 
 确认本地生成成功后，执行部署：

@@ -14,7 +14,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://guxingxianyue.github.io/images/tech-flowcharts/hexo-blog-workflow.svg">
 <meta property="article:published_time" content="2016-01-05T15:47:08.000Z">
-<meta property="article:modified_time" content="2026-06-28T05:40:03.121Z">
+<meta property="article:modified_time" content="2026-06-28T08:27:15.391Z">
 <meta property="article:author" content="Jinxing Chen">
 <meta property="article:tag" content="GitHub Pages">
 <meta property="article:tag" content="Hexo">
@@ -138,6 +138,33 @@
 <li>场景：结合真实业务说明什么时候用、怎么避坑。</li>
 </ol>
 <p>例如供应链系统里的库存预占文章，不应该只解释 <code>SELECT ... FOR UPDATE</code>，还要说明订单创建、库存锁定、扣减、释放和库存流水之间的关系。</p>
+<h2 id="内容质量检查清单"><a href="#内容质量检查清单" class="headerlink" title="内容质量检查清单"></a>内容质量检查清单</h2><p>技术博客不要只追求“能发布”，更要保证读者能从文章里得到可复用的经验。每次写完文章，可以按下面的清单检查：</p>
+<ol>
+<li>标题是否明确回答一个问题，而不是只写一个技术名词。</li>
+<li>正文是否解释了为什么需要这个技术点。</li>
+<li>是否给出可以运行或接近真实项目的代码、SQL、命令。</li>
+<li>是否说明了适用场景和不适用场景。</li>
+<li>是否把抽象概念落到订单、库存、采购、仓储、对账等业务对象上。</li>
+<li>是否有流程图或结构图帮助读者快速建立整体认识。</li>
+</ol>
+<p>例如写 “MySQL 行锁” 时，只说行锁、表锁、间隙锁是不够的。更好的写法是先给出库存预占场景，再说明为什么 <code>WHERE sku_id = ? AND warehouse_id = ?</code> 必须命中索引，最后补上死锁排查方式。这样文章才像工程复盘，而不是概念摘抄。</p>
+<h2 id="从旧电脑迁移时要注意什么"><a href="#从旧电脑迁移时要注意什么" class="headerlink" title="从旧电脑迁移时要注意什么"></a>从旧电脑迁移时要注意什么</h2><p>如果博客是从旧电脑迁移过来的，优先确认三个东西：</p>
+<ol>
+<li>源码仓库是否完整，包括 <code>source/_posts</code>、主题、<code>package.json</code>、<code>_config.yml</code>。</li>
+<li>Node.js 版本和依赖是否能正常安装。</li>
+<li>部署密钥或 GitHub 登录状态是否可用。</li>
+</ol>
+<p>迁移后建议先不要直接部署，先执行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">npm install</span><br><span class="line">npm run clean</span><br><span class="line">npm run generate</span><br></pre></td></tr></table></figure>
+
+<p>如果生成成功，再启动本地服务：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm run server</span><br></pre></td></tr></table></figure>
+
+<p>浏览器确认归档页、文章页、图片路径都正常后，再执行 <code>npm run deploy</code>。这样可以避免把本地缺图、front matter 错误、依赖缺失等问题发布到线上。</p>
+<h2 id="推荐的日常发布节奏"><a href="#推荐的日常发布节奏" class="headerlink" title="推荐的日常发布节奏"></a>推荐的日常发布节奏</h2><p>日常维护可以按这个顺序执行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">git pull origin master</span><br><span class="line">npm run new <span class="string">&quot;文章标题&quot;</span></span><br><span class="line">npm run generate</span><br><span class="line">git status</span><br><span class="line">git add <span class="built_in">source</span> public db.json</span><br><span class="line">git commit -m <span class="string">&quot;Add xxx post&quot;</span></span><br><span class="line">git push origin master</span><br><span class="line">npm run deploy</span><br></pre></td></tr></table></figure>
+
+<p>这里要注意，<code>public/</code> 是生成结果，<code>source/_posts</code> 才是文章源文件。如果只是修改文章内容，先改 Markdown，再重新生成，不要直接改 <code>public/</code> 里的 HTML。直接改生成结果，下一次 <code>hexo generate</code> 就会被覆盖。</p>
 <h2 id="部署到-GitHub-Pages"><a href="#部署到-GitHub-Pages" class="headerlink" title="部署到 GitHub Pages"></a>部署到 GitHub Pages</h2><p>确认本地生成成功后，执行部署：</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm run deploy</span><br></pre></td></tr></table></figure>
 
@@ -161,7 +188,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2016/01/05/my-new-post/" data-id="cuidJxug6Y2rScgFt3exQhkOf" class="article-share-link">Share</a>
+      <a data-url="https://guxingxianyue.github.io/2016/01/05/my-new-post/" data-id="cuidDDTZcOzpNoBLZFnHk33v-" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/GitHub-Pages/" rel="tag">GitHub Pages</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hexo/" rel="tag">Hexo</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/" rel="tag">工程实践</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%8A%80%E6%9C%AF%E5%8D%9A%E5%AE%A2/" rel="tag">技术博客</a></li></ul>

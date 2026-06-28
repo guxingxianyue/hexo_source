@@ -86,6 +86,64 @@ AP 系统优先保证可用性。网络异常时，它允许部分节点继续�
 
 关键是不要把所有业务都设计成一种取舍。供应链系统里，库存、财务、审批偏一致性；报表、搜索、通知偏可用性；订单主流程则通常是分段取舍：核心状态强一致，周边动作最终一致。
 
+## 一个简单的 Java 策略 Demo
+
+在代码里可以把不同业务能力的 CAP 取舍显式表达出来，避免所有服务都套同一种降级逻辑：
+
+```java
+public enum ConsistencyMode {
+    CP_REQUIRED,       // 失败就拒绝，不能返回可能错误的数据
+    AP_ACCEPTABLE      // 先返回可用结果，后续通过补偿修正
+}
+
+public record CapabilityPolicy(
+        String capability,
+        ConsistencyMode mode,
+        Duration timeout
+) {
+}
+```
+
+库存锁定可以配置成偏 CP：
+
+```java
+CapabilityPolicy reserveInventory = new CapabilityPolicy(
+        "reserve-inventory",
+        ConsistencyMode.CP_REQUIRED,
+        Duration.ofMillis(800)
+);
+```
+
+消息通知可以配置成偏 AP：
+
+```java
+CapabilityPolicy notifyCustomer = new CapabilityPolicy(
+        "notify-customer",
+        ConsistencyMode.AP_ACCEPTABLE,
+        Duration.ofMillis(200)
+);
+```
+
+调用方根据策略决定失败处理方式：
+
+```java
+public OrderResult createOrder(CreateOrderCommand command) {
+    inventoryService.reserve(command.skuId(), command.qty()); // CP：失败则订单不能创建
+
+    Order order = orderRepository.save(command.toOrder());
+
+    try {
+        notificationService.sendOrderCreated(order);          // AP：失败不阻塞主链路
+    } catch (Exception ex) {
+        outboxRepository.save(NotificationEvent.from(order));  // 后续重试补偿
+    }
+
+    return OrderResult.success(order.getOrderNo());
+}
+```
+
+这段代码表达了一个重要原则：不是所有异常都应该用同一种方式处理。库存锁定失败会影响主交易正确性，所以必须失败返回；通知失败只影响用户触达，可以通过 outbox、消息队列和定时任务补发。
+
 ## 一个完整的订单链路取舍
 
 可以把下单流程拆成几个步骤：
@@ -101,6 +159,16 @@ AP 系统优先保证可用性。网络异常时，它允许部分节点继续�
 其中第 2、3、4 步属于主交易链路，应该更重视一致性。第 5、6、7 步可以更多使用消息和补偿，保证主链路响应速度和可用性。
 
 如果库存服务暂时不可用，系统可以拒绝创建正式订单，保留草稿并提示稍后重试。如果短信服务不可用，订单仍然可以创建成功，短信后续重试。这就是按业务重要性拆分 CAP 取舍。
+
+## 监控和补偿不能省略
+
+偏 AP 的系统不能只说“最终一致”，必须设计最终怎么一致。至少需要三类能力：
+
+1. 幂等：同一个订单事件重复消费时，不能重复生成出库任务或重复扣减库存。
+2. 对账：定时比较订单、库存流水、出库任务之间的状态差异。
+3. 告警：补偿失败次数、消息堆积时间、库存差异数量超过阈值时要通知研发和业务。
+
+例如订单创建事件已经发送，但出库任务生成失败，系统应该能通过对账任务发现“已支付订单没有出库任务”，并自动补偿或进入人工处理队列。没有这些能力，AP 设计就会从“短暂不一致”变成“永久脏数据”。
 
 ## 总结
 
