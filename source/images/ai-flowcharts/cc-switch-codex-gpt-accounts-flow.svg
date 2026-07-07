@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="760" viewBox="0 0 1180 760" role="img" aria-labelledby="title desc">
+  <title id="title">cc-switch管理多个GPT账号给Codex使用流程图</title>
+  <desc id="desc">展示通过cc-switch管理多个GPT账号、Codex provider、本地路由和验证流程。</desc>
+  <defs>
+    <style>
+      .bg { fill: #f8fafc; }
+      .panel { fill: #ffffff; stroke: #cbd5e1; stroke-width: 2; rx: 8; }
+      .header { fill: #0f172a; font: 700 26px Arial, sans-serif; }
+      .text { fill: #334155; font: 16px Arial, sans-serif; }
+      .small { fill: #475569; font: 14px Arial, sans-serif; }
+      .label { fill: #0f172a; font: 700 17px Arial, sans-serif; }
+      .box-blue { fill: #e0f2fe; stroke: #0284c7; }
+      .box-green { fill: #dcfce7; stroke: #16a34a; }
+      .box-yellow { fill: #fef3c7; stroke: #d97706; }
+      .box-red { fill: #fee2e2; stroke: #dc2626; }
+      .box-gray { fill: #f1f5f9; stroke: #64748b; }
+      .arrow { stroke: #475569; stroke-width: 2.4; fill: none; marker-end: url(#arrowhead); }
+      .dash { stroke-dasharray: 7 6; }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto">
+      <path d="M0,0 L10,4 L0,8 Z" fill="#475569"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1180" height="760"/>
+  <text class="header" x="50" y="55">cc-switch 管理多个 GPT 账号给 Codex 使用</text>
+  <text class="text" x="50" y="86">核心思路：账号登录态、Codex provider、模型路由、调用验证分开管理，避免 auth.json 和 config.toml 混乱。</text>
+
+  <rect class="panel" x="40" y="120" width="250" height="500" rx="8"/>
+  <text class="label" x="70" y="155">账号层</text>
+  <rect class="box-blue" x="70" y="185" width="190" height="70" rx="8"/>
+  <text class="label" x="95" y="214">个人 GPT 账号</text>
+  <text class="small" x="95" y="238">个人项目 / 学习</text>
+  <rect class="box-blue" x="70" y="285" width="190" height="70" rx="8"/>
+  <text class="label" x="95" y="314">公司 GPT 账号</text>
+  <text class="small" x="95" y="338">公司授权 / 账单隔离</text>
+  <rect class="box-blue" x="70" y="385" width="190" height="70" rx="8"/>
+  <text class="label" x="95" y="414">测试 GPT 账号</text>
+  <text class="small" x="95" y="438">验证配置 / 沙箱任务</text>
+  <rect class="box-red" x="70" y="500" width="190" height="82" rx="8"/>
+  <text class="label" x="100" y="530">安全边界</text>
+  <text class="small" x="90" y="554">不复制 auth.json</text>
+  <text class="small" x="90" y="576">不提交 API Key</text>
+
+  <rect class="panel" x="360" y="120" width="280" height="500" rx="8"/>
+  <text class="label" x="390" y="155">cc-switch 管理层</text>
+  <rect class="box-green" x="390" y="185" width="220" height="76" rx="8"/>
+  <text class="label" x="417" y="214">OAuth Auth Center</text>
+  <text class="small" x="422" y="238">登录 / 添加多个账号</text>
+  <rect class="box-green" x="390" y="298" width="220" height="76" rx="8"/>
+  <text class="label" x="430" y="327">Codex Provider</text>
+  <text class="small" x="420" y="351">官方 / 网关 / 第三方 API</text>
+  <rect class="box-green" x="390" y="410" width="220" height="76" rx="8"/>
+  <text class="label" x="443" y="439">Local Routing</text>
+  <text class="small" x="420" y="463">协议转换 / 本地转发</text>
+  <rect class="box-yellow" x="390" y="520" width="220" height="62" rx="8"/>
+  <text class="label" x="420" y="548">配置写入 Codex</text>
+  <text class="small" x="430" y="570">config.toml / auth 保留</text>
+
+  <rect class="panel" x="710" y="120" width="220" height="500" rx="8"/>
+  <text class="label" x="744" y="155">Codex 使用层</text>
+  <rect class="box-gray" x="740" y="190" width="160" height="70" rx="8"/>
+  <text class="label" x="779" y="220">启动 Codex</text>
+  <text class="small" x="762" y="244">CLI 或 App</text>
+  <rect class="box-gray" x="740" y="310" width="160" height="70" rx="8"/>
+  <text class="label" x="774" y="340">执行任务</text>
+  <text class="small" x="765" y="364">读代码 / 改文件</text>
+  <rect class="box-gray" x="740" y="430" width="160" height="76" rx="8"/>
+  <text class="label" x="775" y="460">请求模型</text>
+  <text class="small" x="755" y="484">走当前 provider</text>
+  <rect class="box-yellow" x="740" y="540" width="160" height="58" rx="8"/>
+  <text class="label" x="774" y="574">重启生效</text>
+
+  <rect class="panel" x="990" y="120" width="150" height="500" rx="8"/>
+  <text class="label" x="1015" y="155">验证层</text>
+  <rect class="box-green" x="1015" y="195" width="100" height="60" rx="8"/>
+  <text class="small" x="1034" y="223">当前</text>
+  <text class="small" x="1025" y="244">provider</text>
+  <rect class="box-green" x="1015" y="300" width="100" height="60" rx="8"/>
+  <text class="small" x="1032" y="328">路由</text>
+  <text class="small" x="1030" y="349">日志</text>
+  <rect class="box-green" x="1015" y="405" width="100" height="60" rx="8"/>
+  <text class="small" x="1028" y="433">调用</text>
+  <text class="small" x="1028" y="454">账单</text>
+  <rect class="box-red" x="1015" y="510" width="100" height="70" rx="8"/>
+  <text class="small" x="1027" y="538">异常时</text>
+  <text class="small" x="1025" y="559">回默认</text>
+
+  <path class="arrow" d="M260 220 H390"/>
+  <path class="arrow" d="M260 320 H390"/>
+  <path class="arrow" d="M260 420 H390"/>
+  <path class="arrow" d="M610 222 H740"/>
+  <path class="arrow" d="M610 336 H740"/>
+  <path class="arrow" d="M610 448 H740"/>
+  <path class="arrow" d="M900 225 H1015"/>
+  <path class="arrow" d="M900 345 H1015"/>
+  <path class="arrow" d="M900 468 H1015"/>
+  <path class="arrow dash" d="M820 540 C820 665 500 675 500 582"/>
+
+  <rect class="panel" x="80" y="655" width="1020" height="70" rx="8"/>
+  <text class="label" x="110" y="686">使用原则</text>
+  <text class="text" x="210" y="686">账号用于权限隔离和账单隔离；请求走向用 provider、routing log、账单记录共同验证；凭证文件永远不要进 Git。</text>
+  <text class="small" x="210" y="712">推荐流程：先登录官方账号 -> 开启保留官方登录 -> 添加 provider -> 必要时启用 Local Routing -> 切换后重启 Codex。</text>
+</svg>
