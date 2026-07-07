@@ -87,11 +87,11 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h2 id="开场个人观察"><a href="#开场个人观察" class="headerlink" title="开场个人观察"></a>开场个人观察</h2><p>最近看到一篇文章《Loop Engineering 实战：实现从日志扫描到预发部署的全自主闭环》，里面讲的不是“怎么写一个更好的提示词”，而是怎么把 AI agent 放进一个持续运转的工程循环里：自动发现问题、定位根因、生成修复、跑测试、部署预发、再由独立验证环节判断是否真的修好。</p>
-<p>这篇文章给我的启发是：AI 编程真正的瓶颈，已经不只是“写代码慢不慢”，而是“发现问题、修复问题、验证问题、沉淀经验”这条维护链路是不是还靠人手动推动。</p>
+        <h2 id="开场个人观察"><a href="#开场个人观察" class="headerlink" title="开场个人观察"></a>开场个人观察</h2><p>最近在整理 Codex 和 Agent 工作流时，我越来越觉得，AI 编程真正值得关注的地方，已经不只是“怎么写一个更好的提示词”，而是怎么把 AI agent 放进一个持续运转的工程循环里：自动发现问题、定位根因、生成修复、跑测试、部署预发，再由独立验证环节判断是否真的修好。</p>
+<p>换句话说，AI 编程的瓶颈，已经不只是“写代码慢不慢”，而是“发现问题、修复问题、验证问题、沉淀经验”这条维护链路是不是还靠人手动推动。</p>
 <p>如果人每天都要打开日志平台、复制错误、问 AI、改代码、跑测试、提合并、盯预发，那 AI 只是提高了某个环节的速度。Loop Engineering 要做的，是把整条链路设计成能自己转起来的闭环。</p>
 <p><img src="/images/ai-flowcharts/loop-engineering-codex-supply-chain-demo.svg" alt="Loop Engineering供应链异常修复闭环"></p>
-<h2 id="原文核心总结"><a href="#原文核心总结" class="headerlink" title="原文核心总结"></a>原文核心总结</h2><p>原文的主线很清楚：Loop Engineering 的重点不是让 AI “更会写代码”，而是让 AI 能在一套规则里持续发现工作、交付修复、独立验证、记录经验，并按调度反复运行。</p>
+<h2 id="核心观点总结"><a href="#核心观点总结" class="headerlink" title="核心观点总结"></a>核心观点总结</h2><p>Loop Engineering 的重点不是让 AI “更会写代码”，而是让 AI 能在一套规则里持续发现工作、交付修复、独立验证、记录经验，并按调度反复运行。</p>
 <p>我把它总结成四个观点。</p>
 <p>第一，维护循环才是真正瓶颈。</p>
 <p>AI 已经能很快生成代码，但线上系统的问题不会自动消失。日志分散、错误类型多、排查链路长、测试和部署还要人工推动，才是工程效率真正卡住的地方。</p>
@@ -103,7 +103,7 @@
 <p>第四，Loop 需要六类组件。</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Connectors：连接日志、监控、发布、通知等系统。</span><br><span class="line">Automations：定时巡检或事件触发。</span><br><span class="line">Skills：把诊断、修复、发布流程写成 SOP。</span><br><span class="line">Worktrees：隔离不同修复任务，避免互相污染。</span><br><span class="line">Sub Agents：独立验证，避免修复者自证。</span><br><span class="line">State：记录历史结论、修复方案和巡检状态。</span><br></pre></td></tr></table></figure>
 
-<p>原文还提到一个很重要的判断标准：不是所有任务都值得建 Loop。适合建 Loop 的任务，通常要满足四个条件：重复发生、验证能自动化、成本可控、agent 有足够工具。</p>
+<p>这里还有一个很重要的判断标准：不是所有任务都值得建 Loop。适合建 Loop 的任务，通常要满足四个条件：重复发生、验证能自动化、成本可控、agent 有足够工具。</p>
 <h2 id="放到供应链系统里怎么理解"><a href="#放到供应链系统里怎么理解" class="headerlink" title="放到供应链系统里怎么理解"></a>放到供应链系统里怎么理解</h2><p>供应链系统非常适合用 Loop Engineering 的思路，因为它的异常不是一次性的。</p>
 <p>比如这些问题会反复出现：</p>
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">订单履约超时。</span><br><span class="line">采购到货数量和采购单不一致。</span><br><span class="line">库存预占失败。</span><br><span class="line">出库单状态卡住。</span><br><span class="line">消息消费失败。</span><br><span class="line">供应商回传状态延迟。</span><br><span class="line">报表统计口径和业务事实不一致。</span><br></pre></td></tr></table></figure>
@@ -155,12 +155,12 @@
 <p>供应链系统里状态机、库存、财务、报表互相影响，自动修复不能绕过人。解决办法是设置硬停止条件：涉及金额、库存数量、生产数据修复、权限变更时，必须人工审批。</p>
 <p>第五个限制，是经验没有沉淀。</p>
 <p>如果每次排查都停留在一次对话里，下一次还是从零开始。解决办法是把常见问题写入 skill、runbook、异常规则库或巡检配置，让 loop 越跑越聪明。</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>这篇公众号文章最值得借鉴的地方，是它把 Loop Engineering 从概念讲到了生产闭环。它不是让 AI 一次性写更多代码，而是设计一套能持续发现问题、修复问题、验证问题、沉淀经验的系统。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Loop Engineering 最值得借鉴的地方，是它把 AI 编程从一次性任务推进到生产闭环。它不是让 AI 一次性写更多代码，而是设计一套能持续发现问题、修复问题、验证问题、沉淀经验的系统。</p>
 <p>放到供应链系统里，我认为最适合先做的不是“让 Codex 自动开发大需求”，而是“让 Codex 自动巡检和修复高频异常”。比如采购到货状态异常、库存流水不一致、消息消费失败、订单履约超时。</p>
 <p>真正稳的 AI 工程化，不是把人完全拿掉，而是让人从手动推动循环，变成设计循环、审查风险和批准关键节点。</p>
 <h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
-<li><a href="https://mp.weixin.qq.com/s/AQLsjzD0s9d8kGUGdul0sg">Loop Engineering 实战：实现从日志扫描到预发部署的全自主闭环</a></li>
 <li><a href="https://addyosmani.com/blog/loop-engineering/">Loop Engineering - Addy Osmani</a></li>
+<li><a href="https://developers.openai.com/api/docs/guides/agents">OpenAI Agents docs</a></li>
 <li><a href="https://developers.openai.com/codex/learn/best-practices">OpenAI Codex best practices</a></li>
 </ul>
 
