@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1180" height="760" viewBox="0 0 1180 760" role="img" aria-labelledby="title desc">
+  <title id="title">Loop Engineering 供应链异常修复闭环</title>
+  <desc id="desc">展示 Codex 在供应链系统中从异常巡检、根因诊断、最小修复、测试验证、预发检查到经验沉淀的闭环流程。</desc>
+  <rect width="1180" height="760" fill="#f8fafc"/>
+  <text x="590" y="50" text-anchor="middle" font-family="Arial, 'Microsoft YaHei', sans-serif" font-size="28" font-weight="700" fill="#111827">Codex Loop：供应链异常从发现到预发验证</text>
+  <text x="590" y="82" text-anchor="middle" font-family="Arial, 'Microsoft YaHei', sans-serif" font-size="15" fill="#475569">以采购到货状态异常为例：自动巡检、诊断、修复、验证，生产发布前人工确认</text>
+
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#2563eb"/>
+    </marker>
+    <style>
+      .box { fill:#ffffff; stroke:#cbd5e1; stroke-width:2; rx:14; }
+      .blue { fill:#eff6ff; stroke:#93c5fd; stroke-width:2; rx:14; }
+      .warn { fill:#fff7ed; stroke:#fdba74; stroke-width:2; rx:14; }
+      .main { font-family:Arial, 'Microsoft YaHei', sans-serif; font-size:17px; font-weight:700; fill:#0f172a; }
+      .sub { font-family:Arial, 'Microsoft YaHei', sans-serif; font-size:13px; fill:#475569; }
+      .small { font-family:Arial, 'Microsoft YaHei', sans-serif; font-size:12px; fill:#64748b; }
+      .arrow { stroke:#2563eb; stroke-width:3; fill:none; marker-end:url(#arrow); }
+    </style>
+  </defs>
+
+  <rect class="box" x="55" y="130" width="230" height="108"/>
+  <text class="main" x="170" y="164" text-anchor="middle">1. 定时巡检</text>
+  <text class="sub" x="170" y="193" text-anchor="middle">到货单 / 库存流水 / MQ 日志</text>
+  <text class="small" x="170" y="216" text-anchor="middle">发现状态异常和高频错误</text>
+
+  <rect class="box" x="335" y="130" width="230" height="108"/>
+  <text class="main" x="450" y="164" text-anchor="middle">2. 根因诊断</text>
+  <text class="sub" x="450" y="193" text-anchor="middle">Codex 读代码 + 日志 + SQL</text>
+  <text class="small" x="450" y="216" text-anchor="middle">事实 → 推理 → 结论</text>
+
+  <rect class="box" x="615" y="130" width="230" height="108"/>
+  <text class="main" x="730" y="164" text-anchor="middle">3. 失败测试</text>
+  <text class="sub" x="730" y="193" text-anchor="middle">先复现采购到货状态异常</text>
+  <text class="small" x="730" y="216" text-anchor="middle">避免只靠日志猜修复</text>
+
+  <rect class="box" x="895" y="130" width="230" height="108"/>
+  <text class="main" x="1010" y="164" text-anchor="middle">4. 最小修复</text>
+  <text class="sub" x="1010" y="193" text-anchor="middle">状态机 / 幂等 / 事务边界</text>
+  <text class="small" x="1010" y="216" text-anchor="middle">不做无关重构</text>
+
+  <path class="arrow" d="M285 184 H326"/>
+  <path class="arrow" d="M565 184 H606"/>
+  <path class="arrow" d="M845 184 H886"/>
+
+  <rect class="box" x="895" y="350" width="230" height="116"/>
+  <text class="main" x="1010" y="386" text-anchor="middle">5. 多层验证</text>
+  <text class="sub" x="1010" y="416" text-anchor="middle">单测 + SQL 校验 + 预发回归</text>
+  <text class="small" x="1010" y="440" text-anchor="middle">修复者不能自证</text>
+
+  <rect class="warn" x="615" y="350" width="230" height="116"/>
+  <text class="main" x="730" y="386" text-anchor="middle">6. 人工审批</text>
+  <text class="sub" x="730" y="416" text-anchor="middle">库存 / 财务 / 生产发布</text>
+  <text class="small" x="730" y="440" text-anchor="middle">高风险节点必须确认</text>
+
+  <rect class="box" x="335" y="350" width="230" height="116"/>
+  <text class="main" x="450" y="386" text-anchor="middle">7. 经验沉淀</text>
+  <text class="sub" x="450" y="416" text-anchor="middle">Skill / runbook / 巡检规则</text>
+  <text class="small" x="450" y="440" text-anchor="middle">下次同类问题更快处理</text>
+
+  <rect class="blue" x="55" y="350" width="230" height="116"/>
+  <text class="main" x="170" y="386" text-anchor="middle">8. 下一轮调度</text>
+  <text class="sub" x="170" y="416" text-anchor="middle">每日巡检或告警触发</text>
+  <text class="small" x="170" y="440" text-anchor="middle">循环持续运转</text>
+
+  <path class="arrow" d="M1010 238 V341"/>
+  <path class="arrow" d="M895 408 H854"/>
+  <path class="arrow" d="M615 408 H574"/>
+  <path class="arrow" d="M335 408 H294"/>
+  <path class="arrow" d="M170 350 C135 300 138 263 169 244"/>
+
+  <rect class="blue" x="210" y="585" width="760" height="88"/>
+  <text class="main" x="590" y="620" text-anchor="middle">停止条件</text>
+  <text class="sub" x="590" y="650" text-anchor="middle">验证失败超过 2-3 轮、缺生产权限、涉及金额/库存修正、业务口径不确定时停止并交给人</text>
+</svg>
