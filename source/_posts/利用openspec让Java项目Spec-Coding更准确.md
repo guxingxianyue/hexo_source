@@ -1,10 +1,10 @@
 ---
-title: 利用openspec让Java项目Spec Coding更准确
+title: 使用OpenSpec提升Java项目Spec Coding的准确性
 date: 2026-05-12 11:00:00
 tags: [AI, Codex, Java, Spec Coding]
 ---
 
-## 开场个人观察
+## 为什么需求规格决定实现质量
 
 这几年用 AI 写代码以后，我越来越觉得：Java 项目里真正拉开差距的，不是“让 AI 多写几行代码”，而是“让 AI 在写代码前先把需求理解对”。尤其是订单、库存、结算、报表、权限这类业务系统，表面上只是加一个接口，背后可能牵扯状态机、事务边界、幂等、消息补偿、历史数据兼容和测试数据准备。
 
@@ -14,7 +14,7 @@ tags: [AI, Codex, Java, Spec Coding]
 
 ![openspec让Spec Coding更准确](/images/ai-flowcharts/codex-openspec-spec-flow.svg)
 
-## 核心观点
+## OpenSpec 在开发流程中的职责
 
 Spec Coding 的核心不是“多写文档”，而是把模糊需求变成可验收条件。对 Java 后端项目来说，一个可用的 spec 至少要回答这些问题：
 
@@ -278,7 +278,7 @@ proposal、design、tasks、specs。内容必须包含背景、术语、现状�
 
 如果这些都没有，说明 spec 还只是“文章”，不是工程规格。
 
-## 踩坑提醒
+## 规格驱动开发的常见误区
 
 第一个坑，是把 `/opsx:propose` 当成魔法命令。它只是帮助整理上下文和规格，不能替代业务判断。关键口径还是要人来确认。
 
@@ -301,6 +301,6 @@ OpenSpec/OPSX 的价值，是让 Codex 在写 Java 代码前先把需求说清�
 ## 参考资料
 
 - [OpenAI Codex best practices](https://developers.openai.com/codex/learn/best-practices)
-- [OpenAI Codex Skills](https://developers.openai.com/codex/config/skills)
+- [OpenAI Codex customization](https://developers.openai.com/codex/concepts/customization#skills)
 - [OpenSpec OPSX commands](https://github.com/Fission-AI/OpenSpec/blob/main/docs/commands.md)
 - [OpenSpec OPSX workflow](https://github.com/Fission-AI/OpenSpec/blob/main/docs/opsx.md)

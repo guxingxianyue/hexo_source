@@ -1,10 +1,10 @@
 ---
-title: 利用superpowers让Spec Coding更准确
+title: 使用Superpowers提升Spec Coding的执行质量
 date: 2026-05-19 12:00:00
 tags: [AI, Codex, Java, Spec Coding]
 ---
 
-## 开场个人观察
+## 从规格正确到执行可靠
 
 前面写 OpenSpec/OPSX 的时候，我把重点放在“先把需求写成规格，再让 AI 按规格实现”。但真实项目里还有另一类问题：spec 写得差不多了，AI 也开始改代码了，可过程还是容易跑偏。比如一次性改太多文件、没有先写测试、遇到失败就绕过、没有复盘 diff、没有把经验沉淀下来。
 
@@ -14,7 +14,7 @@ tags: [AI, Codex, Java, Spec Coding]
 
 ![superpowers增强Spec Coding](/images/ai-flowcharts/codex-superpowers-spec-flow.svg)
 
-## 核心观点
+## Superpowers 解决的工程问题
 
 我现在不把 `superpowers` 理解成单个命令，而是理解成一套“开发过程护栏”。它的目标不是让 AI 写得更快，而是让 AI 在关键节点停下来做正确动作。
 
@@ -375,7 +375,7 @@ Superpowers 的价值在于把“好习惯”变成可以重复调用的技能�
 
 这样一套下来，AI 不再只是“帮我写个接口”，而是在规格、计划、实现、测试、审查、沉淀之间形成闭环。
 
-## 三条使用铁律
+## 三条关键使用原则
 
 第一条，不清楚就先问，不要让 AI 猜。
 
@@ -389,7 +389,7 @@ Superpowers 的价值在于把“好习惯”变成可以重复调用的技能�
 
 不要相信“代码看起来对”。对于 Java 后端，至少要跑相关测试；没有测试也要做手工验证清单。diff 里如果出现无关重构、新依赖、无说明的表结构变化，都要停下来审。
 
-## 踩坑提醒
+## 使用边界与常见误区
 
 第一个坑，是把 Superpowers 当成夸张提示词。比如“请用超级能力帮我写代码”，这种没有实际约束。要明确指定它做澄清、计划、测试、调试、审查。
 
@@ -414,4 +414,4 @@ Superpowers 不是让 AI 变神，而是把成熟开发者的工作纪律装进 
 - [obra/superpowers](https://github.com/obra/superpowers)
 - [Superpowers 实战指南：让 AI 编程从“代码生成”迈向“专业开发”](https://developer.cloud.tencent.com/article/2654984?policyId=1003)
 - [OpenAI Codex best practices](https://developers.openai.com/codex/learn/best-practices)
-- [OpenAI Codex Skills](https://developers.openai.com/codex/config/skills)
+- [OpenAI Codex customization](https://developers.openai.com/codex/concepts/customization#skills)

@@ -1,5 +1,5 @@
 ---
-title: springcloud 里面常用的组件
+title: Spring Cloud核心组件：服务治理与供应链微服务实践
 date: 2024-02-18 09:30:00
 tags: [Spring Cloud, 微服务, Java, 分布式系统]
 ---

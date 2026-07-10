@@ -1,10 +1,10 @@
 ---
-title: openspec + superpowers这套组合怎么让大需求更好落地
+title: OpenSpec与Superpowers组合：大需求如何拆解并交付
 date: 2026-05-26 13:00:00
 tags: [AI, Codex, Java, Spec Coding, 软件工程]
 ---
 
-## 开场个人观察
+## 大需求为什么容易失控
 
 大需求最怕两种状态：一种是只有一句话，比如“重构库存中心”；另一种是文档写了几十页，但没有人能把它拆成真正可执行、可验证、可回滚的任务。AI 编程助手能提高编码速度，但如果需求、计划和验收都没有站稳，它只会更快地把混乱扩散到更多文件里。
 
@@ -14,7 +14,7 @@ tags: [AI, Codex, Java, Spec Coding, 软件工程]
 
 ![openspec加superpowers组合落地大需求](/images/ai-flowcharts/codex-openspec-superpowers-flow.svg)
 
-## 核心观点
+## 规格管理与执行纪律如何分工
 
 这套组合不是两个口号叠在一起，而是两层控制。
 
@@ -372,7 +372,7 @@ OpenSpec 生成的 `tasks.md` 有时还是偏粗。比如“实现库存差异�
 
 这样拆的好处是，每个阶段都有业务价值，也都有明确边界。第一阶段即使先上线，也不会破坏库存和财务；第二阶段上线后库存闭环；第三阶段再补齐统计和经营分析。
 
-## 踩坑提醒
+## 组合使用的边界与风险
 
 第一个坑，是还在探索需求时就 `/opsx:apply`。大需求前期应该多用 `/opsx:explore`、`brainstorming` 和 `/opsx:propose`，不要急着写代码。
 
@@ -398,4 +398,4 @@ OpenSpec 用 `/opsx:propose`、`/opsx:apply`、`/opsx:verify`、`/opsx:sync`、`
 - [OpenSpec OPSX workflow](https://github.com/Fission-AI/OpenSpec/blob/main/docs/opsx.md)
 - [obra/superpowers](https://github.com/obra/superpowers)
 - [OpenAI Codex best practices](https://developers.openai.com/codex/learn/best-practices)
-- [OpenAI Codex Skills](https://developers.openai.com/codex/config/skills)
+- [OpenAI Codex customization](https://developers.openai.com/codex/concepts/customization#skills)

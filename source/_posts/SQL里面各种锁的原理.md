@@ -1,5 +1,5 @@
 ---
-title: SQL里面各种锁的原理
+title: MySQL锁机制详解：从行锁到Next-Key Lock
 date: 2022-09-17 11:25:00
 tags: [SQL, MySQL, 数据库, 锁, 事务]
 ---

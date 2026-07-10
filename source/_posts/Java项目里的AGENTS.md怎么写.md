@@ -1,10 +1,10 @@
 ---
-title: Java项目里的AGENTS.md怎么写
+title: Java项目中的AGENTS.md：约束、命令与验收标准
 date: 2026-05-06 10:00:00
 tags: [AI, Codex, Java, AGENTS.md]
 ---
 
-## 开场个人观察
+## AGENTS.md 解决什么问题
 
 很多人第一次用 Codex，会把所有项目规则都写在当前对话里：项目用 Maven、不要改数据库结构、测试命令是什么、接口要保持兼容、日志不能打印手机号。这样当然能用，但每次都重复，很快就烦。
 
@@ -14,7 +14,7 @@ Codex 官方文档里把 `AGENTS.md` 解释成给 agent 用的开放格式 READM
 
 ![Java项目AGENTS.md内容结构](/images/ai-flowcharts/codex-agents-md-java-flow.svg)
 
-## 核心观点
+## 应该写入哪些长期规则
 
 Java 项目的 `AGENTS.md` 应该解决三个问题。
 
@@ -26,7 +26,7 @@ Java 项目的 `AGENTS.md` 应该解决三个问题。
 
 它不是需求文档，也不是架构百科。它应该短、准、可执行。
 
-## 实践方法
+## Java 项目配置示例
 
 一个 Java 项目的 `AGENTS.md` 可以这样写：
 
@@ -74,7 +74,7 @@ Java 项目的 `AGENTS.md` 应该解决三个问题。
 
 如果项目很大，可以在根目录放一个总 `AGENTS.md`，再在子模块放更细的规则。比如 `inventory-service/AGENTS.md` 专门写库存锁、库存流水、幂等规则；`settlement-service/AGENTS.md` 专门写金额精度、对账和事务要求。
 
-## 踩坑提醒
+## 常见误区与维护建议
 
 第一个坑，是把 `AGENTS.md` 写成长篇架构文档。Codex 每次读进去都占上下文，太长反而降低重点。详细资料可以放到 `docs/`，在 `AGENTS.md` 里写“需要时参考”。
 
@@ -93,4 +93,4 @@ Java 项目的 `AGENTS.md`，本质上是把团队开发习惯沉淀给 Codex。
 ## 参考资料
 
 - [OpenAI Codex best practices](https://developers.openai.com/codex/learn/best-practices)
-- [OpenAI Codex AGENTS.md](https://developers.openai.com/codex/config/agents-md)
+- [OpenAI Codex customization](https://developers.openai.com/codex/concepts/customization#agents-guidance)

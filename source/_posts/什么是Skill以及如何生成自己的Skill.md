@@ -1,10 +1,10 @@
 ---
-title: 什么是Skill，以及如何生成自己的Skill
+title: AI编程Skill：如何沉淀可复用的工程工作流
 date: 2026-05-22 15:00:00
 tags: [AI, Skill, Claude Code, Codex, 工程实践]
 ---
 
-## 开场个人观察
+## 为什么需要可复用工作流
 
 用 AI 编程工具一段时间后，我发现一个很现实的问题：很多提示词会被反复复制。比如“请先读代码不要修改”“请按这个格式输出审查结果”“请运行这些验证命令”“请用我们项目的发布流程”。这些话每次都粘一遍，既麻烦，也容易漏。
 
@@ -14,7 +14,7 @@ Claude Code 官方文档里说，skills 通过 `SKILL.md` 扩展 Claude 的能�
 
 ![Skill生命周期](/images/ai-flowcharts/skill-lifecycle.svg)
 
-## 核心观点
+## Skill 的职责与适用边界
 
 Skill 不是越大越好，而是越清楚越好。一个好的 skill 应该回答四个问题：
 
@@ -40,7 +40,7 @@ Skill 不是越大越好，而是越清楚越好。一个好的 skill 应该回�
 
 ![Skill目录结构指引](/images/ai-flowcharts/skill-folder-guide.svg)
 
-## 实践方法
+## 从任务流程到Skill文件
 
 一个最小 skill 通常可以从一个文件夹开始：
 
@@ -194,7 +194,7 @@ supply-chain-order-state-review：审订单状态机、允许操作、异常流�
 
 如果三个答案都是“是”，就值得沉淀。
 
-## 踩坑提醒
+## 设计与维护中的常见问题
 
 第一个坑，是把 skill 写成百科。Skill 不是知识库全文，它应该优先保存流程、约束和关键判断。长资料可以放 references，需要时再读。
 

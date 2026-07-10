@@ -1,10 +1,10 @@
 ---
-title: cc-switch管理多个GPT账号给Codex使用
+title: CC Switch管理Codex多套配置：认证、供应商与本地路由
 date: 2026-07-05 10:00:00
-tags: [AI, Codex, CC Switch, GPT账号]
+tags: [AI, Codex, CC Switch, 配置管理]
 ---
 
-## 开场个人观察
+## 为什么需要配置管理
 
 最近使用 Codex 做代码任务时，我越来越明显地感觉到，AI 编程工具本身已经不是唯一问题，真正容易乱的是账号、模型、API、MCP 和本地配置。
 
@@ -14,7 +14,7 @@ cc-switch 要解决的就是这个问题。它不是模型，也不是 Codex 的
 
 ![cc-switch管理多个GPT账号给Codex使用](/images/ai-flowcharts/cc-switch-codex-gpt-accounts-flow.svg)
 
-## 核心观点
+## 适用场景与合规边界
 
 先说结论：cc-switch 适合管理多套 AI 编程配置，但不要把它理解成“无限切账号绕过限制”的工具。
 
@@ -39,13 +39,13 @@ Codex 本地一般会涉及两个重要文件：
 
 `auth.json` 更像登录态，保存官方 ChatGPT / Codex OAuth 登录缓存。它很敏感，不应该手工复制、上传或分享。
 
-`config.toml` 更像运行配置，记录当前 provider、base url、model、model catalog、token 等信息。
+`config.toml` 是 Codex 的运行配置文件，可包含模型、模型供应商、接口地址和相关选项。认证信息如何保存取决于登录方式、Codex 版本以及 CC Switch 的配置模式，不应把某一种文件布局当成长期稳定的公开接口。
 
-cc-switch 在管理 Codex 时，主要价值就是帮我们减少手工改这些文件的次数。尤其是在切换不同 provider 时，它可以把当前启用的模型、接口地址和 token 写入 Codex 需要读取的位置。
+CC Switch 在管理 Codex 时，主要价值是减少手工修改配置文件的次数。尤其是在切换不同 provider 时，它会按当前版本支持的方式更新 Codex 配置。操作前仍应备份配置，并在升级后核对 CC Switch 的发布说明。
 
 如果你不了解这两个文件，就很容易出现一个错觉：Codex 界面显示的是 A 账号，所以请求一定走 A 账号。实际不一定。官方登录状态、模型请求路由、账单来源可能是三件事，需要分别确认。
 
-## 安装 cc-switch
+## 安装与变更前准备
 
 Windows 上可以直接去 GitHub Releases 下载 `.msi` 安装包，或者使用 portable zip。
 
@@ -78,9 +78,9 @@ Windows PowerShell 可以用：
 Copy-Item "$env:USERPROFILE\.codex" "$env:USERPROFILE\.codex.backup.20260705" -Recurse
 ```
 
-## 方式一：保留官方登录，再切换 Codex provider
+## 方式一：保留官方登录并切换Provider
 
-这是我比较推荐的基础用法。
+这是需要同时保留官方登录能力和第三方 provider 时的一种用法。官方认证保留在当前 CC Switch 版本中是可选设置，默认值和写入方式可能随版本变化，应以当前发布说明为准。
 
 第一步，在 cc-switch 的 Codex 面板里选择 `OpenAI Official`。如果没有，就从 preset 里添加一个。
 
@@ -114,9 +114,11 @@ Keep official login when switching third-party providers
 
 如果 Codex 仍显示官方账号，但 provider 后台出现调用记录，这是正常的：官方账号负责登录态，实际模型请求走当前 provider。
 
-## 方式二：通过 OAuth Auth Center 管理多个 GPT 账号
+## 方式二：通过OAuth Auth Center隔离授权账号
 
-cc-switch 的 OAuth Auth Center 可以管理多个 ChatGPT / Codex OAuth 账号。这个功能适合你需要区分个人账号、团队账号、测试账号的场景。
+CC Switch 的 OAuth Auth Center 可以管理多个经过本人或组织授权的 ChatGPT / Codex OAuth 账号。该能力仍带有版本和合规风险，适合做身份、权限和账单隔离，不应被用于共享凭证或规避平台限制。
+
+需要区分两件事：在 Codex 中切换本人获授权的登录身份，与把 Codex OAuth 服务反向代理给其他工具并不是同一种操作。后者可能受到 OpenAI 与上游服务条款限制。启用任何 OAuth reverse proxy 或第三方转发功能前，应阅读当前版本的风险提示和相关服务条款；公司环境还需要经过安全与合规审批。
 
 大致步骤是：
 
@@ -143,11 +145,11 @@ codex-test-gpt
 
 名字要能看出用途，不要只叫 `account1`、`account2`。半年后再看，自己也会忘。
 
-## 方式三：需要本地路由时打开 Local Routing
+## 方式三：协议不兼容时使用Local Routing
 
-有些 provider 支持的是 OpenAI Chat Completions 协议，而 Codex 可能需要 Responses API 形式。这时候就需要 cc-switch 的 Local Routing 做协议转换。
+部分第三方 provider 只提供 Chat Completions 兼容协议，而 Codex 使用的工具调用和流式事件更接近 Responses API。直接修改接口地址可能出现模型目录、流式响应或工具调用不兼容，此时可评估使用 CC Switch Local Routing 做协议转换。
 
-配置路径大概是：
+不同版本的菜单名称可能变化，当前版本可从 Routing 相关设置进入：
 
 ```text
 Settings -> Routing -> Local Routing
@@ -177,7 +179,9 @@ Settings -> Routing -> Local Routing
 5. Codex 是否已经重启。
 ```
 
-## 一个推荐的日常使用流程
+本地路由位于代码、提示词和模型服务之间，也扩大了敏感数据的处理边界。使用前应确认日志是否记录请求正文、凭证如何存储、上游是否保留数据，以及团队代码是否允许发送给该 provider。
+
+## 日常使用与审计流程
 
 我会把日常流程固定成这样：
 
@@ -204,7 +208,7 @@ Settings -> Routing -> Local Routing
 
 这个流程看上去啰嗦，但能避免很多麻烦。AI 工具越自动化，越需要把“当前是谁在用、用哪个模型、请求去哪儿了”这件事弄清楚。
 
-## 踩坑提醒
+## 常见故障与安全风险
 
 第一个坑，是把多账号当成额度池。这个风险很高，也不稳定。账号切换应该服务于权限隔离、账单隔离和项目隔离，而不是绕限制。
 

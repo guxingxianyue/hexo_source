@@ -61,6 +61,8 @@ kafkaTemplate.send(record);
 
 相同 key 的消息会进入同一分区，从而在该分区内保持顺序。但这不代表整个 Topic 全局有序，Kafka 只保证单分区内有序。
 
+分区数变更也会影响 key 到分区的映射。扩容期间，同一个 key 的新旧消息可能位于不同分区，因此对严格顺序敏感的业务需要设计版本化路由、停写迁移或在消费端按业务版本校验，不能把“使用相同 key”理解成永久顺序保证。
+
 分区数量要结合吞吐和消费者并行度规划。分区太少会限制并发，分区太多会增加元数据、文件句柄和 rebalance 成本。
 
 ## 副本和可靠性
@@ -80,10 +82,10 @@ kafka-topics.sh --create \
 ```properties
 acks=all
 enable.idempotence=true
-retries=3
+retries=2147483647
 ```
 
-`acks=all` 表示 Leader 等待 ISR 中副本确认后才认为写入成功。`enable.idempotence=true` 可以降低生产者重试导致重复写入的风险，但业务层仍然要做幂等。
+`acks=all` 表示 Leader 等待 ISR 中满足要求的副本确认后才认为写入成功。Broker 端还应设置合适的 `min.insync.replicas`，例如副本数为 3 时设为 2，避免只剩一个同步副本时仍接受关键写入。开启幂等生产者后通常应保留充分的重试机会；具体默认值和兼容约束以当前 Kafka 客户端版本为准。生产者幂等只能约束单个生产者会话内的重试，业务消费者仍然要做幂等。
 
 ## 消费幂等
 
@@ -92,16 +94,17 @@ retries=3
 ```java
 @Transactional
 public void handle(OrderCreatedEvent event) {
-    if (eventRepository.exists(event.eventId())) {
+    // event_id 上有唯一索引；插入成功才获得本次处理权。
+    if (!eventRepository.tryInsert(event.eventId())) {
         return;
     }
 
     inventoryService.reserve(event.orderNo(), event.warehouseId());
-    eventRepository.markProcessed(event.eventId());
+    eventRepository.markSucceeded(event.eventId());
 }
 ```
 
-对于库存预占这类关键逻辑，建议使用业务唯一键、事件表、状态机或数据库唯一约束保证重复消息不会造成重复扣减。
+“先查询是否存在、再插入”的写法存在并发竞态。更稳妥的方式是依赖数据库唯一约束原子地抢占事件处理权，并把事件记录、库存条件更新和状态变更放在同一事务中。若库存服务和事件表不在同一数据库，则需要 outbox、状态机或补偿任务处理跨系统一致性。
 
 ## 常见问题
 
