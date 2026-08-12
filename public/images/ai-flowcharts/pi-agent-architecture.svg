@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="650" viewBox="0 0 1080 650" role="img" aria-labelledby="title desc">
+  <title id="title">Pi Agent Harness组件架构</title>
+  <desc id="desc">展示用户通过CLI、SDK或RPC进入Pi AgentSession，再调用模型、上下文和工具访问供应链服务的架构。</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#475569"/>
+    </marker>
+  </defs>
+  <rect width="1080" height="650" fill="#f8fafc"/>
+  <text x="540" y="45" text-anchor="middle" font-family="Arial, 'Microsoft YaHei', sans-serif" font-size="27" font-weight="700" fill="#0f172a">Pi Agent Harness：从入口到供应链工具</text>
+
+  <g font-family="Arial, 'Microsoft YaHei', sans-serif" fill="#0f172a">
+    <rect x="42" y="90" width="996" height="90" rx="8" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
+    <text x="70" y="118" font-size="16" font-weight="700" fill="#0369a1">使用入口</text>
+    <rect x="210" y="108" width="190" height="50" rx="6" fill="#ffffff" stroke="#0284c7"/>
+    <text x="305" y="139" text-anchor="middle" font-size="16">CLI / TUI</text>
+    <rect x="445" y="108" width="190" height="50" rx="6" fill="#ffffff" stroke="#0284c7"/>
+    <text x="540" y="139" text-anchor="middle" font-size="16">Node.js SDK</text>
+    <rect x="680" y="108" width="190" height="50" rx="6" fill="#ffffff" stroke="#0284c7"/>
+    <text x="775" y="139" text-anchor="middle" font-size="16">JSONL RPC</text>
+
+    <rect x="42" y="220" width="996" height="145" rx="8" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
+    <text x="70" y="250" font-size="16" font-weight="700" fill="#6d28d9">Pi运行时</text>
+    <rect x="180" y="257" width="220" height="76" rx="6" fill="#ffffff" stroke="#7c3aed"/>
+    <text x="290" y="286" text-anchor="middle" font-size="16" font-weight="700">AgentSession</text>
+    <text x="290" y="311" text-anchor="middle" font-size="14">消息 / 状态 / 压缩 / 事件</text>
+    <rect x="430" y="257" width="220" height="76" rx="6" fill="#ffffff" stroke="#7c3aed"/>
+    <text x="540" y="286" text-anchor="middle" font-size="16" font-weight="700">Agent Loop</text>
+    <text x="540" y="311" text-anchor="middle" font-size="14">判断 / 调用工具 / 继续</text>
+    <rect x="680" y="257" width="220" height="76" rx="6" fill="#ffffff" stroke="#7c3aed"/>
+    <text x="790" y="286" text-anchor="middle" font-size="16" font-weight="700">ResourceLoader</text>
+    <text x="790" y="311" text-anchor="middle" font-size="14">AGENTS / Skills / Extensions</text>
+
+    <rect x="42" y="405" width="996" height="92" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="2"/>
+    <text x="70" y="435" font-size="16" font-weight="700" fill="#047857">能力层</text>
+    <rect x="190" y="425" width="190" height="48" rx="6" fill="#ffffff" stroke="#059669"/>
+    <text x="285" y="455" text-anchor="middle" font-size="15">多模型提供商</text>
+    <rect x="445" y="425" width="190" height="48" rx="6" fill="#ffffff" stroke="#059669"/>
+    <text x="540" y="455" text-anchor="middle" font-size="15">内置与自定义工具</text>
+    <rect x="700" y="425" width="190" height="48" rx="6" fill="#ffffff" stroke="#059669"/>
+    <text x="795" y="455" text-anchor="middle" font-size="15">会话与审计事件</text>
+
+    <rect x="42" y="537" width="996" height="80" rx="8" fill="#fff7ed" stroke="#ea580c" stroke-width="2"/>
+    <text x="70" y="568" font-size="16" font-weight="700" fill="#c2410c">供应链系统</text>
+    <text x="255" y="580" text-anchor="middle" font-size="15">订单服务</text>
+    <text x="420" y="580" text-anchor="middle" font-size="15">库存服务</text>
+    <text x="585" y="580" text-anchor="middle" font-size="15">采购服务</text>
+    <text x="750" y="580" text-anchor="middle" font-size="15">补货计算</text>
+    <text x="915" y="580" text-anchor="middle" font-size="15">审批与审计</text>
+  </g>
+
+  <g stroke="#475569" stroke-width="2" fill="none" marker-end="url(#arrow)">
+    <path d="M305 158V220"/>
+    <path d="M540 158V220"/>
+    <path d="M775 158V220"/>
+    <path d="M400 295H430"/>
+    <path d="M650 295H680"/>
+    <path d="M290 333V405"/>
+    <path d="M540 333V405"/>
+    <path d="M790 333V405"/>
+    <path d="M285 473V537"/>
+    <path d="M540 473V537"/>
+    <path d="M795 473V537"/>
+  </g>
+</svg>

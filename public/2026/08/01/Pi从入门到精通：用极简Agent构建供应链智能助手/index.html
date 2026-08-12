@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Pi从入门到精通：用极简Agent构建供应链智能助手 | 陈金星写字的地方</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="Pi 是 Mario Zechner 发起的开源 Agent Harness。它不是一个大模型，而是一套把大模型、上下文、工具、会话和终端界面组合起来的运行框架。它既提供可以直接使用的编程 Agent，也提供 SDK、RPC、Skills 和 Extensions，适合继续封装成企业内部的 AI 助手。 本文以 2026 年 8 月 1 日的官方版本为基准，从安装和第一次对话开始，逐步讲到项目规则">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Pi从入门到精通：用极简Agent构建供应链智能助手">
+<meta property="og:url" content="https://guxingxianyue.github.io/2026/08/01/Pi%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E7%B2%BE%E9%80%9A%EF%BC%9A%E7%94%A8%E6%9E%81%E7%AE%80Agent%E6%9E%84%E5%BB%BA%E4%BE%9B%E5%BA%94%E9%93%BE%E6%99%BA%E8%83%BD%E5%8A%A9%E6%89%8B/index.html">
+<meta property="og:site_name" content="陈金星写字的地方">
+<meta property="og:description" content="Pi 是 Mario Zechner 发起的开源 Agent Harness。它不是一个大模型，而是一套把大模型、上下文、工具、会话和终端界面组合起来的运行框架。它既提供可以直接使用的编程 Agent，也提供 SDK、RPC、Skills 和 Extensions，适合继续封装成企业内部的 AI 助手。 本文以 2026 年 8 月 1 日的官方版本为基准，从安装和第一次对话开始，逐步讲到项目规则">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://guxingxianyue.github.io/images/ai-flowcharts/pi-agent-architecture.svg">
+<meta property="og:image" content="https://guxingxianyue.github.io/images/ai-flowcharts/pi-supply-chain-workflow.svg">
+<meta property="article:published_time" content="2026-08-01T02:00:00.000Z">
+<meta property="article:modified_time" content="2026-08-12T10:41:01.362Z">
+<meta property="article:author" content="Jinxing Chen">
+<meta property="article:tag" content="AI Agent">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="Pi">
+<meta property="article:tag" content="TypeScript">
+<meta property="article:tag" content="供应链">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://guxingxianyue.github.io/images/ai-flowcharts/pi-agent-architecture.svg">
+  
+    <link rel="alternative" href="/atom.xml" title="陈金星写字的地方" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">陈金星写字的地方</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">首页</a>
+        
+          <a class="main-nav-link" href="/archives">存档</a>
+        
+          <a class="main-nav-link" href="/about">关于</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://guxingxianyue.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-Pi从入门到精通：用极简Agent构建供应链智能助手" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2026/08/01/Pi%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E7%B2%BE%E9%80%9A%EF%BC%9A%E7%94%A8%E6%9E%81%E7%AE%80Agent%E6%9E%84%E5%BB%BA%E4%BE%9B%E5%BA%94%E9%93%BE%E6%99%BA%E8%83%BD%E5%8A%A9%E6%89%8B/" class="article-date">
+  <time datetime="2026-08-01T02:00:00.000Z" itemprop="datePublished">2026-08-01</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Pi从入门到精通：用极简Agent构建供应链智能助手
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Pi 是 Mario Zechner 发起的开源 Agent Harness。它不是一个大模型，而是一套把大模型、上下文、工具、会话和终端界面组合起来的运行框架。它既提供可以直接使用的编程 Agent，也提供 SDK、RPC、Skills 和 Extensions，适合继续封装成企业内部的 AI 助手。</p>
+<p>本文以 2026 年 8 月 1 日的官方版本为基准，从安装和第一次对话开始，逐步讲到项目规则、模型配置、技能、扩展工具、SDK、Java 系统集成、安全控制和效果评估。业务示例统一使用供应链系统中的订单、库存、采购和补货场景。</p>
+<blockquote>
+<p>Pi 已迁移到 <code>earendil-works/pi</code>，npm 包也已改为 <code>@earendil-works/*</code>。旧的 <code>badlogic/pi-mono</code> 和 <code>@mariozechner/*</code> 资料可能仍能搜索到，但新项目应使用当前名称。</p>
+</blockquote>
+<p><img src="/images/ai-flowcharts/pi-agent-architecture.svg" alt="Pi Agent Harness组件架构"></p>
+<h2 id="一、先理解Pi解决什么问题"><a href="#一、先理解Pi解决什么问题" class="headerlink" title="一、先理解Pi解决什么问题"></a>一、先理解Pi解决什么问题</h2><p>一个可执行的 AI Agent 至少需要五部分：</p>
+<ol>
+<li>模型：负责理解目标、推理和决定下一步动作。</li>
+<li>上下文：告诉模型项目结构、业务术语和工程约束。</li>
+<li>工具：让模型读取文件、执行命令或调用业务接口。</li>
+<li>Agent 循环：重复执行“模型判断、调用工具、读取结果、继续判断”。</li>
+<li>会话：保存消息、工具结果、模型状态和上下文压缩结果。</li>
+</ol>
+<p>Pi 把这些能力拆成多个包：</p>
+<table>
+<thead>
+<tr>
+<th>包</th>
+<th>职责</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>@earendil-works/pi-ai</code></td>
+<td>统一不同模型提供商的调用接口</td>
+</tr>
+<tr>
+<td><code>@earendil-works/pi-agent-core</code></td>
+<td>Agent 循环、工具调用和状态管理</td>
+</tr>
+<tr>
+<td><code>@earendil-works/pi-coding-agent</code></td>
+<td>可直接使用的 CLI、SDK、会话和扩展系统</td>
+</tr>
+<tr>
+<td><code>@earendil-works/pi-tui</code></td>
+<td>终端交互界面</td>
+</tr>
+</tbody></table>
+<p>因此，Pi 有四种常见用法：</p>
+<ul>
+<li>直接运行 <code>pi</code>，把它当作终端编程助手。</li>
+<li>运行 <code>pi -p</code>，完成一次性、非交互任务。</li>
+<li>运行 <code>pi --mode rpc</code>，通过 JSONL 接入 Java、Python 或桌面应用。</li>
+<li>在 Node.js&#x2F;TypeScript 服务中使用 <code>AgentSession</code> SDK。</li>
+</ul>
+<h2 id="二、安装Pi并完成第一次运行"><a href="#二、安装Pi并完成第一次运行" class="headerlink" title="二、安装Pi并完成第一次运行"></a>二、安装Pi并完成第一次运行</h2><h3 id="1-检查Node-js版本"><a href="#1-检查Node-js版本" class="headerlink" title="1. 检查Node.js版本"></a>1. 检查Node.js版本</h3><p>当前 <code>pi-coding-agent</code> 要求 Node.js <code>&gt;=22.19.0</code>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">node --version</span><br><span class="line">npm --version</span><br></pre></td></tr></table></figure>
+
+<p>如果版本过低，先通过 Node.js 官方安装包、nvm 或 fnm 升级。</p>
+<h3 id="2-全局安装"><a href="#2-全局安装" class="headerlink" title="2. 全局安装"></a>2. 全局安装</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">npm install -g --ignore-scripts @earendil-works/pi-coding-agent</span><br><span class="line">pi --version</span><br></pre></td></tr></table></figure>
+
+<p><code>--ignore-scripts</code> 会阻止依赖安装阶段执行生命周期脚本，Pi 的正常 npm 安装不依赖这些脚本。</p>
+<p>Windows PowerShell、macOS 和 Linux 都可以使用相同的 npm 安装命令。如果安装成功但提示找不到 <code>pi</code>，应检查 npm 全局可执行目录是否已加入 <code>PATH</code>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm config get prefix</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-登录模型提供商"><a href="#3-登录模型提供商" class="headerlink" title="3. 登录模型提供商"></a>3. 登录模型提供商</h3><p>进入任意项目目录后启动：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> /path/to/supply-chain-system</span><br><span class="line">pi</span><br></pre></td></tr></table></figure>
+
+<p>在 Pi 里执行：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/login</span><br></pre></td></tr></table></figure>
+
+<p>可以选择官方支持的订阅登录，也可以使用 API Key。以 PowerShell 为例，临时设置 OpenAI API Key：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$env:OPENAI_API_KEY</span>=<span class="string">&quot;你的API Key&quot;</span></span><br><span class="line">pi</span><br></pre></td></tr></table></figure>
+
+<p>Linux 或 macOS：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">export</span> OPENAI_API_KEY=<span class="string">&quot;你的API Key&quot;</span></span><br><span class="line">pi</span><br></pre></td></tr></table></figure>
+
+<p>不要把 API Key 写入 Git 仓库、<code>AGENTS.md</code>、提示词或日志。也可以通过 <code>/login</code> 把凭证交给 Pi 管理，默认凭证文件位于 <code>~/.pi/agent/auth.json</code>。</p>
+<h3 id="4-第一次供应链任务"><a href="#4-第一次供应链任务" class="headerlink" title="4. 第一次供应链任务"></a>4. 第一次供应链任务</h3><p>先让 Pi 理解项目，不要一上来就让它改代码：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">请先读取 README.md、pom.xml 和订单、库存、采购模块的目录结构。</span><br><span class="line">说明创建采购订单后，库存预占、补货计算和供应商下单分别在哪些模块完成。</span><br><span class="line">只分析，不修改文件，也不要执行写数据库的命令。</span><br></pre></td></tr></table></figure>
+
+<p>Pi 默认给模型提供 <code>read</code>、<code>write</code>、<code>edit</code>、<code>bash</code> 四个工具。模型并不是直接操作电脑，而是在 Agent 循环中选择工具，Pi 执行工具后把结果返回给模型。</p>
+<h2 id="三、用AGENTS-md建立项目规则"><a href="#三、用AGENTS-md建立项目规则" class="headerlink" title="三、用AGENTS.md建立项目规则"></a>三、用AGENTS.md建立项目规则</h2><p>AI 在供应链项目里最容易犯的错误，不是 Java 语法错误，而是误解库存口径、订单状态和事务边界。应在仓库根目录创建 <code>AGENTS.md</code>，把长期有效的规则放进去。</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="section"># Supply Chain Project Instructions</span></span><br><span class="line"></span><br><span class="line"><span class="section">## Modules</span></span><br><span class="line"><span class="bullet">-</span> order-service: 销售订单和状态流转</span><br><span class="line"><span class="bullet">-</span> inventory-service: 现存量、预占量、冻结量和库存流水</span><br><span class="line"><span class="bullet">-</span> procurement-service: 采购申请、采购订单和供应商协同</span><br><span class="line"><span class="bullet">-</span> replenishment-service: 安全库存与补货建议</span><br><span class="line"></span><br><span class="line"><span class="section">## Business Rules</span></span><br><span class="line"><span class="bullet">-</span> 可用库存 = 现存量 - 预占量 - 冻结量。</span><br><span class="line"><span class="bullet">-</span> 库存扣减必须使用带数量条件的原子更新，并记录库存流水。</span><br><span class="line"><span class="bullet">-</span> 同一个 businessRequestId 重试时不得重复预占或释放库存。</span><br><span class="line"><span class="bullet">-</span> 采购订单状态只能按状态机流转，禁止直接覆盖状态。</span><br><span class="line"><span class="bullet">-</span> 跨服务一致性使用本地事务加 Outbox 事件，不创建分布式大事务。</span><br><span class="line"></span><br><span class="line"><span class="section">## Safety</span></span><br><span class="line"><span class="bullet">-</span> 默认只允许查询本地开发库，不连接生产数据库。</span><br><span class="line"><span class="bullet">-</span> 未经明确确认，不执行 INSERT、UPDATE、DELETE、DDL 和消息重放。</span><br><span class="line"><span class="bullet">-</span> 不读取或输出 .env、密钥、Token、客户手机号和供应商银行信息。</span><br><span class="line"></span><br><span class="line"><span class="section">## Verification</span></span><br><span class="line"><span class="bullet">-</span> Java 代码修改后运行 mvn -pl <span class="language-xml"><span class="tag">&lt;<span class="name">module</span>&gt;</span></span> test。</span><br><span class="line"><span class="bullet">-</span> 库存并发逻辑必须增加重复请求、库存不足和并发扣减测试。</span><br><span class="line"><span class="bullet">-</span> 数据库变更必须提供可回滚迁移脚本和索引影响说明。</span><br></pre></td></tr></table></figure>
+
+<p>Pi 启动时会加载全局 <code>~/.pi/agent/AGENTS.md</code>，以及当前目录和父目录中的 <code>AGENTS.md</code> 或 <code>CLAUDE.md</code>。修改规则后执行 <code>/reload</code>，或者重新启动 Pi。</p>
+<p>项目规则应该描述稳定事实，不要把某次临时需求全部塞进去。临时需求应放在单独的需求文档中，再通过 <code>@文件名</code> 引用。</p>
+<h2 id="四、掌握一套可靠的日常开发流程"><a href="#四、掌握一套可靠的日常开发流程" class="headerlink" title="四、掌握一套可靠的日常开发流程"></a>四、掌握一套可靠的日常开发流程</h2><p>以“订单创建时预占库存”为例，可以把一次任务拆成五个阶段。</p>
+<h3 id="阶段1：建立上下文"><a href="#阶段1：建立上下文" class="headerlink" title="阶段1：建立上下文"></a>阶段1：建立上下文</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">读取 @AGENTS.md、@docs/inventory-model.md，搜索现有的库存扣减、释放、流水和幂等实现。</span><br><span class="line">列出相关文件、当前调用链、事务边界和测试入口。不要修改代码。</span><br></pre></td></tr></table></figure>
+
+<p>这一步要求 Pi 先找到项目里的真实模式，避免凭经验发明不存在的层次和组件。</p>
+<h3 id="阶段2：输出实施计划"><a href="#阶段2：输出实施计划" class="headerlink" title="阶段2：输出实施计划"></a>阶段2：输出实施计划</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">需求：订单创建成功后预占库存；订单取消或支付超时后释放；重复消息不能重复处理。</span><br><span class="line"></span><br><span class="line">请给出实施计划，必须包含：</span><br><span class="line">1. 正常流程和异常流程。</span><br><span class="line">2. 表字段、唯一键、版本号和条件更新SQL。</span><br><span class="line">3. 本地事务与Outbox事件边界。</span><br><span class="line">4. 幂等键定义和重复消费处理。</span><br><span class="line">5. 需要修改的文件清单。</span><br><span class="line">6. 单元测试、并发测试和集成测试用例。</span><br><span class="line"></span><br><span class="line">只输出计划，等待确认后再编码。</span><br></pre></td></tr></table></figure>
+
+<h3 id="阶段3：小步实现"><a href="#阶段3：小步实现" class="headerlink" title="阶段3：小步实现"></a>阶段3：小步实现</h3><p>确认计划后再执行：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">按计划先完成库存预占的领域逻辑和仓储层，只修改 inventory-service。</span><br><span class="line">不要修改公共依赖版本。完成后展示差异并运行该模块测试。</span><br></pre></td></tr></table></figure>
+
+<p>一次只改变一个业务闭环。订单、库存、采购三个服务同时大改，会让上下文迅速膨胀，也会增加错误定位成本。</p>
+<h3 id="阶段4：验证业务不变量"><a href="#阶段4：验证业务不变量" class="headerlink" title="阶段4：验证业务不变量"></a>阶段4：验证业务不变量</h3><p>至少检查以下不变量：</p>
+<ul>
+<li>可用库存不能为负数。</li>
+<li>相同幂等键只能产生一次库存流水。</li>
+<li>释放数量不能超过原预占数量。</li>
+<li>数据库回滚时不能留下已发送但无法追踪的业务事件。</li>
+<li>消息重复、乱序、延迟时，最终状态仍然正确。</li>
+</ul>
+<p>可以让 Pi 主动补测试：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">根据本次 diff 检查库存不变量。补充库存不足、相同幂等键重复请求、20线程并发预占、事务回滚四组测试，然后运行测试并解释失败原因。</span><br></pre></td></tr></table></figure>
+
+<h3 id="阶段5：审查和提交"><a href="#阶段5：审查和提交" class="headerlink" title="阶段5：审查和提交"></a>阶段5：审查和提交</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">审查当前 git diff，优先寻找数据一致性、并发、幂等、空值、越权和日志泄密问题。</span><br><span class="line">没有阻塞问题后，给出建议的提交信息，但不要自动推送。</span><br></pre></td></tr></table></figure>
+
+<p>这个流程的重点是把“理解、计划、实现、验证、审查”分开。模型能力再强，也不应该跳过业务确认和可重复验证。</p>
+<h2 id="五、模型、思考强度与会话管理"><a href="#五、模型、思考强度与会话管理" class="headerlink" title="五、模型、思考强度与会话管理"></a>五、模型、思考强度与会话管理</h2><h3 id="切换模型"><a href="#切换模型" class="headerlink" title="切换模型"></a>切换模型</h3><p>在交互模式中：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/model</span><br></pre></td></tr></table></figure>
+
+<p>也可以使用 <code>Ctrl+L</code> 打开模型选择器，使用 <code>Shift+Tab</code> 切换思考强度。简单的格式调整不需要高强度推理；跨服务库存一致性、死锁分析和数据迁移则适合更高强度。</p>
+<p>项目级 <code>.pi/settings.json</code> 可以保存团队约定，例如：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;defaultProvider&quot;</span><span class="punctuation">:</span> <span class="string">&quot;openai&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;defaultModel&quot;</span><span class="punctuation">:</span> <span class="string">&quot;你的模型ID&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;defaultThinkingLevel&quot;</span><span class="punctuation">:</span> <span class="string">&quot;medium&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;enabledModels&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">    <span class="string">&quot;openai/*&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="string">&quot;anthropic/*&quot;</span></span><br><span class="line">  <span class="punctuation">]</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>模型 ID 会随提供商更新，先用 <code>/model</code> 或 <code>pi --list-models</code> 查看当前可用值，不要照抄过时文章里的模型名。</p>
+<h3 id="管理长任务"><a href="#管理长任务" class="headerlink" title="管理长任务"></a>管理长任务</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">pi -c                  <span class="comment"># 继续最近会话</span></span><br><span class="line">pi -r                  <span class="comment"># 浏览历史会话</span></span><br><span class="line">pi --name <span class="string">&quot;库存预占改造&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>交互模式还提供 <code>/new</code>、<code>/resume</code>、<code>/tree</code>、<code>/fork</code> 和 <code>/clone</code>。建议一个会话只解决一个明确问题。需求方向发生变化时，通过 <code>/fork</code> 保留原分支，比在同一上下文里反复推翻更清晰。</p>
+<h3 id="接入本地模型"><a href="#接入本地模型" class="headerlink" title="接入本地模型"></a>接入本地模型</h3><p>Pi 可以通过 <code>~/.pi/agent/models.json</code> 接入 Ollama、LM Studio、vLLM 等 OpenAI 兼容服务：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;providers&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;ollama&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;baseUrl&quot;</span><span class="punctuation">:</span> <span class="string">&quot;http://localhost:11434/v1&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;api&quot;</span><span class="punctuation">:</span> <span class="string">&quot;openai-completions&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;apiKey&quot;</span><span class="punctuation">:</span> <span class="string">&quot;ollama&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;compat&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;supportsDeveloperRole&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;supportsReasoningEffort&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line">      <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;models&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">        <span class="punctuation">&#123;</span></span><br><span class="line">          <span class="attr">&quot;id&quot;</span><span class="punctuation">:</span> <span class="string">&quot;你的本地模型ID&quot;</span><span class="punctuation">,</span></span><br><span class="line">          <span class="attr">&quot;reasoning&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span></span><br><span class="line">        <span class="punctuation">&#125;</span></span><br><span class="line">      <span class="punctuation">]</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>本地模型适合代码检索、摘要和低风险分类，但是否能处理复杂库存一致性问题，必须通过真实测试集评估，不能只看通用排行榜。</p>
+<h2 id="六、用Skill沉淀供应链知识"><a href="#六、用Skill沉淀供应链知识" class="headerlink" title="六、用Skill沉淀供应链知识"></a>六、用Skill沉淀供应链知识</h2><p><code>AGENTS.md</code> 是所有任务都要遵守的项目规则，Skill 则是按需加载的专业流程。可以创建：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">.pi/skills/supply-chain-review/SKILL.md</span><br></pre></td></tr></table></figure>
+
+<p>内容如下：</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">---</span><br><span class="line">name: supply-chain-review</span><br><span class="line"><span class="section">description: 审查订单、库存、采购和补货代码。当任务涉及库存数量、状态机、幂等、消息或供应链数据一致性时使用。</span></span><br><span class="line"><span class="section">---</span></span><br><span class="line"></span><br><span class="line"><span class="section"># Supply Chain Review</span></span><br><span class="line"></span><br><span class="line"><span class="bullet">1.</span> 先识别业务实体、状态和数量口径。</span><br><span class="line"><span class="bullet">2.</span> 画出同步调用、事务提交和异步消息的先后顺序。</span><br><span class="line"><span class="bullet">3.</span> 检查幂等键来源、唯一约束和重复消息处理。</span><br><span class="line"><span class="bullet">4.</span> 检查库存更新是否包含 <span class="code">`available_qty &gt;= request_qty`</span> 条件。</span><br><span class="line"><span class="bullet">5.</span> 检查超时、取消、部分成功和补偿路径。</span><br><span class="line"><span class="bullet">6.</span> 检查日志是否泄露客户、供应商或凭证信息。</span><br><span class="line"><span class="bullet">7.</span> 输出按严重程度排序的问题，并给出文件位置和测试建议。</span><br></pre></td></tr></table></figure>
+
+<p>项目被信任后，Pi 会发现 <code>.pi/skills/</code> 下的技能。重载后可以显式调用：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/skill:supply-chain-review 审查本次库存预占改动</span><br></pre></td></tr></table></figure>
+
+<p>Skill 可以附带 <code>scripts/</code>、<code>references/</code> 和 <code>assets/</code>。例如把库存字段字典、订单状态机和消息规范放进 <code>references/</code>，只有任务需要时才加载，能减少固定上下文占用。</p>
+<h2 id="七、用Extension接入只读库存接口"><a href="#七、用Extension接入只读库存接口" class="headerlink" title="七、用Extension接入只读库存接口"></a>七、用Extension接入只读库存接口</h2><p>Skill 只是告诉模型怎么工作，Extension 才能注册真正可调用的工具。下面创建一个项目级只读库存查询工具：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">.pi/extensions/inventory-query.ts</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="keyword">type</span> &#123; <span class="title class_">ExtensionAPI</span> &#125; <span class="keyword">from</span> <span class="string">&quot;@earendil-works/pi-coding-agent&quot;</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">Type</span> &#125; <span class="keyword">from</span> <span class="string">&quot;typebox&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">export</span> <span class="keyword">default</span> <span class="keyword">function</span> (<span class="params"><span class="attr">pi</span>: <span class="title class_">ExtensionAPI</span></span>) &#123;</span><br><span class="line">  pi.<span class="title function_">registerTool</span>(&#123;</span><br><span class="line">    <span class="attr">name</span>: <span class="string">&quot;query_inventory&quot;</span>,</span><br><span class="line">    <span class="attr">label</span>: <span class="string">&quot;Query Inventory&quot;</span>,</span><br><span class="line">    <span class="attr">description</span>: <span class="string">&quot;按SKU和仓库查询只读库存快照，不执行预占、扣减或释放&quot;</span>,</span><br><span class="line">    <span class="attr">parameters</span>: <span class="title class_">Type</span>.<span class="title class_">Object</span>(&#123;</span><br><span class="line">      <span class="attr">sku</span>: <span class="title class_">Type</span>.<span class="title class_">String</span>(&#123; <span class="attr">description</span>: <span class="string">&quot;SKU编码&quot;</span> &#125;),</span><br><span class="line">      <span class="attr">warehouseCode</span>: <span class="title class_">Type</span>.<span class="title class_">String</span>(&#123; <span class="attr">description</span>: <span class="string">&quot;仓库编码&quot;</span> &#125;),</span><br><span class="line">    &#125;),</span><br><span class="line">    <span class="keyword">async</span> <span class="title function_">execute</span>(<span class="params">_toolCallId, params, signal</span>) &#123;</span><br><span class="line">      <span class="keyword">const</span> baseUrl = process.<span class="property">env</span>.<span class="property">SCM_API_BASE_URL</span>;</span><br><span class="line">      <span class="keyword">const</span> token = process.<span class="property">env</span>.<span class="property">SCM_API_TOKEN</span>;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">if</span> (!baseUrl) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(<span class="string">&quot;SCM_API_BASE_URL is not configured&quot;</span>);</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">const</span> url = <span class="keyword">new</span> <span class="title function_">URL</span>(<span class="string">&quot;/api/v1/inventory/availability&quot;</span>, baseUrl);</span><br><span class="line">      url.<span class="property">searchParams</span>.<span class="title function_">set</span>(<span class="string">&quot;sku&quot;</span>, params.<span class="property">sku</span>);</span><br><span class="line">      url.<span class="property">searchParams</span>.<span class="title function_">set</span>(<span class="string">&quot;warehouseCode&quot;</span>, params.<span class="property">warehouseCode</span>);</span><br><span class="line"></span><br><span class="line">      <span class="keyword">const</span> <span class="attr">headers</span>: <span class="title class_">Record</span>&lt;<span class="built_in">string</span>, <span class="built_in">string</span>&gt; = &#123;</span><br><span class="line">        <span class="title class_">Accept</span>: <span class="string">&quot;application/json&quot;</span>,</span><br><span class="line">      &#125;;</span><br><span class="line">      <span class="keyword">if</span> (token) headers.<span class="property">Authorization</span> = <span class="string">`Bearer <span class="subst">$&#123;token&#125;</span>`</span>;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">const</span> response = <span class="keyword">await</span> <span class="title function_">fetch</span>(url, &#123; headers, signal &#125;);</span><br><span class="line">      <span class="keyword">if</span> (!response.<span class="property">ok</span>) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(<span class="string">`Inventory API failed: HTTP <span class="subst">$&#123;response.status&#125;</span>`</span>);</span><br><span class="line">      &#125;</span><br><span class="line"></span><br><span class="line">      <span class="keyword">const</span> snapshot = <span class="keyword">await</span> response.<span class="title function_">json</span>();</span><br><span class="line">      <span class="keyword">return</span> &#123;</span><br><span class="line">        <span class="attr">content</span>: [</span><br><span class="line">          &#123;</span><br><span class="line">            <span class="attr">type</span>: <span class="string">&quot;text&quot;</span>,</span><br><span class="line">            <span class="attr">text</span>: <span class="title class_">JSON</span>.<span class="title function_">stringify</span>(snapshot, <span class="literal">null</span>, <span class="number">2</span>),</span><br><span class="line">          &#125;,</span><br><span class="line">        ],</span><br><span class="line">        <span class="attr">details</span>: &#123;</span><br><span class="line">          <span class="attr">sku</span>: params.<span class="property">sku</span>,</span><br><span class="line">          <span class="attr">warehouseCode</span>: params.<span class="property">warehouseCode</span>,</span><br><span class="line">          <span class="attr">status</span>: response.<span class="property">status</span>,</span><br><span class="line">        &#125;,</span><br><span class="line">      &#125;;</span><br><span class="line">    &#125;,</span><br><span class="line">  &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>配置环境变量后启动 Pi：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$env:SCM_API_BASE_URL</span>=<span class="string">&quot;https://scm-api.example.internal&quot;</span></span><br><span class="line"><span class="variable">$env:SCM_API_TOKEN</span>=<span class="string">&quot;短期只读Token&quot;</span></span><br><span class="line">pi</span><br></pre></td></tr></table></figure>
+
+<p>首次加载项目级 Extension 时，Pi 会要求确认是否信任项目。执行 <code>/reload</code> 后，可以输入：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">查询 SKU-10001 在 WH-SZ-01 的库存快照，结合近30天日均销量和7天采购提前期判断是否需要补货。只生成建议，不创建采购单。</span><br></pre></td></tr></table></figure>
+
+<p>这个工具应使用专门的只读服务账号，并在 API 网关限制路径、仓库范围、频率和返回字段。不要为了方便给 Agent 一个可以调用任意内部接口的管理员 Token。</p>
+<h2 id="八、使用SDK构建补货建议服务"><a href="#八、使用SDK构建补货建议服务" class="headerlink" title="八、使用SDK构建补货建议服务"></a>八、使用SDK构建补货建议服务</h2><p>如果要把 Pi 嵌入 Node.js 服务，使用 SDK 比启动子进程更直接：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm install @earendil-works/pi-coding-agent typebox</span><br></pre></td></tr></table></figure>
+
+<p>下面是一个最小的补货建议 Agent。真实项目应把 <code>queryReplenishmentInputs</code> 替换成经过鉴权的内部 API 客户端。</p>
+<figure class="highlight typescript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> &#123;</span><br><span class="line">  createAgentSession,</span><br><span class="line">  defineTool,</span><br><span class="line">  <span class="title class_">ModelRuntime</span>,</span><br><span class="line">  <span class="title class_">SessionManager</span>,</span><br><span class="line">&#125; <span class="keyword">from</span> <span class="string">&quot;@earendil-works/pi-coding-agent&quot;</span>;</span><br><span class="line"><span class="keyword">import</span> &#123; <span class="title class_">Type</span> &#125; <span class="keyword">from</span> <span class="string">&quot;typebox&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> scmApiBaseUrl = process.<span class="property">env</span>.<span class="property">SCM_API_BASE_URL</span>;</span><br><span class="line"><span class="keyword">const</span> scmApiToken = process.<span class="property">env</span>.<span class="property">SCM_API_TOKEN</span>;</span><br><span class="line"><span class="keyword">if</span> (!scmApiBaseUrl || !scmApiToken) &#123;</span><br><span class="line">  <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(<span class="string">&quot;SCM_API_BASE_URL and SCM_API_TOKEN must be configured&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> replenishmentInputs = <span class="title function_">defineTool</span>(&#123;</span><br><span class="line">  <span class="attr">name</span>: <span class="string">&quot;get_replenishment_inputs&quot;</span>,</span><br><span class="line">  <span class="attr">label</span>: <span class="string">&quot;Get Replenishment Inputs&quot;</span>,</span><br><span class="line">  <span class="attr">description</span>: <span class="string">&quot;读取SKU补货计算所需的库存、销量、在途和提前期数据&quot;</span>,</span><br><span class="line">  <span class="attr">parameters</span>: <span class="title class_">Type</span>.<span class="title class_">Object</span>(&#123;</span><br><span class="line">    <span class="attr">sku</span>: <span class="title class_">Type</span>.<span class="title class_">String</span>(),</span><br><span class="line">    <span class="attr">warehouseCode</span>: <span class="title class_">Type</span>.<span class="title class_">String</span>(),</span><br><span class="line">  &#125;),</span><br><span class="line">  <span class="keyword">async</span> <span class="title function_">execute</span>(<span class="params">_toolCallId, params, signal</span>) &#123;</span><br><span class="line">    <span class="keyword">const</span> query = <span class="keyword">new</span> <span class="title class_">URLSearchParams</span>(&#123;</span><br><span class="line">      <span class="attr">sku</span>: params.<span class="property">sku</span>,</span><br><span class="line">      <span class="attr">warehouseCode</span>: params.<span class="property">warehouseCode</span>,</span><br><span class="line">    &#125;);</span><br><span class="line">    <span class="keyword">const</span> response = <span class="keyword">await</span> <span class="title function_">fetch</span>(</span><br><span class="line">      <span class="string">`<span class="subst">$&#123;scmApiBaseUrl&#125;</span>/api/v1/replenishment/inputs?<span class="subst">$&#123;query&#125;</span>`</span>,</span><br><span class="line">      &#123;</span><br><span class="line">        <span class="attr">headers</span>: &#123;</span><br><span class="line">          <span class="title class_">Authorization</span>: <span class="string">`Bearer <span class="subst">$&#123;scmApiToken&#125;</span>`</span>,</span><br><span class="line">        &#125;,</span><br><span class="line">        signal,</span><br><span class="line">      &#125;,</span><br><span class="line">    );</span><br><span class="line">    <span class="keyword">if</span> (!response.<span class="property">ok</span>) <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">Error</span>(<span class="string">`SCM API returned <span class="subst">$&#123;response.status&#125;</span>`</span>);</span><br><span class="line">    <span class="keyword">const</span> data = <span class="keyword">await</span> response.<span class="title function_">json</span>();</span><br><span class="line">    <span class="keyword">return</span> &#123;</span><br><span class="line">      <span class="attr">content</span>: [&#123; <span class="attr">type</span>: <span class="string">&quot;text&quot;</span>, <span class="attr">text</span>: <span class="title class_">JSON</span>.<span class="title function_">stringify</span>(data) &#125;],</span><br><span class="line">      <span class="attr">details</span>: &#123; <span class="attr">sku</span>: params.<span class="property">sku</span>, <span class="attr">warehouseCode</span>: params.<span class="property">warehouseCode</span> &#125;,</span><br><span class="line">    &#125;;</span><br><span class="line">  &#125;,</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> modelRuntime = <span class="keyword">await</span> <span class="title class_">ModelRuntime</span>.<span class="title function_">create</span>();</span><br><span class="line"><span class="keyword">const</span> &#123; session &#125; = <span class="keyword">await</span> <span class="title function_">createAgentSession</span>(&#123;</span><br><span class="line">  modelRuntime,</span><br><span class="line">  <span class="attr">sessionManager</span>: <span class="title class_">SessionManager</span>.<span class="title function_">inMemory</span>(process.<span class="title function_">cwd</span>()),</span><br><span class="line">  <span class="attr">tools</span>: [<span class="string">&quot;get_replenishment_inputs&quot;</span>],</span><br><span class="line">  <span class="attr">customTools</span>: [replenishmentInputs],</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">session.<span class="title function_">subscribe</span>(<span class="function">(<span class="params">event</span>) =&gt;</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (</span><br><span class="line">    event.<span class="property">type</span> === <span class="string">&quot;message_update&quot;</span> &amp;&amp;</span><br><span class="line">    event.<span class="property">assistantMessageEvent</span>.<span class="property">type</span> === <span class="string">&quot;text_delta&quot;</span></span><br><span class="line">  ) &#123;</span><br><span class="line">    process.<span class="property">stdout</span>.<span class="title function_">write</span>(event.<span class="property">assistantMessageEvent</span>.<span class="property">delta</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line"><span class="keyword">await</span> session.<span class="title function_">prompt</span>(<span class="string">`</span></span><br><span class="line"><span class="string">分析 SKU-10001 在 WH-SZ-01 的缺货风险。</span></span><br><span class="line"><span class="string">先调用工具获取事实，再按以下公式给出建议：</span></span><br><span class="line"><span class="string">补货点 = 提前期日均需求 + 安全库存。</span></span><br><span class="line"><span class="string">输出事实、计算过程、风险、建议数量和需要人工确认的假设。</span></span><br><span class="line"><span class="string">禁止创建采购单。</span></span><br><span class="line"><span class="string">`</span>);</span><br></pre></td></tr></table></figure>
+
+<p>这段代码只开放了一个自定义工具，没有给 Agent <code>bash</code>、<code>write</code> 或 <code>edit</code>。服务端 Agent 应按场景建立工具白名单，不要照搬编程助手的默认权限。</p>
+<h2 id="九、Java系统通过RPC接入Pi"><a href="#九、Java系统通过RPC接入Pi" class="headerlink" title="九、Java系统通过RPC接入Pi"></a>九、Java系统通过RPC接入Pi</h2><p>供应链后台通常是 Java 技术栈。此时可以单独部署一个 Pi Agent Sidecar，由 Java 服务通过 RPC 调用：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pi --mode rpc --no-session</span><br></pre></td></tr></table></figure>
+
+<p>RPC 使用标准输入和标准输出传输 JSONL，每行一个 JSON 对象。Java 服务发送：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span><span class="attr">&quot;id&quot;</span><span class="punctuation">:</span><span class="string">&quot;replenishment-10001&quot;</span><span class="punctuation">,</span><span class="attr">&quot;type&quot;</span><span class="punctuation">:</span><span class="string">&quot;prompt&quot;</span><span class="punctuation">,</span><span class="attr">&quot;message&quot;</span><span class="punctuation">:</span><span class="string">&quot;分析SKU-10001在WH-SZ-01的缺货风险，只输出补货建议&quot;</span><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>Pi 会先返回请求是否被接受，再持续输出 <code>message_update</code>、<code>tool_execution_start</code>、<code>tool_execution_end</code> 和 <code>agent_end</code> 等事件。</p>
+<p>生产环境建议采用以下结构：</p>
+<ol>
+<li>Java 业务服务负责登录态、租户、权限和参数校验。</li>
+<li>Node.js Agent 服务或 Pi RPC Sidecar 负责会话和模型编排。</li>
+<li>Agent 只能通过受控工具访问订单、库存和采购 API。</li>
+<li>工具层统一做超时、重试、熔断、脱敏和审计。</li>
+<li>采购单创建等写操作进入待审批队列，由业务服务执行。</li>
+</ol>
+<p>不要为每个请求临时启动一个 Pi 进程。可以维护固定数量的 Sidecar，按租户和任务隔离会话；如果主系统本身可以部署 Node.js 服务，优先使用 SDK，类型和生命周期管理会更简单。</p>
+<h2 id="十、供应链补货Agent的完整技术方案"><a href="#十、供应链补货Agent的完整技术方案" class="headerlink" title="十、供应链补货Agent的完整技术方案"></a>十、供应链补货Agent的完整技术方案</h2><p><img src="/images/ai-flowcharts/pi-supply-chain-workflow.svg" alt="Pi供应链补货Agent执行流程"></p>
+<p>一个可上线的补货 Agent 可以分成四层。</p>
+<h3 id="1-入口层"><a href="#1-入口层" class="headerlink" title="1. 入口层"></a>1. 入口层</h3><ul>
+<li>Web、企业微信或 ERP 页面接收用户问题。</li>
+<li>Java 网关校验用户、租户、仓库和数据权限。</li>
+<li>把自然语言转换为带 <code>requestId</code> 的 Agent 请求。</li>
+</ul>
+<h3 id="2-Agent编排层"><a href="#2-Agent编排层" class="headerlink" title="2. Agent编排层"></a>2. Agent编排层</h3><ul>
+<li>Pi <code>AgentSession</code> 保存一次分析任务的上下文。</li>
+<li>系统提示词限定角色、公式、输出格式和禁止事项。</li>
+<li>Skill 提供补货分析步骤和业务术语。</li>
+<li>模型决定先查询哪些事实，再形成结论。</li>
+</ul>
+<h3 id="3-工具层"><a href="#3-工具层" class="headerlink" title="3. 工具层"></a>3. 工具层</h3><p>至少拆成这些只读工具：</p>
+<ul>
+<li><code>get_inventory_snapshot</code>：现存、预占、冻结、可用和在途库存。</li>
+<li><code>get_sales_forecast</code>：历史销量、预测量和促销修正。</li>
+<li><code>get_supplier_lead_time</code>：供应商交期、最小起订量和包装倍数。</li>
+<li><code>get_open_purchase_orders</code>：未关闭采购单和预计到货日期。</li>
+<li><code>calculate_replenishment</code>：使用确定性代码计算补货点和建议量。</li>
+</ul>
+<p>计算公式应该由确定性工具执行，而不是让模型心算。例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">有效库存位置 = 可用库存 + 在途库存 - 已分配未出库数量</span><br><span class="line">补货点 = 采购提前期内预测需求 + 安全库存</span><br><span class="line">建议补货量 = max(0, 目标库存 - 有效库存位置)</span><br><span class="line">最终采购量 = 按最小起订量和包装倍数向上取整</span><br></pre></td></tr></table></figure>
+
+<p>模型负责解释数据、识别异常和组织建议，确定性程序负责算数、状态校验和写入。</p>
+<h3 id="4-审批与执行层"><a href="#4-审批与执行层" class="headerlink" title="4. 审批与执行层"></a>4. 审批与执行层</h3><p>Agent 的结果先形成 <code>ReplenishmentProposal</code>：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;requestId&quot;</span><span class="punctuation">:</span> <span class="string">&quot;RP-20260801-0001&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;sku&quot;</span><span class="punctuation">:</span> <span class="string">&quot;SKU-10001&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;warehouseCode&quot;</span><span class="punctuation">:</span> <span class="string">&quot;WH-SZ-01&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;suggestedQty&quot;</span><span class="punctuation">:</span> <span class="number">240</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;reasonCodes&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;BELOW_REORDER_POINT&quot;</span><span class="punctuation">,</span> <span class="string">&quot;LEAD_TIME_RISK&quot;</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;evidenceVersion&quot;</span><span class="punctuation">:</span> <span class="string">&quot;inventory-88921&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;status&quot;</span><span class="punctuation">:</span> <span class="string">&quot;PENDING_APPROVAL&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>审批通过后，由采购服务重新读取库存版本、校验建议是否过期，再创建采购申请。不要让模型直接拼接 SQL 写数据库，也不要把“模型已经判断正确”当作越过业务校验的理由。</p>
+<h2 id="十一、生产安全与权限控制"><a href="#十一、生产安全与权限控制" class="headerlink" title="十一、生产安全与权限控制"></a>十一、生产安全与权限控制</h2><p>Pi 默认没有内置沙箱。<code>bash</code>、Extension 和第三方 Package 都以 Pi 进程的系统权限运行。项目信任机制只能控制是否加载项目资源，不等于运行时安全边界。</p>
+<p>生产环境至少落实以下措施：</p>
+<ol>
+<li>进程隔离：在容器、虚拟机或受限系统账号中运行 Agent。</li>
+<li>工具白名单：业务 Agent 不开放任意 <code>bash</code>、文件写入和通用 HTTP 工具。</li>
+<li>最小权限：库存工具只读，且限制租户、仓库、接口和字段。</li>
+<li>人工审批：采购下单、库存调整、价格修改必须经过确认。</li>
+<li>参数校验：服务端重新校验 SKU、数量、状态和数据版本。</li>
+<li>凭证隔离：Token 存在密钥系统或环境变量中，不进入模型上下文。</li>
+<li>防提示词注入：把接口返回的数据当作不可信数据，不执行其中夹带的指令。</li>
+<li>审计留痕：记录用户、模型、会话、工具、脱敏参数、耗时、结果版本和审批人。</li>
+<li>预算控制：限制单次任务轮数、上下文、Token、超时和并发数。</li>
+<li>降级策略：模型或工具不可用时回退到传统规则引擎和人工流程。</li>
+</ol>
+<p>第三方 Skill、Extension 和 Pi Package 可能包含可执行代码，安装前必须审查源码并固定版本。</p>
+<h2 id="十二、评估Agent是否真的可用"><a href="#十二、评估Agent是否真的可用" class="headerlink" title="十二、评估Agent是否真的可用"></a>十二、评估Agent是否真的可用</h2><p>不要用“回答看起来不错”作为上线标准。可以从历史供应链数据中构造一套脱敏测试集：</p>
+<ul>
+<li>正常补货 SKU。</li>
+<li>促销导致需求突增的 SKU。</li>
+<li>有大量在途库存的 SKU。</li>
+<li>供应商延迟交付的 SKU。</li>
+<li>库存数据缺失或时间戳过期的 SKU。</li>
+<li>多仓调拨比采购更合适的 SKU。</li>
+<li>最小起订量和包装倍数冲突的 SKU。</li>
+</ul>
+<p>关键指标包括：</p>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>工具选择准确率</td>
+<td>是否调用了正确的事实查询和计算工具</td>
+</tr>
+<tr>
+<td>参数准确率</td>
+<td>SKU、仓库、租户和时间范围是否正确</td>
+</tr>
+<tr>
+<td>事实一致率</td>
+<td>输出数字是否与工具结果一致</td>
+</tr>
+<tr>
+<td>建议接受率</td>
+<td>采购人员接受或小幅调整建议的比例</td>
+</tr>
+<tr>
+<td>危险动作率</td>
+<td>未审批写入、越权访问等事件，目标必须为0</td>
+</tr>
+<tr>
+<td>任务成功率</td>
+<td>在超时和重试限制内完成的比例</td>
+</tr>
+<tr>
+<td>P95耗时与成本</td>
+<td>评估交互体验和规模化成本</td>
+</tr>
+</tbody></table>
+<p>每次升级模型、提示词、Skill 或 Extension，都应重放同一批测试集并比较结果。只有回归指标稳定，才能扩大业务范围。</p>
+<h2 id="十三、常见问题排查"><a href="#十三、常见问题排查" class="headerlink" title="十三、常见问题排查"></a>十三、常见问题排查</h2><h3 id="pi命令不存在"><a href="#pi命令不存在" class="headerlink" title="pi命令不存在"></a>pi命令不存在</h3><p>检查 Node.js 版本、全局安装结果和 npm prefix：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">node --version</span><br><span class="line">npm list -g @earendil-works/pi-coding-agent</span><br><span class="line">npm config get prefix</span><br></pre></td></tr></table></figure>
+
+<h3 id="登录成功但找不到模型"><a href="#登录成功但找不到模型" class="headerlink" title="登录成功但找不到模型"></a>登录成功但找不到模型</h3><p>先执行 <code>pi --list-models</code>，检查提供商凭证和 <code>models.json</code>。自定义无密钥本地服务也需要占位 <code>apiKey</code>，否则模型可能不会出现在可用列表中。</p>
+<h3 id="项目Skill或Extension没有加载"><a href="#项目Skill或Extension没有加载" class="headerlink" title="项目Skill或Extension没有加载"></a>项目Skill或Extension没有加载</h3><p>确认目录分别是 <code>.pi/skills/</code> 和 <code>.pi/extensions/</code>，确认已经信任当前项目，然后执行 <code>/reload</code>。非交互模式不会显示信任对话框，需要预先保存信任决策，或者在明确理解风险时使用一次性的 <code>--approve</code>。</p>
+<h3 id="Agent修改范围越来越大"><a href="#Agent修改范围越来越大" class="headerlink" title="Agent修改范围越来越大"></a>Agent修改范围越来越大</h3><p>重新开会话，把任务缩小到一个模块；在提示词中列出允许修改的目录；先让 Pi 输出文件清单和计划，再允许编辑。</p>
+<h3 id="结果包含正确解释但数字算错"><a href="#结果包含正确解释但数字算错" class="headerlink" title="结果包含正确解释但数字算错"></a>结果包含正确解释但数字算错</h3><p>把公式和取整规则实现成确定性工具。模型只能传入参数、调用工具和解释结果，不能作为财务、库存或采购数量的唯一计算器。</p>
+<h2 id="十四、推荐的进阶路线"><a href="#十四、推荐的进阶路线" class="headerlink" title="十四、推荐的进阶路线"></a>十四、推荐的进阶路线</h2><ol>
+<li>第一天：完成安装、登录、文件引用、模型切换和会话恢复。</li>
+<li>第二天：为现有 Java 供应链项目编写 <code>AGENTS.md</code>。</li>
+<li>第三天：用 Pi 完成一个低风险代码审查和测试补充任务。</li>
+<li>第四天：创建供应链审查 Skill，沉淀团队检查清单。</li>
+<li>第五天：编写一个只读库存查询 Extension。</li>
+<li>第六天：使用 SDK 构建补货建议原型，并建立离线测试集。</li>
+<li>第七天以后：接入审批、审计、监控、限流和容器隔离，再考虑试点上线。</li>
+</ol>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Pi 的价值不在于预置了多少复杂流程，而在于它提供了一套小而清晰的 Agent 基础能力：统一模型接口、Agent 循环、会话、工具、TUI、Skills、Extensions、SDK 和 RPC。初学时可以直接使用 CLI，提高 Java 项目的检索、修改和测试效率；进阶后可以通过 Skill 固化供应链知识，通过 Extension 接入内部只读 API；真正上线时，则应使用 SDK 或 RPC，把 Pi 放在权限、审批和审计体系之内。</p>
+<p>供应链 Agent 最可靠的职责是“查询事实、执行确定性计算、解释风险、生成建议”，而不是绕过业务服务直接修改库存和采购数据。把模型的推理能力与传统系统的规则、事务和权限结合起来，才是从能演示走向能生产的关键。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a href="https://github.com/earendil-works/pi">Pi官方仓库</a></li>
+<li><a href="https://pi.dev/docs/latest/quickstart">Pi Quickstart</a></li>
+<li><a href="https://pi.dev/docs/latest/sdk">Pi SDK</a></li>
+<li><a href="https://pi.dev/docs/latest/extensions">Pi Extensions</a></li>
+<li><a href="https://pi.dev/docs/latest/skills">Pi Skills</a></li>
+<li><a href="https://pi.dev/docs/latest/rpc">Pi RPC Mode</a></li>
+<li><a href="https://pi.dev/docs/latest/security">Pi Security</a></li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://guxingxianyue.github.io/2026/08/01/Pi%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E7%B2%BE%E9%80%9A%EF%BC%9A%E7%94%A8%E6%9E%81%E7%AE%80Agent%E6%9E%84%E5%BB%BA%E4%BE%9B%E5%BA%94%E9%93%BE%E6%99%BA%E8%83%BD%E5%8A%A9%E6%89%8B/" data-id="cuidCOhclbpXXGgtTO95WPXoN" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/AI-Agent/" rel="tag">AI Agent</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Pi/" rel="tag">Pi</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/TypeScript/" rel="tag">TypeScript</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE/" rel="tag">供应链</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2026/07/07/Loop-Engineering%E5%AE%9E%E6%88%98%E4%BB%8E%E6%97%A5%E5%BF%97%E5%B7%A1%E6%A3%80%E5%88%B0%E4%BE%9B%E5%BA%94%E9%93%BE%E5%BC%82%E5%B8%B8%E4%BF%AE%E5%A4%8D%E9%97%AD%E7%8E%AF/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Loop Engineering实战：从日志巡检到供应链异常修复闭环</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AGENTS-md/" rel="tag">AGENTS.md</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI/" rel="tag">AI</a><span class="tag-list-count">17</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI-Agent/" rel="tag">AI Agent</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AQS/" rel="tag">AQS</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Agent/" rel="tag">Agent</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Atomic/" rel="tag">Atomic</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BlockingQueue/" rel="tag">BlockingQueue</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CAP/" rel="tag">CAP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CAS/" rel="tag">CAS</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CC-Switch/" rel="tag">CC Switch</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Claude-Code/" rel="tag">Claude Code</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Codex/" rel="tag">Codex</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CompletableFuture/" rel="tag">CompletableFuture</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ConcurrentHashMap/" rel="tag">ConcurrentHashMap</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Condition/" rel="tag">Condition</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CountDownLatch/" rel="tag">CountDownLatch</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DI/" rel="tag">DI</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ERP/" rel="tag">ERP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/FullGC/" rel="tag">FullGC</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/G1/" rel="tag">G1</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GC/" rel="tag">GC</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GC%E6%97%A5%E5%BF%97/" rel="tag">GC日志</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GitHub-Pages/" rel="tag">GitHub Pages</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hexo/" rel="tag">Hexo</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/InnoDB/" rel="tag">InnoDB</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/IoC/" rel="tag">IoC</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JMM/" rel="tag">JMM</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JVM/" rel="tag">JVM</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JVM%E5%8F%82%E6%95%B0/" rel="tag">JVM参数</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JVM%E8%B0%83%E4%BC%98/" rel="tag">JVM调优</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a><span class="tag-list-count">33</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kafka/" rel="tag">Kafka</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LongAdder/" rel="tag">LongAdder</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Loop-Engineering/" rel="tag">Loop Engineering</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MVCC/" rel="tag">MVCC</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Monitor/" rel="tag">Monitor</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MyBatis/" rel="tag">MyBatis</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Next-Key-Lock/" rel="tag">Next-Key Lock</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OOM/" rel="tag">OOM</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Pi/" rel="tag">Pi</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ReadWriteLock/" rel="tag">ReadWriteLock</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Redis/" rel="tag">Redis</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ReentrantLock/" rel="tag">ReentrantLock</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/" rel="tag">SQL</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL%E4%BC%98%E5%8C%96/" rel="tag">SQL优化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Semaphore/" rel="tag">Semaphore</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Skill/" rel="tag">Skill</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spec-Coding/" rel="tag">Spec Coding</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spring/" rel="tag">Spring</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spring-Cloud/" rel="tag">Spring Cloud</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/StampedLock/" rel="tag">StampedLock</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ThreadPoolExecutor/" rel="tag">ThreadPoolExecutor</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TypeScript/" rel="tag">TypeScript</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/synchronized/" rel="tag">synchronized</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/volatile/" rel="tag">volatile</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%B9%90%E8%A7%82%E9%94%81/" rel="tag">乐观锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8B%E5%8A%A1/" rel="tag">事务</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/" rel="tag">事务隔离级别</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BB%93%E5%82%A8%E7%B3%BB%E7%BB%9F/" rel="tag">仓储系统</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE/" rel="tag">供应链</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F/" rel="tag">供应链系统</a><span class="tag-list-count">26</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84/" rel="tag">内存结构</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" rel="tag">分布式</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/" rel="tag">分布式系统</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" rel="tag">分布式锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8D%95%E6%8D%AE%E5%AE%A1%E6%A0%B8/" rel="tag">单据审核</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" rel="tag">可见性</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%91%BD%E4%BB%A4%E8%A1%8C/" rel="tag">命令行</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%9B%9E%E6%94%B6%E7%AE%97%E6%B3%95/" rel="tag">回收算法</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A0%86%E5%86%85%E5%AD%98/" rel="tag">堆内存</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" rel="tag">多线程</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%AD%97%E8%8A%82%E7%A0%81/" rel="tag">字节码</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/" rel="tag">工程实践</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6/" rel="tag">并发控制</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" rel="tag">并发编程</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91%E9%98%9F%E5%88%97/" rel="tag">并发队列</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%BB%E8%AF%BB/" rel="tag">幻读</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BA%93%E5%AD%98%E7%B3%BB%E7%BB%9F/" rel="tag">库存系统</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/" rel="tag">微服务</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BF%AB%E9%80%9F%E6%8E%92%E5%BA%8F/" rel="tag">快速排序</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%82%B2%E8%A7%82%E9%94%81/" rel="tag">悲观锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8A%80%E6%9C%AF%E5%8D%9A%E5%AE%A2/" rel="tag">技术博客</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8A%A5%E8%A1%A8%E7%BB%9F%E8%AE%A1/" rel="tag">报表统计</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8E%92%E5%BA%8F%E7%AE%97%E6%B3%95/" rel="tag">排序算法</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E5%88%86%E6%9E%90/" rel="tag">数据分析</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="tag">数据库</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" rel="tag">数据结构</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/" rel="tag">数据结构与算法</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/" rel="tag">架构设计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%AD%BB%E9%94%81/" rel="tag">死锁</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" rel="tag">消息队列</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%B1%BB%E5%8A%A0%E8%BD%BD/" rel="tag">类加载</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%B3%BB%E7%BB%9F%E4%BC%98%E5%8C%96/" rel="tag">系统优化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/" rel="tag">系统设计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%B4%A2%E5%BC%95/" rel="tag">索引</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E4%B8%8A%E6%8E%92%E6%9F%A5/" rel="tag">线上排查</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E7%A8%8B%E6%B1%A0/" rel="tag">线程池</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E7%A8%8B%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/" rel="tag">线程生命周期</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BC%93%E5%AD%98/" rel="tag">缓存</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BC%96%E7%A8%8B%E6%95%88%E7%8E%87/" rel="tag">编程效率</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%A1%8C%E9%94%81/" rel="tag">行锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%A2%E5%8D%95%E5%B1%A5%E7%BA%A6/" rel="tag">订单履约</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%A2%E5%8D%95%E7%B3%BB%E7%BB%9F/" rel="tag">订单系统</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%BD%AF%E4%BB%B6%E5%B7%A5%E7%A8%8B/" rel="tag">软件工程</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%80%92%E5%BD%92/" rel="tag">递归</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%85%8D%E7%BD%AE%E7%AE%A1%E7%90%86/" rel="tag">配置管理</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%87%87%E8%B4%AD%E7%B3%BB%E7%BB%9F/" rel="tag">采购系统</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%94%81/" rel="tag">锁</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%94%81%E7%AD%89%E5%BE%85/" rel="tag">锁等待</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%97%B4%E9%9A%99%E9%94%81/" rel="tag">间隙锁</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/AGENTS-md/" style="font-size: 10px;">AGENTS.md</a> <a href="/tags/AI/" style="font-size: 18px;">AI</a> <a href="/tags/AI-Agent/" style="font-size: 10px;">AI Agent</a> <a href="/tags/AQS/" style="font-size: 10px;">AQS</a> <a href="/tags/Agent/" style="font-size: 10px;">Agent</a> <a href="/tags/Atomic/" style="font-size: 10px;">Atomic</a> <a href="/tags/BlockingQueue/" style="font-size: 10px;">BlockingQueue</a> <a href="/tags/CAP/" style="font-size: 10px;">CAP</a> <a href="/tags/CAS/" style="font-size: 11px;">CAS</a> <a href="/tags/CC-Switch/" style="font-size: 10px;">CC Switch</a> <a href="/tags/Claude-Code/" style="font-size: 13px;">Claude Code</a> <a href="/tags/Codex/" style="font-size: 17px;">Codex</a> <a href="/tags/CompletableFuture/" style="font-size: 10px;">CompletableFuture</a> <a href="/tags/ConcurrentHashMap/" style="font-size: 10px;">ConcurrentHashMap</a> <a href="/tags/Condition/" style="font-size: 10px;">Condition</a> <a href="/tags/CountDownLatch/" style="font-size: 10px;">CountDownLatch</a> <a href="/tags/DI/" style="font-size: 10px;">DI</a> <a href="/tags/ERP/" style="font-size: 10px;">ERP</a> <a href="/tags/FullGC/" style="font-size: 10px;">FullGC</a> <a href="/tags/G1/" style="font-size: 10px;">G1</a> <a href="/tags/GC/" style="font-size: 11px;">GC</a> <a href="/tags/GC%E6%97%A5%E5%BF%97/" style="font-size: 10px;">GC日志</a> <a href="/tags/GitHub-Pages/" style="font-size: 10px;">GitHub Pages</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/InnoDB/" style="font-size: 13px;">InnoDB</a> <a href="/tags/IoC/" style="font-size: 10px;">IoC</a> <a href="/tags/JMM/" style="font-size: 11px;">JMM</a> <a href="/tags/JVM/" style="font-size: 14px;">JVM</a> <a href="/tags/JVM%E5%8F%82%E6%95%B0/" style="font-size: 10px;">JVM参数</a> <a href="/tags/JVM%E8%B0%83%E4%BC%98/" style="font-size: 10px;">JVM调优</a> <a href="/tags/Java/" style="font-size: 20px;">Java</a> <a href="/tags/Kafka/" style="font-size: 11px;">Kafka</a> <a href="/tags/LongAdder/" style="font-size: 10px;">LongAdder</a> <a href="/tags/Loop-Engineering/" style="font-size: 11px;">Loop Engineering</a> <a href="/tags/MVCC/" style="font-size: 10px;">MVCC</a> <a href="/tags/Monitor/" style="font-size: 10px;">Monitor</a> <a href="/tags/MyBatis/" style="font-size: 11px;">MyBatis</a> <a href="/tags/MySQL/" style="font-size: 16px;">MySQL</a> <a href="/tags/Next-Key-Lock/" style="font-size: 10px;">Next-Key Lock</a> <a href="/tags/OOM/" style="font-size: 10px;">OOM</a> <a href="/tags/Pi/" style="font-size: 10px;">Pi</a> <a href="/tags/ReadWriteLock/" style="font-size: 10px;">ReadWriteLock</a> <a href="/tags/Redis/" style="font-size: 12px;">Redis</a> <a href="/tags/ReentrantLock/" style="font-size: 10px;">ReentrantLock</a> <a href="/tags/SQL/" style="font-size: 11px;">SQL</a> <a href="/tags/SQL%E4%BC%98%E5%8C%96/" style="font-size: 10px;">SQL优化</a> <a href="/tags/Semaphore/" style="font-size: 10px;">Semaphore</a> <a href="/tags/Skill/" style="font-size: 10px;">Skill</a> <a href="/tags/Spec-Coding/" style="font-size: 12px;">Spec Coding</a> <a href="/tags/Spring/" style="font-size: 11px;">Spring</a> <a href="/tags/Spring-Cloud/" style="font-size: 10px;">Spring Cloud</a> <a href="/tags/StampedLock/" style="font-size: 10px;">StampedLock</a> <a href="/tags/ThreadPoolExecutor/" style="font-size: 10px;">ThreadPoolExecutor</a> <a href="/tags/TypeScript/" style="font-size: 10px;">TypeScript</a> <a href="/tags/synchronized/" style="font-size: 11px;">synchronized</a> <a href="/tags/volatile/" style="font-size: 11px;">volatile</a> <a href="/tags/%E4%B9%90%E8%A7%82%E9%94%81/" style="font-size: 10px;">乐观锁</a> <a href="/tags/%E4%BA%8B%E5%8A%A1/" style="font-size: 12px;">事务</a> <a href="/tags/%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/" style="font-size: 10px;">事务隔离级别</a> <a href="/tags/%E4%BB%93%E5%82%A8%E7%B3%BB%E7%BB%9F/" style="font-size: 13px;">仓储系统</a> <a href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE/" style="font-size: 10px;">供应链</a> <a href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F/" style="font-size: 19px;">供应链系统</a> <a href="/tags/%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84/" style="font-size: 10px;">内存结构</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" style="font-size: 11px;">分布式</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/" style="font-size: 12px;">分布式系统</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" style="font-size: 10px;">分布式锁</a> <a href="/tags/%E5%8D%95%E6%8D%AE%E5%AE%A1%E6%A0%B8/" style="font-size: 10px;">单据审核</a> <a href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" style="font-size: 10px;">可见性</a> <a href="/tags/%E5%91%BD%E4%BB%A4%E8%A1%8C/" style="font-size: 11px;">命令行</a> <a href="/tags/%E5%9B%9E%E6%94%B6%E7%AE%97%E6%B3%95/" style="font-size: 10px;">回收算法</a> <a href="/tags/%E5%A0%86%E5%86%85%E5%AD%98/" style="font-size: 10px;">堆内存</a> <a href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" style="font-size: 12px;">多线程</a> <a href="/tags/%E5%AD%97%E8%8A%82%E7%A0%81/" style="font-size: 10px;">字节码</a> <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/" style="font-size: 13px;">工程实践</a> <a href="/tags/%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6/" style="font-size: 10px;">并发控制</a> <a href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" style="font-size: 15px;">并发编程</a> <a href="/tags/%E5%B9%B6%E5%8F%91%E9%98%9F%E5%88%97/" style="font-size: 10px;">并发队列</a> <a href="/tags/%E5%B9%BB%E8%AF%BB/" style="font-size: 10px;">幻读</a> <a href="/tags/%E5%BA%93%E5%AD%98%E7%B3%BB%E7%BB%9F/" style="font-size: 12px;">库存系统</a> <a href="/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/" style="font-size: 10px;">微服务</a> <a href="/tags/%E5%BF%AB%E9%80%9F%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">快速排序</a> <a href="/tags/%E6%82%B2%E8%A7%82%E9%94%81/" style="font-size: 10px;">悲观锁</a> <a href="/tags/%E6%8A%80%E6%9C%AF%E5%8D%9A%E5%AE%A2/" style="font-size: 10px;">技术博客</a> <a href="/tags/%E6%8A%A5%E8%A1%A8%E7%BB%9F%E8%AE%A1/" style="font-size: 10px;">报表统计</a> <a href="/tags/%E6%8E%92%E5%BA%8F%E7%AE%97%E6%B3%95/" style="font-size: 10px;">排序算法</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E5%88%86%E6%9E%90/" style="font-size: 10px;">数据分析</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 11px;">数据库</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" style="font-size: 10px;">数据结构</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/" style="font-size: 12px;">数据结构与算法</a> <a href="/tags/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/" style="font-size: 11px;">架构设计</a> <a href="/tags/%E6%AD%BB%E9%94%81/" style="font-size: 11px;">死锁</a> <a href="/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" style="font-size: 11px;">消息队列</a> <a href="/tags/%E7%B1%BB%E5%8A%A0%E8%BD%BD/" style="font-size: 10px;">类加载</a> <a href="/tags/%E7%B3%BB%E7%BB%9F%E4%BC%98%E5%8C%96/" style="font-size: 10px;">系统优化</a> <a href="/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/" style="font-size: 11px;">系统设计</a> <a href="/tags/%E7%B4%A2%E5%BC%95/" style="font-size: 10px;">索引</a> <a href="/tags/%E7%BA%BF%E4%B8%8A%E6%8E%92%E6%9F%A5/" style="font-size: 10px;">线上排查</a> <a href="/tags/%E7%BA%BF%E7%A8%8B%E6%B1%A0/" style="font-size: 10px;">线程池</a> <a href="/tags/%E7%BA%BF%E7%A8%8B%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/" style="font-size: 10px;">线程生命周期</a> <a href="/tags/%E7%BC%93%E5%AD%98/" style="font-size: 12px;">缓存</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E6%95%88%E7%8E%87/" style="font-size: 15px;">编程效率</a> <a href="/tags/%E8%A1%8C%E9%94%81/" style="font-size: 10px;">行锁</a> <a href="/tags/%E8%AE%A2%E5%8D%95%E5%B1%A5%E7%BA%A6/" style="font-size: 10px;">订单履约</a> <a href="/tags/%E8%AE%A2%E5%8D%95%E7%B3%BB%E7%BB%9F/" style="font-size: 10px;">订单系统</a> <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%B7%A5%E7%A8%8B/" style="font-size: 14px;">软件工程</a> <a href="/tags/%E9%80%92%E5%BD%92/" style="font-size: 10px;">递归</a> <a href="/tags/%E9%85%8D%E7%BD%AE%E7%AE%A1%E7%90%86/" style="font-size: 10px;">配置管理</a> <a href="/tags/%E9%87%87%E8%B4%AD%E7%B3%BB%E7%BB%9F/" style="font-size: 10px;">采购系统</a> <a href="/tags/%E9%94%81/" style="font-size: 12px;">锁</a> <a href="/tags/%E9%94%81%E7%AD%89%E5%BE%85/" style="font-size: 10px;">锁等待</a> <a href="/tags/%E9%97%B4%E9%9A%99%E9%94%81/" style="font-size: 10px;">间隙锁</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/08/">八月 2026</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/07/">七月 2026</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/06/">六月 2026</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/05/">五月 2026</a><span class="archive-list-count">9</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/06/">六月 2025</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/05/">五月 2025</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/04/">四月 2025</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/03/">三月 2025</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">十一月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">八月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/05/">五月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">二月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">十一月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/07/">七月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/06/">六月 2023</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">三月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">五月 2022</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">六月 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">四月 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">三月 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">一月 2016</a><span class="archive-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recents</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2026/08/01/Pi%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E7%B2%BE%E9%80%9A%EF%BC%9A%E7%94%A8%E6%9E%81%E7%AE%80Agent%E6%9E%84%E5%BB%BA%E4%BE%9B%E5%BA%94%E9%93%BE%E6%99%BA%E8%83%BD%E5%8A%A9%E6%89%8B/">Pi从入门到精通：用极简Agent构建供应链智能助手</a>
+          </li>
+        
+          <li>
+            <a href="/2026/07/07/Loop-Engineering%E5%AE%9E%E6%88%98%E4%BB%8E%E6%97%A5%E5%BF%97%E5%B7%A1%E6%A3%80%E5%88%B0%E4%BE%9B%E5%BA%94%E9%93%BE%E5%BC%82%E5%B8%B8%E4%BF%AE%E5%A4%8D%E9%97%AD%E7%8E%AF/">Loop Engineering实战：从日志巡检到供应链异常修复闭环</a>
+          </li>
+        
+          <li>
+            <a href="/2026/07/05/cc-switch%E7%AE%A1%E7%90%86%E5%A4%9A%E4%B8%AAGPT%E8%B4%A6%E5%8F%B7%E7%BB%99Codex%E4%BD%BF%E7%94%A8/">CC Switch管理Codex多套配置：认证、供应商与本地路由</a>
+          </li>
+        
+          <li>
+            <a href="/2026/06/15/Loop-engineering/">Loop Engineering：从单次Agent到可验证的工程循环</a>
+          </li>
+        
+          <li>
+            <a href="/2026/06/10/Codex%E6%8F%90%E9%AB%98%E8%BD%AF%E4%BB%B6%E7%BC%96%E7%A8%8B%E6%95%88%E7%8E%87%E7%9A%8410%E4%B8%AA%E6%8A%80%E5%B7%A7/">使用Codex提升软件开发效率的10个工程实践</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2026 Jinxing Chen<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">首页</a>
+  
+    <a href="/archives" class="mobile-nav-link">存档</a>
+  
+    <a href="/about" class="mobile-nav-link">关于</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+  </div>
+</body>
+</html>
