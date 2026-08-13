@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="760" viewBox="0 0 1080 760" role="img" aria-labelledby="title desc">
+  <title id="title">Ponytail供应链最小实现决策阶梯</title>
+  <desc id="desc">展示Agent先理解供应链业务，再按YAGNI、项目复用、标准库、平台、现有依赖和最小实现逐级决策，并保留安全底线。</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#475569"/>
+    </marker>
+  </defs>
+  <rect width="1080" height="760" fill="#f8fafc"/>
+  <text x="540" y="42" text-anchor="middle" font-family="Arial, 'Microsoft YaHei', sans-serif" font-size="27" font-weight="700" fill="#0f172a">Ponytail：先理解，再选择最小正确实现</text>
+
+  <g font-family="Arial, 'Microsoft YaHei', sans-serif" fill="#0f172a">
+    <rect x="38" y="72" width="1004" height="86" rx="8" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
+    <text x="64" y="102" font-size="16" font-weight="700" fill="#0369a1">第一步：理解真实供应链流程</text>
+    <text x="540" y="130" text-anchor="middle" font-size="15">需求 + AGENTS.md + 全部调用者 + 事务边界 + 业务不变量 + 现有测试</text>
+
+    <rect x="165" y="194" width="750" height="56" rx="8" fill="#f3e8ff" stroke="#7e22ce" stroke-width="2"/>
+    <text x="540" y="228" text-anchor="middle" font-size="16" font-weight="700">1. 这个需求现在真的需要存在吗？　不需要 → YAGNI，停止新增</text>
+
+    <rect x="205" y="273" width="670" height="56" rx="8" fill="#ede9fe" stroke="#7c3aed" stroke-width="2"/>
+    <text x="540" y="307" text-anchor="middle" font-size="16" font-weight="700">2. 项目里是否已有领域服务、工具或可靠模式？　有 → 复用</text>
+
+    <rect x="245" y="352" width="590" height="56" rx="8" fill="#e0e7ff" stroke="#4f46e5" stroke-width="2"/>
+    <text x="540" y="386" text-anchor="middle" font-size="16" font-weight="700">3. JDK或框架标准能力能否解决？　能 → 使用标准能力</text>
+
+    <rect x="285" y="431" width="510" height="56" rx="8" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+    <text x="540" y="465" text-anchor="middle" font-size="16" font-weight="700">4. 数据库或平台原生能力能否解决？　能 → 原生优先</text>
+
+    <rect x="325" y="510" width="430" height="56" rx="8" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+    <text x="540" y="544" text-anchor="middle" font-size="16" font-weight="700">5. 已安装依赖能否解决？　能 → 不新增依赖</text>
+
+    <rect x="365" y="589" width="350" height="56" rx="8" fill="#ffedd5" stroke="#ea580c" stroke-width="2"/>
+    <text x="540" y="623" text-anchor="middle" font-size="16" font-weight="700">6-7. 一行或最小可用实现</text>
+
+    <rect x="38" y="686" width="1004" height="50" rx="8" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>
+    <text x="540" y="716" text-anchor="middle" font-size="15" font-weight="700" fill="#991b1b">任何模式都不得删除：权限、输入校验、事务、幂等、库存与金额不变量、安全、审计和必要测试</text>
+  </g>
+
+  <g stroke="#475569" stroke-width="2" fill="none" marker-end="url(#arrow)">
+    <path d="M540 158V194"/>
+    <path d="M540 250V273"/>
+    <path d="M540 329V352"/>
+    <path d="M540 408V431"/>
+    <path d="M540 487V510"/>
+    <path d="M540 566V589"/>
+    <path d="M540 645V686"/>
+  </g>
+</svg>

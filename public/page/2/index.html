@@ -65,6 +65,520 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-CodeGraph从入门到精通：让Agent读懂供应链代码调用链" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2026/07/01/CodeGraph%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E7%B2%BE%E9%80%9A%EF%BC%9A%E8%AE%A9Agent%E8%AF%BB%E6%87%82%E4%BE%9B%E5%BA%94%E9%93%BE%E4%BB%A3%E7%A0%81%E8%B0%83%E7%94%A8%E9%93%BE/" class="article-date">
+  <time datetime="2026-07-01T02:00:00.000Z" itemprop="datePublished">2026-07-01</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2026/07/01/CodeGraph%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E7%B2%BE%E9%80%9A%EF%BC%9A%E8%AE%A9Agent%E8%AF%BB%E6%87%82%E4%BE%9B%E5%BA%94%E9%93%BE%E4%BB%A3%E7%A0%81%E8%B0%83%E7%94%A8%E9%93%BE/">CodeGraph从入门到精通：让Agent读懂供应链代码调用链</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>AI 编程 Agent 在小项目里可以靠搜索文件和阅读源码完成任务，但到了供应链系统，订单、库存、采购、仓储和结算往往跨越多个模块。Agent 如果只看到一个 Controller 或一个报错堆栈，很容易在错误的位置打补丁，遗漏调用者、异步入口和回归测试。</p>
+<p>CodeGraph 的作用，就是先把代码库索引成可以查询的关系图。Agent 不再从零开始遍历目录，而是通过 MCP 一次获取相关符号、源码、调用路径和改动影响范围。本文从安装、索引和查询开始，逐步讲到 Java 供应链项目的调用链分析、影响评估、测试选择、团队治理和常见故障。</p>
+<blockquote>
+<p>本文介绍的是 <code>colbymchenry/codegraph</code> 项目。CodeGraph 不是大模型，也不会替代编译器、测试和人工业务审查；它是部署在本机的代码索引与查询层。</p>
+</blockquote>
+<p><img src="/images/ai-flowcharts/codegraph-supply-chain-code-map.svg" alt="CodeGraph供应链代码关系图"></p>
+<h2 id="一、CodeGraph解决什么问题"><a href="#一、CodeGraph解决什么问题" class="headerlink" title="一、CodeGraph解决什么问题"></a>一、CodeGraph解决什么问题</h2><p>传统 Agent 理解代码一般经过以下过程：</p>
+<ol>
+<li>使用文件搜索找到可能相关的类。</li>
+<li>打开文件并查找方法名。</li>
+<li>继续搜索调用者和实现类。</li>
+<li>猜测跨文件依赖和影响范围。</li>
+<li>上下文不足时重复搜索和读取。</li>
+</ol>
+<p>CodeGraph 会预先提取以下信息并写入本地 SQLite 图数据库：</p>
+<ul>
+<li>文件、类、接口、方法、函数和变量等符号。</li>
+<li>import、引用、调用者和被调用者等关系。</li>
+<li>接口到实现、回调等动态分派线索。</li>
+<li>与符号关联的原始源码和行号。</li>
+<li>全文搜索索引。</li>
+<li>修改某个符号时可能传播到的影响范围。</li>
+</ul>
+<p>它把工作模式变成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">用户问题</span><br><span class="line">  -&gt; Agent调用codegraph_explore</span><br><span class="line">  -&gt; CodeGraph查询本地SQLite知识图谱</span><br><span class="line">  -&gt; 返回相关源码 + 调用路径 + 影响范围</span><br><span class="line">  -&gt; Agent基于完整上下文制定修改方案</span><br></pre></td></tr></table></figure>
+
+<p>CodeGraph 默认只向 MCP 客户端展示一个工具：<code>codegraph_explore</code>。这是有意设计的，避免 Agent 在多个粒度相近的工具之间选错。CLI 仍然提供 <code>query</code>、<code>node</code>、<code>callers</code>、<code>callees</code>、<code>impact</code> 和 <code>affected</code> 等细分命令，适合人工排查和 CI 脚本。</p>
+<h2 id="二、安装CLI并接入Codex"><a href="#二、安装CLI并接入Codex" class="headerlink" title="二、安装CLI并接入Codex"></a>二、安装CLI并接入Codex</h2><h3 id="1-选择安装方式"><a href="#1-选择安装方式" class="headerlink" title="1. 选择安装方式"></a>1. 选择安装方式</h3><p>Windows 可以运行官方 PowerShell 安装器：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">irm</span> https://raw.githubusercontent.com/colbymchenry/codegraph/main/install.ps1 | <span class="built_in">iex</span></span><br></pre></td></tr></table></figure>
+
+<p>生产办公环境不建议直接执行未审阅的远程脚本。已经安装 Node.js 时，可以使用更容易审计和固定版本的 npm 方式：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">npm install <span class="literal">-g</span> @colbymchenry/codegraph</span><br><span class="line">codegraph version</span><br></pre></td></tr></table></figure>
+
+<p>macOS 和 Linux 也可以使用 npm，或者使用官方安装器：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">curl -fsSL https://raw.githubusercontent.com/colbymchenry/codegraph/main/install.sh | sh</span><br><span class="line">codegraph version</span><br></pre></td></tr></table></figure>
+
+<p>独立 CLI 带有自己的运行时；只有把 CodeGraph 作为 JavaScript 库嵌入应用时，才需要满足它对 Node.js 运行时的额外要求。</p>
+<h3 id="2-把MCP服务接入Codex"><a href="#2-把MCP服务接入Codex" class="headerlink" title="2. 把MCP服务接入Codex"></a>2. 把MCP服务接入Codex</h3><p>安装 CLI 不等于已经接入 Agent。执行：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">codegraph install <span class="literal">--target</span>=codex <span class="literal">--location</span>=global <span class="literal">--yes</span></span><br></pre></td></tr></table></figure>
+
+<p>这一步会配置 Codex 启动 <code>codegraph serve --mcp</code>，并写入一小段带标记的使用说明。也可以直接运行交互式安装器：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">codegraph install</span><br></pre></td></tr></table></figure>
+
+<p>在交互界面选择 Codex，以及全局或当前项目配置。全局配置适合个人开发机；项目级配置适合团队希望随仓库统一管理的场景。</p>
+<p>安装完成后重启 Codex。不要手工启动 MCP Server，正常情况下由 Agent 客户端按配置启动。</p>
+<h3 id="3-为项目创建索引"><a href="#3-为项目创建索引" class="headerlink" title="3. 为项目创建索引"></a>3. 为项目创建索引</h3><p>进入供应链项目根目录：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> D:\projects\supply<span class="literal">-chain-platform</span></span><br><span class="line">codegraph init</span><br><span class="line">codegraph status</span><br></pre></td></tr></table></figure>
+
+<p><code>codegraph init</code> 会创建 <code>.codegraph/</code> 并完成第一次全量索引。<code>codegraph install</code> 是每台机器执行一次，<code>codegraph init</code> 则是每个项目执行一次，两者不要混淆。</p>
+<p>一个 Maven 多模块项目可以从共同根目录索引：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">supply-chain-platform/</span><br><span class="line">  pom.xml</span><br><span class="line">  order-service/</span><br><span class="line">  inventory-service/</span><br><span class="line">  procurement-service/</span><br><span class="line">  warehouse-service/</span><br><span class="line">  supply-chain-common/</span><br></pre></td></tr></table></figure>
+
+<p>如果每个微服务是独立仓库，就分别在各仓库执行 <code>codegraph init</code>。Agent 查询另一个已索引项目时，可以向 MCP 工具传递 <code>projectPath</code>。</p>
+<h2 id="三、验证索引是否可用"><a href="#三、验证索引是否可用" class="headerlink" title="三、验证索引是否可用"></a>三、验证索引是否可用</h2><p>首先查看统计信息：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">codegraph status</span><br></pre></td></tr></table></figure>
+
+<p>然后使用 CLI 做三组最小验证：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">codegraph files <span class="literal">--max-depth</span> <span class="number">3</span></span><br><span class="line">codegraph query InventoryReservationService <span class="literal">--kind</span> <span class="class"><span class="keyword">class</span> --<span class="title">limit</span> 10</span></span><br><span class="line"><span class="class"><span class="title">codegraph</span> <span class="title">node</span> <span class="title">InventoryReservationService</span></span></span><br></pre></td></tr></table></figure>
+
+<p>接着进行一次结构化查询：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">codegraph explore <span class="string">&quot;订单取消后，调用如何到达库存预占释放和库存流水写入&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>正确结果应包含相关源码片段、文件位置和调用关系，而不是只返回文件名。如果提示没有初始化，确认当前目录或 <code>projectPath</code> 指向含有 <code>.codegraph/</code> 的项目。</p>
+<p>最后在 Codex 中输入：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">使用 CodeGraph 分析订单取消到库存释放的完整调用路径。</span><br><span class="line">列出入口、应用服务、领域服务、Repository、数据库写入点和相关测试。</span><br><span class="line">只分析，不修改文件。</span><br></pre></td></tr></table></figure>
+
+<p>这一步验证 Agent 确实能够调用 MCP，而不是退回普通文件搜索。</p>
+<h2 id="四、掌握常用查询命令"><a href="#四、掌握常用查询命令" class="headerlink" title="四、掌握常用查询命令"></a>四、掌握常用查询命令</h2><h3 id="1-搜索符号"><a href="#1-搜索符号" class="headerlink" title="1. 搜索符号"></a>1. 搜索符号</h3><figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">codegraph query reserveInventory</span><br><span class="line">codegraph query OrderCancelledConsumer <span class="literal">--kind</span> <span class="class"><span class="keyword">class</span> --<span class="title">json</span></span></span><br></pre></td></tr></table></figure>
+
+<p><code>query</code> 适合名称已知但位置未知的情况。供应链项目中常用于寻找库存预占、采购审批、波次生成和对账入口。</p>
+<h3 id="2-查看一个符号的上下文"><a href="#2-查看一个符号的上下文" class="headerlink" title="2. 查看一个符号的上下文"></a>2. 查看一个符号的上下文</h3><figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">codegraph node InventoryReservationService</span><br><span class="line">codegraph node inventory<span class="literal">-service</span>/src/main/java/com/example/inventory/InventoryReservationService.java</span><br></pre></td></tr></table></figure>
+
+<p>参数是符号时返回源码和关系；参数是文件时返回带行号源码。</p>
+<h3 id="3-查看调用者和被调用者"><a href="#3-查看调用者和被调用者" class="headerlink" title="3. 查看调用者和被调用者"></a>3. 查看调用者和被调用者</h3><figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">codegraph callers releaseReservation</span><br><span class="line">codegraph callees cancelOrder</span><br></pre></td></tr></table></figure>
+
+<p><code>callers</code> 回答“谁依赖它”，<code>callees</code> 回答“它内部继续调用谁”。重构公共库存方法之前，必须先看调用者；分析一条业务链路时，则从入口向下查看被调用者。</p>
+<h3 id="4-查询完整业务流"><a href="#4-查询完整业务流" class="headerlink" title="4. 查询完整业务流"></a>4. 查询完整业务流</h3><figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">codegraph explore <span class="string">&quot;OrderCancelApplicationService如何调用库存释放，失败后如何回滚&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>自然语言查询要包含业务动作和至少一个真实符号，结果通常比“解释库存模块”更稳定。例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">分析 PurchaseOrderApprovalService.approve：</span><br><span class="line">1. 它如何校验供应商和采购金额；</span><br><span class="line">2. 如何更新采购单状态；</span><br><span class="line">3. 如何写入Outbox事件；</span><br><span class="line">4. 哪些调用者和测试依赖该方法。</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-分析改动影响"><a href="#5-分析改动影响" class="headerlink" title="5. 分析改动影响"></a>5. 分析改动影响</h3><figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">codegraph impact releaseReservation <span class="literal">--depth</span> <span class="number">4</span></span><br></pre></td></tr></table></figure>
+
+<p>影响分析适合修改公共领域方法、DTO、Mapper 和事件对象之前使用。深度越大，结果越多；应该从 2 或 3 开始，确认方向后再扩大，而不是一次把整个图塞进上下文。</p>
+<h2 id="五、供应链案例：定位重复库存释放"><a href="#五、供应链案例：定位重复库存释放" class="headerlink" title="五、供应链案例：定位重复库存释放"></a>五、供应链案例：定位重复库存释放</h2><p>假设线上出现以下问题：同一条 <code>OrderCancelled</code> 消息被重复消费后，库存流水出现两条释放记录。</p>
+<p>不要直接让 Agent 修改 Consumer。先要求建立事实：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">使用 CodeGraph 分析 OrderCancelledConsumer.onMessage 到库存预占释放的调用链。</span><br><span class="line">重点回答：</span><br><span class="line">1. 事件ID和订单ID在哪里进入系统；</span><br><span class="line">2. 幂等校验发生在哪一层；</span><br><span class="line">3. 库存余额和库存流水是否在同一事务；</span><br><span class="line">4. 还有哪些入口会调用同一个 release 方法；</span><br><span class="line">5. 现有项目里是否已有 ProcessedEventExecutor 或类似组件。</span><br><span class="line">只返回证据和文件位置，不修改代码。</span><br></pre></td></tr></table></figure>
+
+<p>理想的分析输出应形成类似链路：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">OrderCancelledConsumer.onMessage</span><br><span class="line">  -&gt; InventoryReleaseApplicationService.release</span><br><span class="line">  -&gt; InventoryReservation.release</span><br><span class="line">  -&gt; InventoryReservationRepository.updateReleasedQty</span><br><span class="line">  -&gt; InventoryLedgerRepository.append</span><br></pre></td></tr></table></figure>
+
+<p>然后反向查询公共方法：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">codegraph callers InventoryReleaseApplicationService.release</span><br><span class="line">codegraph impact InventoryReleaseApplicationService.release <span class="literal">--depth</span> <span class="number">4</span></span><br></pre></td></tr></table></figure>
+
+<p>如果结果显示超时关单、人工取消和售后退款都调用该方法，那么只在 Kafka Consumer 外层增加临时判断并不完整。应该继续确认真正共享的幂等边界。</p>
+<p>再搜索已有能力：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">codegraph explore <span class="string">&quot;项目中哪些消息消费者使用 ProcessedEventExecutor 保证幂等，它与本地事务如何组合&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>如果采购模块已有经过验证的幂等执行器，复用它通常比新建 Redis 锁、分布式锁框架或第二套消费记录表更可靠。但必须确认它是否把幂等记录和业务变更放在同一个本地事务中，不能只因为类名相似就直接套用。</p>
+<h2 id="六、把CodeGraph融入Agent开发流程"><a href="#六、把CodeGraph融入Agent开发流程" class="headerlink" title="六、把CodeGraph融入Agent开发流程"></a>六、把CodeGraph融入Agent开发流程</h2><p>一套可靠的工作流可以分成五个阶段。</p>
+<h3 id="阶段1：结构探索"><a href="#阶段1：结构探索" class="headerlink" title="阶段1：结构探索"></a>阶段1：结构探索</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">使用 CodeGraph 定位本需求的入口、核心符号、调用路径、持久化点和测试。</span><br><span class="line">如果某段关系来自配置、消息Topic或运行时反射，明确标记为待人工确认。</span><br><span class="line">不修改代码。</span><br></pre></td></tr></table></figure>
+
+<h3 id="阶段2：影响评估"><a href="#阶段2：影响评估" class="headerlink" title="阶段2：影响评估"></a>阶段2：影响评估</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">对计划修改的每个公共方法执行影响分析。</span><br><span class="line">列出直接调用者、间接调用者、跨模块依赖和可能受影响的测试。</span><br><span class="line">将确定关系与推测关系分开。</span><br></pre></td></tr></table></figure>
+
+<h3 id="阶段3：制定小步方案"><a href="#阶段3：制定小步方案" class="headerlink" title="阶段3：制定小步方案"></a>阶段3：制定小步方案</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">基于已确认的调用链给出最小实施方案。</span><br><span class="line">说明为什么修改这个边界，而不是只修改报错入口。</span><br><span class="line">保留库存非负、状态机、幂等和审计流水等业务不变量。</span><br></pre></td></tr></table></figure>
+
+<h3 id="阶段4：实施和同步"><a href="#阶段4：实施和同步" class="headerlink" title="阶段4：实施和同步"></a>阶段4：实施和同步</h3><p>CodeGraph 默认监听文件变化并增量更新。保存代码后等待短暂的 debounce 时间，再执行：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">codegraph status</span><br></pre></td></tr></table></figure>
+
+<p>如果状态显示待同步文件，或者运行环境禁用了后台进程，可以手工执行：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">codegraph sync</span><br></pre></td></tr></table></figure>
+
+<h3 id="阶段5：验证"><a href="#阶段5：验证" class="headerlink" title="阶段5：验证"></a>阶段5：验证</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">根据当前 git diff 和 CodeGraph 影响范围选择测试。</span><br><span class="line">先运行被修改模块的单元测试，再运行跨模块集成测试。</span><br><span class="line">最后进行普通正确性、安全和数据一致性审查。</span><br></pre></td></tr></table></figure>
+
+<p>CodeGraph 提供证据，但不会证明实现正确。编译、测试、数据库约束和业务验收仍然是发布门禁。</p>
+<h2 id="七、使用affected选择回归测试"><a href="#七、使用affected选择回归测试" class="headerlink" title="七、使用affected选择回归测试"></a>七、使用affected选择回归测试</h2><p><code>codegraph affected</code> 会沿 import 依赖寻找可能受改动影响的测试文件：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git <span class="built_in">diff</span> <span class="literal">--name-only</span> origin/master...HEAD |</span><br><span class="line">  codegraph affected <span class="literal">--stdin</span> <span class="literal">--filter</span> <span class="string">&quot;**/*Test.java&quot;</span> <span class="literal">--quiet</span></span><br></pre></td></tr></table></figure>
+
+<p>也可以直接传入文件：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">codegraph affected inventory<span class="literal">-service</span>/src/main/java/com/example/inventory/InventoryReservationService.java `</span><br><span class="line">  <span class="literal">--depth</span> <span class="number">5</span> `</span><br><span class="line">  <span class="literal">--filter</span> <span class="string">&quot;**/*Test.java&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>在 Java 多模块项目里，建议把输出路径映射为 Maven 模块，再运行对应模块测试。例如：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">inventory-service/.../InventoryReservationServiceTest.java</span><br><span class="line">order-service/.../OrderCancellationIntegrationTest.java</span><br></pre></td></tr></table></figure>
+
+<p>可以转换为：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mvn <span class="literal">-pl</span> inventory<span class="literal">-service</span>,order<span class="literal">-service</span> <span class="literal">-am</span> test</span><br></pre></td></tr></table></figure>
+
+<p>测试选择只能减少无关测试，不能替代核心业务测试集。库存并发、幂等消费、事务回滚和金额计算应保留固定回归套件，即使依赖图没有选中也要执行。</p>
+<h2 id="八、索引范围与项目配置"><a href="#八、索引范围与项目配置" class="headerlink" title="八、索引范围与项目配置"></a>八、索引范围与项目配置</h2><p>CodeGraph 默认排除依赖、构建和缓存目录，也会遵循 <code>.gitignore</code>，并跳过大文件。对于已提交但不应该索引的生成代码，可以在项目根目录创建 <code>codegraph.json</code>：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;exclude&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">    <span class="string">&quot;**/target/**&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="string">&quot;warehouse-service/src/generated/**&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="string">&quot;frontend/static/vendor/**&quot;</span></span><br><span class="line">  <span class="punctuation">]</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>如果某些真实源码因为其他版本控制系统被 <code>.gitignore</code> 排除，可以显式包含：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;include&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">    <span class="string">&quot;legacy-erp-adapter/src/&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="string">&quot;local-contracts/&quot;</span></span><br><span class="line">  <span class="punctuation">]</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>非标准扩展名也可以映射到受支持语言：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;extensions&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;.tpl&quot;</span><span class="punctuation">:</span> <span class="string">&quot;php&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;.dota_lua&quot;</span><span class="punctuation">:</span> <span class="string">&quot;lua&quot;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>修改扩展映射后运行全量索引：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">codegraph index <span class="literal">--force</span></span><br></pre></td></tr></table></figure>
+
+<p>索引范围应覆盖真实业务代码，但不要把 <code>target/</code>、生成客户端、压缩资源和第三方 SDK 全部塞进去，否则结果会被噪声淹没。</p>
+<h2 id="九、在AGENTS-md里约束使用方式"><a href="#九、在AGENTS-md里约束使用方式" class="headerlink" title="九、在AGENTS.md里约束使用方式"></a>九、在AGENTS.md里约束使用方式</h2><p>CodeGraph 安装器会写入基础说明，供应链项目还应补充团队自己的规则：</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">## CodeGraph Workflow</span></span><br><span class="line"><span class="bullet">-</span> 回答结构、调用链和影响范围问题时，优先使用 codegraph<span class="emphasis">_explore。</span></span><br><span class="line"><span class="emphasis">- 修改公共 Java 方法前，必须检查调用者和影响范围。</span></span><br><span class="line"><span class="emphasis">- CodeGraph 返回待同步提示时，直接读取该文件的最新内容。</span></span><br><span class="line"><span class="emphasis">- Kafka Topic、Spring 运行时代理、反射和外部系统调用必须额外核对配置。</span></span><br><span class="line"><span class="emphasis">- 图中没有关系不等于业务上没有关系。</span></span><br><span class="line"><span class="emphasis"></span></span><br><span class="line"><span class="emphasis">## Supply Chain Invariants</span></span><br><span class="line"><span class="emphasis">- 可用库存不得小于 0。</span></span><br><span class="line"><span class="emphasis">- 同一幂等键只能产生一次库存流水。</span></span><br><span class="line"><span class="emphasis">- 采购单状态只能按状态机迁移。</span></span><br><span class="line"><span class="emphasis">- 金额、税额和数量计算禁止使用浮点数。</span></span><br><span class="line"><span class="emphasis">- 写业务数据和 Outbox 事件必须处于同一本地事务。</span></span><br></pre></td></tr></table></figure>
+
+<p>这样可以防止 Agent 把图查询结果当成绝对真相，也能确保它在供应链场景中检查真正重要的业务不变量。</p>
+<h2 id="十、隐私、安全与遥测"><a href="#十、隐私、安全与遥测" class="headerlink" title="十、隐私、安全与遥测"></a>十、隐私、安全与遥测</h2><p>CodeGraph 索引和查询本身在本机完成，数据库使用 SQLite，不需要上传源码到 CodeGraph 服务。但还要区分两个数据路径：</p>
+<ol>
+<li>CodeGraph 本地解析源码并返回查询结果。</li>
+<li>Agent 把返回的源码片段放进模型上下文。</li>
+</ol>
+<p>第二步是否离开本机，取决于 Codex 使用的模型和企业数据策略。因此“CodeGraph 本地运行”不等于“源码永远不会进入远程模型”。敏感仓库仍应使用组织允许的模型、网络策略和凭证隔离。</p>
+<p>CodeGraph 会询问是否启用匿名使用统计。需要关闭时执行：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">codegraph telemetry off</span><br><span class="line">codegraph telemetry status</span><br></pre></td></tr></table></figure>
+
+<p>CI 中也可以设置：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$env:CODEGRAPH_TELEMETRY</span>=<span class="string">&quot;0&quot;</span></span><br><span class="line"><span class="variable">$env:DO_NOT_TRACK</span>=<span class="string">&quot;1&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>不要让 Agent 索引或读取 <code>.env</code>、密钥、生产数据导出、供应商银行信息和客户隐私数据。索引工具不是权限边界，文件系统权限和仓库治理才是。</p>
+<h2 id="十一、能力边界"><a href="#十一、能力边界" class="headerlink" title="十一、能力边界"></a>十一、能力边界</h2><p>CodeGraph 擅长静态结构和源码关系，但以下场景必须谨慎：</p>
+<ul>
+<li>通过字符串拼接决定的类名、方法名和路由。</li>
+<li>Spring 容器运行时选择的 Bean 和复杂代理链。</li>
+<li>Kafka Topic、RabbitMQ Routing Key 等仅靠字符串连接的异步链路。</li>
+<li>MyBatis 动态 SQL、存储过程和数据库触发器。</li>
+<li>跨仓库、跨语言、外部 SaaS 和 ESB 流程。</li>
+<li>运行时生成代码、脚本注入和反射调用。</li>
+</ul>
+<p>遇到这些边界，应把 CodeGraph 结果与配置文件、日志、链路追踪、数据库 Schema 和集成测试结合，而不是让 Agent 补全它想象中的链路。</p>
+<h2 id="十二、常见问题排查"><a href="#十二、常见问题排查" class="headerlink" title="十二、常见问题排查"></a>十二、常见问题排查</h2><h3 id="codegraph命令不存在"><a href="#codegraph命令不存在" class="headerlink" title="codegraph命令不存在"></a>codegraph命令不存在</h3><p>重新打开终端，检查安装目录是否进入 <code>PATH</code>：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">Get-Command</span> codegraph</span><br><span class="line">codegraph version</span><br></pre></td></tr></table></figure>
+
+<h3 id="Codex里没有CodeGraph工具"><a href="#Codex里没有CodeGraph工具" class="headerlink" title="Codex里没有CodeGraph工具"></a>Codex里没有CodeGraph工具</h3><p>重新执行安装并重启 Codex：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">codegraph install <span class="literal">--target</span>=codex <span class="literal">--location</span>=global <span class="literal">--yes</span></span><br></pre></td></tr></table></figure>
+
+<p>确认 Agent 配置中的命令是 <code>codegraph serve --mcp</code>。不要在另一个终端长期手工运行 Server。</p>
+<h3 id="提示项目没有初始化"><a href="#提示项目没有初始化" class="headerlink" title="提示项目没有初始化"></a>提示项目没有初始化</h3><figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cd</span> D:\projects\supply<span class="literal">-chain-platform</span></span><br><span class="line">codegraph init</span><br><span class="line">codegraph status</span><br></pre></td></tr></table></figure>
+
+<h3 id="修改后找不到新符号"><a href="#修改后找不到新符号" class="headerlink" title="修改后找不到新符号"></a>修改后找不到新符号</h3><p>先等待自动同步，再检查：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">codegraph status</span><br><span class="line">codegraph sync</span><br></pre></td></tr></table></figure>
+
+<p>确认文件没有被 <code>.gitignore</code>、默认排除目录或 <code>codegraph.json</code> 排除。</p>
+<h3 id="Windows和WSL共用项目出现锁问题"><a href="#Windows和WSL共用项目出现锁问题" class="headerlink" title="Windows和WSL共用项目出现锁问题"></a>Windows和WSL共用项目出现锁问题</h3><p>不要让 Windows 与 WSL 同时使用同一个 <code>.codegraph/</code> SQLite 索引。可以为 Windows 设置独立目录：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$env:CODEGRAPH_DIR</span>=<span class="string">&quot;.codegraph-win&quot;</span></span><br><span class="line">codegraph init</span><br></pre></td></tr></table></figure>
+
+<p>WSL 保留默认 <code>.codegraph/</code>，或者把 Linux 项目放在 WSL 原生文件系统中。</p>
+<h3 id="后台进程不稳定"><a href="#后台进程不稳定" class="headerlink" title="后台进程不稳定"></a>后台进程不稳定</h3><p>在受限环境中可以禁用共享后台进程：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$env:CODEGRAPH_NO_DAEMON</span>=<span class="string">&quot;1&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>此时每个会话独立运行，并在必要时手工执行 <code>codegraph sync</code>。</p>
+<h2 id="十三、团队落地建议"><a href="#十三、团队落地建议" class="headerlink" title="十三、团队落地建议"></a>十三、团队落地建议</h2><p>建议按以下顺序推广：</p>
+<ol>
+<li>先在一个中型 Java 服务中试点，不要一次索引所有历史仓库。</li>
+<li>选择三类真实任务：调用链解释、公共方法重构、线上问题定位。</li>
+<li>记录 Agent 工具调用数、理解阶段耗时、遗漏调用者数量和回归缺陷。</li>
+<li>建立统一的 <code>AGENTS.md</code> 规则和索引排除项。</li>
+<li>把影响分析接入 PR 检查，但保留固定核心回归测试。</li>
+<li>定期运行 <code>codegraph upgrade --check</code>，先在试点仓库验证再统一升级。</li>
+</ol>
+<p>不要只用“节省了多少 Token”评价 CodeGraph。对供应链系统更有价值的指标，是是否少漏掉一个库存入口、是否在修改前发现了共享调用者、是否把回归测试选到了正确模块。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>CodeGraph 的价值不是替 Agent 写代码，而是让 Agent 在写代码前拥有更接近工程师的项目地图。它通过本地预索引，把符号、调用关系、源码和影响范围组合成可查询上下文。</p>
+<p>在供应链项目中，推荐固定采用“查询业务流、检查公共调用者、评估影响范围、实施小步修改、运行核心回归”的闭环。图谱负责缩短发现路径，编译、测试、数据约束和人工审查负责证明结果可信。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a href="https://github.com/colbymchenry/codegraph">CodeGraph官方仓库</a></li>
+<li><a href="https://github.com/colbymchenry/codegraph#cli-reference">CodeGraph CLI与MCP工具说明</a></li>
+<li><a href="https://github.com/colbymchenry/codegraph#configuration">CodeGraph项目配置说明</a></li>
+<li><a href="https://github.com/colbymchenry/codegraph/blob/main/TELEMETRY.md">CodeGraph Telemetry完整说明</a></li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://guxingxianyue.github.io/2026/07/01/CodeGraph%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E7%B2%BE%E9%80%9A%EF%BC%9A%E8%AE%A9Agent%E8%AF%BB%E6%87%82%E4%BE%9B%E5%BA%94%E9%93%BE%E4%BB%A3%E7%A0%81%E8%B0%83%E7%94%A8%E9%93%BE/" data-id="cuidGSW5afO51HqzEK51tVTmG" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/AI-Agent/" rel="tag">AI Agent</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CodeGraph/" rel="tag">CodeGraph</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MCP/" rel="tag">MCP</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE/" rel="tag">供应链</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-Loop-engineering" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2026/06/15/Loop-engineering/" class="article-date">
+  <time datetime="2026-06-15T02:00:00.000Z" itemprop="datePublished">2026-06-15</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2026/06/15/Loop-engineering/">Loop Engineering：从单次Agent到可验证的工程循环</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="为什么单次-Agent-还不够"><a href="#为什么单次-Agent-还不够" class="headerlink" title="为什么单次 Agent 还不够"></a>为什么单次 Agent 还不够</h2><p>这两年大家使用 AI 编程助手的方式变化很快。最开始是 prompt engineering：想办法把一句提示词写得更清楚。后来是 context engineering：想办法把项目背景、代码结构、接口文档、错误日志都给到 AI。再往后是 skill：把重复的工作流沉淀成 <code>SKILL.md</code>，让 AI 在合适场景自动调用。</p>
+<p>到了 2026 年，越来越多人开始讨论 Loop engineering。它不是一个单独的插件，也不是某个固定命令，而是一种新的 AI 协作方法论：不再由人一轮一轮地提示 AI，而是设计一个循环，让 AI 能围绕目标持续执行、观察结果、修正策略，直到达到停止条件。</p>
+<p>一句话说，Loop engineering 就是把 AI 编程从“一次性生成代码”，变成“目标、执行、验证、反馈、修正、停止”的工程闭环。</p>
+<p><img src="/images/ai-flowcharts/loop-engineering-supply-chain-flow.svg" alt="Loop engineering供应链实践流程"></p>
+<h2 id="Loop-engineering-是什么"><a href="#Loop-engineering-是什么" class="headerlink" title="Loop engineering 是什么"></a>Loop engineering 是什么</h2><p>Loop engineering 可以理解为“设计 AI agent 的工作循环”。一个好的 loop 至少包含五个部分。</p>
+<p>目标：明确这次循环要完成什么，什么情况下算完成。</p>
+<p>上下文：告诉 AI 当前项目规则、代码结构、业务背景、历史决策和约束。</p>
+<p>行动：让 AI 执行一个小步骤，比如读代码、写 spec、改一个切片、跑一个测试。</p>
+<p>观察：把测试结果、错误日志、diff、接口响应、CI 状态反馈给 AI。</p>
+<p>停止条件：测试通过、验收清单完成、连续失败、超出预算、需要人工确认时停止。</p>
+<p>如果没有观察和停止条件，所谓 loop 只是“让 AI 一直跑”。这很危险。真正的 Loop engineering 强调的是可验证、可回滚、可暂停、可复盘。</p>
+<p>它和几个相近概念的区别也很清楚：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Prompt engineering：优化单次输入。</span><br><span class="line">Context engineering：准备更好的上下文。</span><br><span class="line">Skill engineering：把重复动作沉淀成技能。</span><br><span class="line">Loop engineering：把多个动作组织成持续运行的反馈闭环。</span><br></pre></td></tr></table></figure>
+
+<p>所以 Loop engineering 不是替代 prompt、context、skill，而是把它们组织起来。</p>
+<h2 id="Loop-engineering-怎么用"><a href="#Loop-engineering-怎么用" class="headerlink" title="Loop engineering 怎么用"></a>Loop engineering 怎么用</h2><p>一个最小可用的 loop 可以这样设计：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">1. 明确目标：我要修复某个 bug，或者完成某个业务切片。</span><br><span class="line">2. 准备上下文：项目规则、相关代码、测试命令、验收标准。</span><br><span class="line">3. 执行一小步：只改一个模块或一个测试。</span><br><span class="line">4. 运行验证：测试、构建、接口调用、diff review。</span><br><span class="line">5. 反馈结果：把失败日志或 diff 交给 AI。</span><br><span class="line">6. 修正策略：继续改、回滚、拆小、提问或停止。</span><br><span class="line">7. 达成条件：所有验收通过后结束。</span><br></pre></td></tr></table></figure>
+
+<p>这里最重要的是“小步”。很多人用 AI 失败，不是因为模型不行，而是一次给了太大的任务。比如“重构库存系统”就太大了，应该拆成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">库存锁定模型</span><br><span class="line">库存释放流程</span><br><span class="line">库存流水表</span><br><span class="line">订单幂等键</span><br><span class="line">并发扣减测试</span><br><span class="line">异常回滚测试</span><br><span class="line">报表口径调整</span><br></pre></td></tr></table></figure>
+
+<p>每个小切片都能单独验证，loop 才不会失控。</p>
+<p>我会把常用组件这样组合：</p>
+<p>OpenSpec&#x2F;OPSX：负责把需求变成可追踪的规格。</p>
+<p>Superpowers skills：负责澄清、计划、TDD、调试、review。</p>
+<p>Codex：负责读代码、改代码、跑命令、看 diff。</p>
+<p>持续目标：在支持目标管理的 Codex 界面中使用对应能力；其他环境则用普通任务说明明确目标、预算和停止条件。</p>
+<p>Automations：负责让某些 loop 定时运行，比如每天检查失败测试、未处理 issue、CI 错误。</p>
+<p>Git worktree：负责隔离多个并行 loop，避免互相改乱。</p>
+<p>状态文件：负责记录做过什么、失败过什么、下一步是什么。</p>
+<h2 id="用-Codex-实践-Loop-engineering"><a href="#用-Codex-实践-Loop-engineering" class="headerlink" title="用 Codex 实践 Loop engineering"></a>用 Codex 实践 Loop engineering</h2><p>用 Codex 做 Loop engineering，关键不是让它“无限执行”，而是把目标和停止条件写清楚。</p>
+<p>一个比较实用的 Codex loop 可以长这样：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">目标：</span><br><span class="line">完成采购到货差异处理的第一阶段：差异可记录。</span><br><span class="line"></span><br><span class="line">上下文：</span><br><span class="line">- 读取 AGENTS.md、README.md、pom.xml；</span><br><span class="line">- 读取采购、到货、质检、库存相关模块；</span><br><span class="line">- 参考已有 Controller、Service、Mapper、DTO、测试写法；</span><br><span class="line">- 严格遵守项目现有风格。</span><br><span class="line"></span><br><span class="line">循环步骤：</span><br><span class="line">1. 先用 /opsx:propose 生成 change artifacts；</span><br><span class="line">2. 用 brainstorming skill 澄清差异类型；</span><br><span class="line">3. 用 writing-plans skill 拆任务；</span><br><span class="line">4. 用 test-driven-development skill 先写测试；</span><br><span class="line">5. 实现一个切片；</span><br><span class="line">6. 运行相关测试；</span><br><span class="line">7. 用 requesting-code-review skill 审查 diff；</span><br><span class="line">8. 失败时用 systematic-debugging skill 修复；</span><br><span class="line">9. 全部验收后 /opsx:verify、/opsx:sync、/opsx:archive。</span><br><span class="line"></span><br><span class="line">停止条件：</span><br><span class="line">- 差异记录相关测试全部通过；</span><br><span class="line">- diff 只包含计划内文件；</span><br><span class="line">- 验收清单全部完成；</span><br><span class="line">- 如果连续两轮同一测试失败，停止并输出阻塞原因。</span><br></pre></td></tr></table></figure>
+
+<p>如果当前 Codex 界面支持持续目标，可以把目标写成可验证条件；否则直接把同样的内容作为普通任务说明。不要假设 <code>/goal</code> 是所有 Codex 版本都支持的通用命令：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">请持续推进下面的目标，并在满足停止条件时结束：</span><br><span class="line">持续推进采购到货差异处理第一阶段，直到满足：</span><br><span class="line">1. 已生成 OpenSpec change；</span><br><span class="line">2. 已完成差异类型、差异记录表、差异登记逻辑；</span><br><span class="line">3. 相关单元测试和集成测试通过；</span><br><span class="line">4. 当前 diff 已通过 requesting-code-review skill 检查；</span><br><span class="line">5. 没有无关重构和未说明的新依赖。</span><br><span class="line"></span><br><span class="line">如果遇到业务口径不确定、测试连续失败或需要凭证访问外部系统，请停止并总结阻塞点。</span><br></pre></td></tr></table></figure>
+
+<p>这类目标说明的重点是“直到满足什么”，而不是“帮我一直做”。没有停止条件的 loop 容易造成成本失控，也容易让变更逐渐偏离原始范围。</p>
+<h2 id="供应链系统案例"><a href="#供应链系统案例" class="headerlink" title="供应链系统案例"></a>供应链系统案例</h2><p>假设供应链系统要做“采购到货差异处理”。业务背景是：采购单下了 100 件，实际只到了 80 件，或者到了 110 件，或者其中 10 件质检不合格。系统需要记录差异，并影响库存、财务暂估和报表。</p>
+<p>这个需求如果一次性让 AI 实现，很容易失控。我们可以设计三层 loop。</p>
+<p>第一层，规格 loop。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">/opsx:propose purchase-receipt-discrepancy</span><br><span class="line"></span><br><span class="line">请先生成 proposal、design、tasks、specs，不写业务代码。</span><br><span class="line">必须覆盖：</span><br><span class="line">少到、多到、不合格；</span><br><span class="line">到货单、差异单、质检结果；</span><br><span class="line">库存入库和待处理区；</span><br><span class="line">财务暂估数量；</span><br><span class="line">报表统计口径；</span><br><span class="line">幂等、事务、并发、回滚。</span><br></pre></td></tr></table></figure>
+
+<p>这一层的 loop 不是写代码，而是让需求变清楚。它的停止条件是：spec 能回答接口、数据、状态、异常、验收。</p>
+<p>第二层，计划 loop。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">请使用 writing-plans skill 细化 tasks.md。</span><br><span class="line">每个任务控制在 2 到 5 分钟可完成。</span><br><span class="line">每个任务必须包含：</span><br><span class="line">文件路径、修改内容、验证方式、回滚风险。</span><br></pre></td></tr></table></figure>
+
+<p>计划 loop 会把大需求拆成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">任务1：新增差异类型枚举。</span><br><span class="line">任务2：新增差异记录表。</span><br><span class="line">任务3：新增差异记录 Mapper。</span><br><span class="line">任务4：补少到场景测试。</span><br><span class="line">任务5：实现少到差异登记。</span><br><span class="line">任务6：补多到场景测试。</span><br><span class="line">任务7：实现多到差异登记。</span><br><span class="line">任务8：补不合格品测试。</span><br><span class="line">任务9：实现不合格品待处理逻辑。</span><br><span class="line">任务10：审查财务暂估和报表影响。</span><br></pre></td></tr></table></figure>
+
+<p>第三层，实现 loop。</p>
+<p>每个任务都走同样的循环：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">取一个任务</span><br><span class="line">-&gt; 先写或确认测试</span><br><span class="line">-&gt; 最小实现</span><br><span class="line">-&gt; 跑测试</span><br><span class="line">-&gt; 看 diff</span><br><span class="line">-&gt; code review</span><br><span class="line">-&gt; 通过后进入下一个任务</span><br></pre></td></tr></table></figure>
+
+<p>以“少到差异登记”为例：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">请使用 test-driven-development skill 实现少到差异登记。</span><br><span class="line">先写测试：</span><br><span class="line">采购单数量 100，实际到货 80，应生成少到差异 20。</span><br><span class="line">测试先失败后，再写最小实现。</span><br></pre></td></tr></table></figure>
+
+<p>如果测试失败：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">请使用 systematic-debugging skill 分析失败。</span><br><span class="line">不要直接改代码。</span><br><span class="line">先输出失败断言、实际值、相关 SQL、可能根因和最小修复方案。</span><br></pre></td></tr></table></figure>
+
+<p>实现后：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">请使用 requesting-code-review skill 审查当前 diff。</span><br><span class="line">重点看：</span><br><span class="line">1. 是否只改了少到差异相关文件；</span><br><span class="line">2. 是否影响多到和不合格逻辑；</span><br><span class="line">3. 事务边界是否正确；</span><br><span class="line">4. 重复请求是否会重复生成差异；</span><br><span class="line">5. 测试是否覆盖异常场景。</span><br></pre></td></tr></table></figure>
+
+<p>这个过程看起来慢，但大需求最怕的不是慢，而是一路快到错误方向。Loop engineering 的价值，就是让每一轮都有证据。</p>
+<h2 id="Loop-engineering-的局限性"><a href="#Loop-engineering-的局限性" class="headerlink" title="Loop engineering 的局限性"></a>Loop engineering 的局限性</h2><p>第一，成本会变高。</p>
+<p>loop 会反复读代码、跑测试、审 diff、修错误，token 和时间成本都比一次性生成高。解决办法是控制 loop 粒度：只让它处理一个切片；给出最大轮数；失败两次就停；不要把整个仓库都塞进上下文。</p>
+<p>第二，停止条件很难写。</p>
+<p>“把库存做好”不是停止条件，“库存预占相关 12 个测试通过，diff 不包含无关文件，review 没有 P0&#x2F;P1 问题”才是停止条件。解决办法是把完成定义写成可检查清单，最好能对应测试、命令或具体文件。</p>
+<p>第三，AI 会产生理解债。</p>
+<p>loop 跑得越快，人越容易不看代码，最后系统变了但自己没理解。解决办法是每个 loop 结束必须输出变更摘要、设计决策、风险点和人工验收清单；关键业务代码必须人工 review。</p>
+<p>第四，错误会被自动放大。</p>
+<p>如果 spec 一开始错了，loop 会持续围绕错误目标努力。解决办法是把 propose、plan、apply 分开，在 spec 阶段用 <code>requesting-code-review</code> 审查，必要时先暂停。</p>
+<p>第五，环境依赖会卡住。</p>
+<p>外部系统、数据库权限、测试数据、接口凭证都可能让 loop 无法继续。解决办法是提前定义阻塞条件：缺凭证、缺数据、连续失败、外部系统不可达时停止，并输出需要人工补充的内容。</p>
+<p>第六，并行 loop 会互相干扰。</p>
+<p>多个 agent 同时改同一个模块，很容易冲突。解决办法是使用 git worktree 隔离，按业务边界拆任务，并限制每个 loop 的文件范围。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Loop engineering 的本质，是把 AI 编程从“人不断提示 AI”，升级成“人设计一个可验证的循环系统”。这个系统会发现任务、执行任务、观察结果、修正错误，并在满足条件时停止。</p>
+<p>对 Codex 来说，Loop engineering 可以落到很具体的实践：用 OpenSpec 写规格，用 Superpowers skills 管过程，用 <code>/goal</code> 维持目标，用测试和 diff 做反馈，用人工 review 控住业务风险。</p>
+<p>但它不是银弹。loop 越自动，越需要明确目标、边界、验证和停止条件。真正可靠的 Loop engineering，不是让 AI 替你思考，而是让 AI 在你设计好的工程轨道里持续前进。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a href="https://addyosmani.com/blog/loop-engineering/">Loop Engineering - Addy Osmani</a></li>
+<li><a href="https://www.mindstudio.ai/blog/what-is-loop-engineering-ai-coding-agents">What Is Loop Engineering? The New Meta for AI Coding Agents</a></li>
+<li><a href="https://github.com/Fission-AI/OpenSpec/blob/main/docs/commands.md">OpenSpec OPSX commands</a></li>
+<li><a href="https://github.com/obra/superpowers">obra&#x2F;superpowers</a></li>
+<li><a href="https://developers.openai.com/codex/learn/best-practices">OpenAI Codex best practices</a></li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://guxingxianyue.github.io/2026/06/15/Loop-engineering/" data-id="cuida8IufaLePcueVb4psha0O" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/AI/" rel="tag">AI</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Codex/" rel="tag">Codex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Loop-Engineering/" rel="tag">Loop Engineering</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E8%BD%AF%E4%BB%B6%E5%B7%A5%E7%A8%8B/" rel="tag">软件工程</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-Codex提高软件编程效率的10个技巧" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2026/06/10/Codex%E6%8F%90%E9%AB%98%E8%BD%AF%E4%BB%B6%E7%BC%96%E7%A8%8B%E6%95%88%E7%8E%87%E7%9A%8410%E4%B8%AA%E6%8A%80%E5%B7%A7/" class="article-date">
+  <time datetime="2026-06-10T04:00:00.000Z" itemprop="datePublished">2026-06-10</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2026/06/10/Codex%E6%8F%90%E9%AB%98%E8%BD%AF%E4%BB%B6%E7%BC%96%E7%A8%8B%E6%95%88%E7%8E%87%E7%9A%8410%E4%B8%AA%E6%8A%80%E5%B7%A7/">使用Codex提升软件开发效率的10个工程实践</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="效率提升来自流程而非单次生成"><a href="#效率提升来自流程而非单次生成" class="headerlink" title="效率提升来自流程而非单次生成"></a>效率提升来自流程而非单次生成</h2><p>前面几篇文章里，我写了 AI 编程助手、AI Agent 工作流，以及普通开发者使用 AI 时需要守住的边界。写到 Codex 这一篇时，我更想把它写成一篇可以反复翻回来的实践笔记。</p>
+<p>Codex 这类工具和普通聊天机器人不太一样。普通聊天机器人更像一个问答窗口，你问一句，它答一句；Codex 更像一个可以进入项目、阅读代码、修改文件、运行命令、解释结果的开发协作者。OpenAI 官方把 Codex 描述为用于软件开发的 coding agent，可以帮助写代码、理解陌生代码库、review 代码、调试问题和自动化开发任务。</p>
+<p>但工具越强，越不能随便用。很多人第一次用 Codex，会把它当成“高级代码生成器”：给一句需求，期待它马上给出完美代码。这样当然偶尔能成功，但不稳定。真正稳定提升效率的方法，是把 Codex 放进一套清楚的工程流程里：准备上下文、明确任务、让它先计划、让它小步实现、跑测试、看 diff、复盘沉淀。</p>
+<p>下面这 10 个技巧，是我理解里最适合普通开发者落地的用法。</p>
+<p><img src="/images/ai-flowcharts/codex-ten-tips-map.svg" alt="Codex提高软件编程效率的10个技巧总览"></p>
+<h2 id="技巧一：把需求写成一个小-issue，而不是一句口号"><a href="#技巧一：把需求写成一个小-issue，而不是一句口号" class="headerlink" title="技巧一：把需求写成一个小 issue，而不是一句口号"></a>技巧一：把需求写成一个小 issue，而不是一句口号</h2><p>很多人对 Codex 的第一句提示是：“帮我优化一下代码。”这句话的问题不是太短，而是没有验收标准。什么叫优化？是性能变快、代码更短、结构更清楚，还是减少重复？如果没有边界，Codex 只能猜。</p>
+<p>更好的写法，是把任务写成一个小 issue：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">目标：给订单列表增加按状态筛选功能。</span><br><span class="line">范围：只改订单列表页和相关查询参数，不调整全局路由。</span><br><span class="line">验收：页面出现状态筛选框；选择状态后列表刷新；刷新页面后筛选条件保留。</span><br><span class="line">验证：运行 npm <span class="built_in">test</span>，并手动检查订单列表页。</span><br><span class="line">限制：不要重构无关组件，不要修改接口返回结构。</span><br></pre></td></tr></table></figure>
+
+<p>这种写法看起来啰嗦，但它会显著降低返工。Codex 最怕的不是任务复杂，而是任务含糊。你越能把“想要什么”和“不要什么”说清楚，它越容易给出可 review 的结果。</p>
+<p>我的经验是：凡是超过十分钟的开发任务，都值得先写成小 issue。即使最后不是交给 Codex 做，这个过程也能帮自己想清楚。</p>
+<h2 id="技巧二：为仓库准备-AGENTS-md，把长期规则沉淀下来"><a href="#技巧二：为仓库准备-AGENTS-md，把长期规则沉淀下来" class="headerlink" title="技巧二：为仓库准备 AGENTS.md，把长期规则沉淀下来"></a>技巧二：为仓库准备 AGENTS.md，把长期规则沉淀下来</h2><p>如果每次都在提示里重复“项目用 pnpm”“测试命令是 npm test”“不要改 public 目录”“提交前要跑 lint”，时间久了会很烦，而且容易漏。</p>
+<p>Codex 支持通过 <code>AGENTS.md</code> 这类仓库说明文件获得项目规则。你可以把它理解成给 AI 看的 README：告诉它项目结构、常用命令、代码风格、测试方式、哪些目录不能动、遇到失败时如何处理。</p>
+<p>一个简单的 <code>AGENTS.md</code> 可以这样写：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 项目规则</span></span><br><span class="line"></span><br><span class="line">- 文章源码在 <span class="built_in">source</span>/_posts。</span><br><span class="line">- 静态资源放在 <span class="built_in">source</span>/images。</span><br><span class="line">- public 是生成目录，非必要不要手写修改。</span><br><span class="line">- 修改文章后需要运行生成命令，并检查 archives 页面。</span><br><span class="line">- 保持 Markdown front matter 格式：title/date/tags。</span><br></pre></td></tr></table></figure>
+
+<p>这类规则越早沉淀，后面越省心。Codex 做得不稳定，很多时候不是模型能力问题，而是项目没有把“好结果长什么样”告诉它。</p>
+<h2 id="技巧三：先让-Codex-读代码和写计划，不要直接开改"><a href="#技巧三：先让-Codex-读代码和写计划，不要直接开改" class="headerlink" title="技巧三：先让 Codex 读代码和写计划，不要直接开改"></a>技巧三：先让 Codex 读代码和写计划，不要直接开改</h2><p>面对一个真实项目，我不建议第一步就让 Codex 修改文件。更稳的方式是先让它做两件事：</p>
+<p>第一，阅读相关代码并总结当前结构。</p>
+<p>第二，给出准备修改的计划。</p>
+<p>比如可以这样说：</p>
+<figure class="highlight gauss"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">先不要修改代码。请阅读和用户登录相关的文件，说明当前登录流程、</span><br><span class="line"><span class="built_in">token</span> 存储位置、错误处理方式，然后给出最小修改计划。</span><br></pre></td></tr></table></figure>
+
+<p>这一步的价值很大。它能让你提前发现 Codex 是否找对了入口、是否理解了业务、是否准备改错层级。如果计划已经偏了，就不要让它继续实现。</p>
+<p>对复杂任务来说，“先计划再实现”比“直接生成代码”慢几分钟，但通常能省掉半小时返工。</p>
+<h2 id="技巧四：一个任务只聚焦一个目标，控制变更范围"><a href="#技巧四：一个任务只聚焦一个目标，控制变更范围" class="headerlink" title="技巧四：一个任务只聚焦一个目标，控制变更范围"></a>技巧四：一个任务只聚焦一个目标，控制变更范围</h2><p>人类开发也一样，一个 PR 同时做登录、样式、数据库迁移、依赖升级，review 会非常痛苦。Codex 更是如此。</p>
+<p>好的任务应该是可切分、可验证、可回滚的。比如：</p>
+<p>不太好的任务：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">帮我把后台系统整体优化一下，顺便修几个 bug，再加点测试。</span><br></pre></td></tr></table></figure>
+
+<p>更好的拆法：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">任务1：修复用户列表分页参数丢失问题。</span><br><span class="line">任务2：给用户列表补充分页相关测试。</span><br><span class="line">任务3：整理用户列表组件里重复的状态判断。</span><br></pre></td></tr></table></figure>
+
+<p>每个任务都有一个焦点，Codex 就不容易迷路。你也更容易 review 它的输出。</p>
+<h2 id="技巧五：让-Codex-小步实现，并要求解释关键取舍"><a href="#技巧五：让-Codex-小步实现，并要求解释关键取舍" class="headerlink" title="技巧五：让 Codex 小步实现，并要求解释关键取舍"></a>技巧五：让 Codex 小步实现，并要求解释关键取舍</h2><p>Codex 能一次性生成很多代码，但“大量生成”不等于“高效”。我更喜欢让它小步推进：</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">先完成最小可运行版本，不要做额外抽象。</span><br><span class="line">完成后说明：</span><br><span class="line"><span class="bullet">1.</span> 改了哪些文件；</span><br><span class="line"><span class="bullet">2.</span> 为什么这样改；</span><br><span class="line"><span class="bullet">3.</span> 哪些地方可能需要后续优化。</span><br></pre></td></tr></table></figure>
+
+<p>这样做有两个好处。</p>
+<p>第一，你能快速看到方向是否正确。</p>
+<p>第二，Codex 会被迫解释自己的取舍，而不是只给结果。</p>
+<p>当它解释“为什么这样改”时，你很容易看出它有没有理解项目。如果解释含糊，就继续追问；如果解释清楚，再进入下一步。</p>
+<h2 id="技巧六：把测试命令写进任务，而不是事后才想起来"><a href="#技巧六：把测试命令写进任务，而不是事后才想起来" class="headerlink" title="技巧六：把测试命令写进任务，而不是事后才想起来"></a>技巧六：把测试命令写进任务，而不是事后才想起来</h2><p>Codex 的一个重要价值，是它可以帮你运行测试、构建、类型检查、格式检查等命令。但前提是它知道应该跑什么。</p>
+<p>所以在任务里直接写：</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">完成后请运行：</span><br><span class="line">- npm test</span><br><span class="line">- npm <span class="built_in">run</span> lint</span><br><span class="line">- npm <span class="built_in">run</span> build</span><br><span class="line"></span><br><span class="line">如果某个命令失败，请说明失败原因、是否和本次改动有关，以及你如何处理。</span><br></pre></td></tr></table></figure>
+
+<p>如果项目没有自动化测试，也可以写手工验证标准：</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">没有单元测试。请生成后检查：</span><br><span class="line"><span class="bullet">1.</span> archives 页面出现 2026 年分组；</span><br><span class="line"><span class="bullet">2.</span> 新文章页面能打开；</span><br><span class="line"><span class="bullet">3.</span> 中文标题和标签显示正常。</span><br></pre></td></tr></table></figure>
+
+<p>这比“你看着办”可靠得多。Codex 可以帮你执行验证，但验证标准应该由人来定。</p>
+<p><img src="/images/ai-flowcharts/codex-task-loop.svg" alt="Codex任务执行闭环"></p>
+<h2 id="技巧七：把-Codex-用在阅读和定位上，不只是写代码"><a href="#技巧七：把-Codex-用在阅读和定位上，不只是写代码" class="headerlink" title="技巧七：把 Codex 用在阅读和定位上，不只是写代码"></a>技巧七：把 Codex 用在阅读和定位上，不只是写代码</h2><p>很多人低估了 Codex 的阅读能力。实际工作里，最耗时间的不一定是写代码，而是弄清楚代码在哪里、数据怎么流、为什么这个 bug 会出现。</p>
+<p>有些特别适合交给 Codex 的阅读任务：</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">请梳理这个接口从路由到数据库查询的调用链。</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">请找出用户头像上传失败可能经过的所有错误处理分支。</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">请比较这两个组件的重复逻辑，说明是否值得抽公共组件。</span><br></pre></td></tr></table></figure>
+
+<p>这类任务风险低，收益高。即使最后不让 Codex 改代码，它也能帮你节省大量翻文件的时间。</p>
+<p>我的习惯是：先让 Codex 当“代码导游”，再决定要不要让它当“代码作者”。</p>
+<h2 id="技巧八：用-review-或明确-review-指令，让它站到审查者角度"><a href="#技巧八：用-review-或明确-review-指令，让它站到审查者角度" class="headerlink" title="技巧八：用 &#x2F;review 或明确 review 指令，让它站到审查者角度"></a>技巧八：用 &#x2F;review 或明确 review 指令，让它站到审查者角度</h2><p>写代码和审代码是两种不同心态。让 Codex 生成代码之后，最好再让它切换角色：</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">请以 code review 的角度检查刚才的改动，重点看：</span><br><span class="line"><span class="bullet">1.</span> 是否有无关文件改动；</span><br><span class="line"><span class="bullet">2.</span> 是否有未处理的异常路径；</span><br><span class="line"><span class="bullet">3.</span> 是否有兼容性风险；</span><br><span class="line"><span class="bullet">4.</span> 是否缺少测试；</span><br><span class="line"><span class="bullet">5.</span> 是否引入了过度抽象。</span><br></pre></td></tr></table></figure>
+
+<p>OpenAI 的 Codex 最佳实践也强调，不要只让 Codex 改代码，还要让它创建测试、运行检查、确认结果并 review 工作。这个思路非常重要：Codex 不应该只是“生产代码”，还应该帮助发现代码里的风险。</p>
+<p>当然，AI review 不能代替人类 review。它更像第一道自动筛查，可以提前发现低级问题、遗漏分支和不一致风格。最终是否接受，仍然要人判断。</p>
+<h2 id="技巧九：权限要克制，默认从安全配置开始"><a href="#技巧九：权限要克制，默认从安全配置开始" class="headerlink" title="技巧九：权限要克制，默认从安全配置开始"></a>技巧九：权限要克制，默认从安全配置开始</h2><p>效率和权限不是一回事。给 Codex 越多权限，它能做的事越多，但风险也越高。</p>
+<p>比较稳的原则是：</p>
+<p>第一，默认使用沙箱和审批。</p>
+<p>第二，不把生产密钥、真实用户数据、内部敏感信息交给它。</p>
+<p>第三，危险命令必须先说明目的，再由人确认。</p>
+<p>第四，部署、删除、迁移、批量替换这类任务要格外谨慎。</p>
+<p>官方最佳实践里也提到，如果刚开始使用 coding agent，应该从默认权限开始，保持 approval 和 sandboxing 收紧，等你理解工作流之后，再对可信仓库或特定流程放宽。</p>
+<p>这点我很赞同。AI 工具最容易制造一种错觉：既然它能做，就让它全做。但工程里真正可靠的方式，是最小权限、可观察、可回滚。</p>
+<p><img src="/images/ai-flowcharts/codex-safety-gate.svg" alt="Codex权限与安全门禁"></p>
+<h2 id="技巧十：每次用完都复盘，把经验写回项目"><a href="#技巧十：每次用完都复盘，把经验写回项目" class="headerlink" title="技巧十：每次用完都复盘，把经验写回项目"></a>技巧十：每次用完都复盘，把经验写回项目</h2><p>Codex 用得好不好，不只取决于一次提示词，还取决于你有没有把经验沉淀下来。</p>
+<p>每次任务结束后，可以复盘几个问题：</p>
+<p>第一，哪些上下文给得有效？</p>
+<p>第二，Codex 哪一步误解了？</p>
+<p>第三，哪些测试命令必须写进下次任务？</p>
+<p>第四，哪些规则应该放进 <code>AGENTS.md</code>？</p>
+<p>第五，有没有可以沉淀成固定提示模板？</p>
+<p>比如你发现 Codex 总是忘记运行某个检查，就把它写进 <code>AGENTS.md</code>。你发现某类任务总要提醒“不要修改生成目录”，也写进去。你发现某种 review checklist 很有效，就整理成 <code>code_review.md</code>，以后让 Codex 引用。</p>
+<p>这就是复利。第一次用 Codex，可能只是省一点时间；第十次之后，如果规则、模板、测试、权限都沉淀好了，它省下的就不只是写代码时间，而是整个工程流程的沟通成本。</p>
+<h2 id="一个完整的使用模板"><a href="#一个完整的使用模板" class="headerlink" title="一个完整的使用模板"></a>一个完整的使用模板</h2><p>下面是我比较推荐的一段 Codex 任务模板，可以按项目改：</p>
+<figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">请完成以下任务：</span><br><span class="line"></span><br><span class="line">目标：</span><br><span class="line"><span class="bullet">- </span>...</span><br><span class="line"></span><br><span class="line">范围：</span><br><span class="line"><span class="bullet">- </span>允许修改：</span><br><span class="line"><span class="bullet">- </span>不要修改：</span><br><span class="line"></span><br><span class="line">上下文：</span><br><span class="line"><span class="bullet">- </span>相关文件：</span><br><span class="line"><span class="bullet">- </span>当前现象：</span><br><span class="line"><span class="bullet">- </span>期望行为：</span><br><span class="line"></span><br><span class="line">实现要求：</span><br><span class="line"><span class="bullet">- </span>先阅读相关代码并给出计划。</span><br><span class="line"><span class="bullet">- </span>计划确认后再修改。</span><br><span class="line"><span class="bullet">- </span>保持改动最小，不做无关重构。</span><br><span class="line"></span><br><span class="line">验证要求：</span><br><span class="line"><span class="bullet">- </span>运行：</span><br><span class="line"><span class="bullet">- </span>如果无法运行，请说明原因。</span><br><span class="line"><span class="bullet">- </span>最后总结改动、验证结果和剩余风险。</span><br></pre></td></tr></table></figure>
+
+<p>这个模板看起来很普通，但它能解决大部分“AI 写偏了”的问题。因为它把目标、范围、上下文、实现、验证都拆开了。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Codex 提高效率的关键，不是让开发者少思考，而是把重复、明确、可验证的工作交出去，让开发者把精力放在判断、设计和质量把关上。</p>
+<p>我认为最值得记住的是这 10 点：</p>
+<ol>
+<li>把需求写成小 issue。</li>
+<li>用 <code>AGENTS.md</code> 沉淀项目规则。</li>
+<li>先让 Codex 读代码和写计划。</li>
+<li>一个任务只做一个焦点。</li>
+<li>小步实现，并解释关键取舍。</li>
+<li>把测试命令写进任务。</li>
+<li>让 Codex 帮你阅读和定位。</li>
+<li>用 review 指令检查风险。</li>
+<li>默认收紧权限和沙箱。</li>
+<li>每次用完都复盘沉淀。</li>
+</ol>
+<p>用 Codex 最好的状态，不是“我完全不管，它自动完成”，而是“我把任务定义清楚，它帮我推进，我负责判断和验收”。这样才是真正稳定的软件工程效率提升。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a href="https://developers.openai.com/codex/">OpenAI Codex</a></li>
+<li><a href="https://developers.openai.com/codex/learn/best-practices">OpenAI Codex best practices</a></li>
+<li><a href="https://openai.com/index/introducing-codex/">OpenAI Codex announcement</a></li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://guxingxianyue.github.io/2026/06/10/Codex%E6%8F%90%E9%AB%98%E8%BD%AF%E4%BB%B6%E7%BC%96%E7%A8%8B%E6%95%88%E7%8E%87%E7%9A%8410%E4%B8%AA%E6%8A%80%E5%B7%A7/" data-id="cuid7AsHAbkhfUWAQXZ3E0OD4" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/AI/" rel="tag">AI</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Codex/" rel="tag">Codex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%BC%96%E7%A8%8B%E6%95%88%E7%8E%87/" rel="tag">编程效率</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E8%BD%AF%E4%BB%B6%E5%B7%A5%E7%A8%8B/" rel="tag">软件工程</a></li></ul>
+
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-普通开发者使用AI的三条边界" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2026/06/10/%E6%99%AE%E9%80%9A%E5%BC%80%E5%8F%91%E8%80%85%E4%BD%BF%E7%94%A8AI%E7%9A%84%E4%B8%89%E6%9D%A1%E8%BE%B9%E7%95%8C/" class="article-date">
@@ -123,7 +637,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2026/06/10/%E6%99%AE%E9%80%9A%E5%BC%80%E5%8F%91%E8%80%85%E4%BD%BF%E7%94%A8AI%E7%9A%84%E4%B8%89%E6%9D%A1%E8%BE%B9%E7%95%8C/" data-id="cuidrybaj27-SPU2txKx8qoFm" class="article-share-link">Share</a>
+      <a data-url="https://guxingxianyue.github.io/2026/06/10/%E6%99%AE%E9%80%9A%E5%BC%80%E5%8F%91%E8%80%85%E4%BD%BF%E7%94%A8AI%E7%9A%84%E4%B8%89%E6%9D%A1%E8%BE%B9%E7%95%8C/" data-id="cuidvLx-IUJOY4o5WQOKq44t6" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/AI/" rel="tag">AI</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/" rel="tag">工程实践</a></li></ul>
@@ -187,7 +701,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2026/06/10/AI-Agent%E6%97%B6%E4%BB%A3%E7%9A%84%E5%BC%80%E5%8F%91%E5%B7%A5%E4%BD%9C%E6%B5%81/" data-id="cuidMuMLL8s3TDb0vE_4Bdptk" class="article-share-link">Share</a>
+      <a data-url="https://guxingxianyue.github.io/2026/06/10/AI-Agent%E6%97%B6%E4%BB%A3%E7%9A%84%E5%BC%80%E5%8F%91%E5%B7%A5%E4%BD%9C%E6%B5%81/" data-id="cuidjpvnCnSNHPqxcYLnmH_TD" class="article-share-link">Share</a>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/AI/" rel="tag">AI</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Agent/" rel="tag">Agent</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E8%BD%AF%E4%BB%B6%E5%B7%A5%E7%A8%8B/" rel="tag">软件工程</a></li></ul>
@@ -199,280 +713,9 @@
 
 
   
-    <article id="post-2026年重新理解AI编程助手" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2026/06/10/2026%E5%B9%B4%E9%87%8D%E6%96%B0%E7%90%86%E8%A7%A3AI%E7%BC%96%E7%A8%8B%E5%8A%A9%E6%89%8B/" class="article-date">
-  <time datetime="2026-06-10T01:00:00.000Z" itemprop="datePublished">2026-06-10</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2026/06/10/2026%E5%B9%B4%E9%87%8D%E6%96%B0%E7%90%86%E8%A7%A3AI%E7%BC%96%E7%A8%8B%E5%8A%A9%E6%89%8B/">2026年重新理解AI编程助手：从代码生成到任务执行</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="AI-编程助手正在发生什么变化"><a href="#AI-编程助手正在发生什么变化" class="headerlink" title="AI 编程助手正在发生什么变化"></a>AI 编程助手正在发生什么变化</h2><p>从 2017 年之后，这个博客停了很久。中间几年技术变化很多，但真正让我觉得开发方式被改变的，不是某一个框架，也不是某一种语言，而是 AI 编程助手变得越来越像一个可以一起干活的同事。</p>
-<p>刚开始用 AI 的时候，我更习惯把它当成搜索引擎的升级版：问一个概念，让它解释；贴一段报错，让它分析；想不起某个 API，就让它补一下示例代码。这个阶段确实有用，但用久了会发现，它只是让“查资料”变快了，并没有真正改变开发流程。</p>
-<p>到了 2026 年，我对 AI 编程助手的理解变了。它不是简单替我写几行代码，而是参与到“理解需求、阅读代码、拆分任务、修改实现、运行验证、总结结果”的整个链路里。真正的差别不在于它能不能生成代码，而在于它能不能在一个真实项目里按上下文做事。</p>
-<p><img src="/images/ai-flowcharts/ai-coding-assistant-loop.svg" alt="AI编程助手协作闭环"></p>
-<h2 id="从补全工具到工程代理"><a href="#从补全工具到工程代理" class="headerlink" title="从补全工具到工程代理"></a>从补全工具到工程代理</h2><p>我现在更愿意把 AI 编程助手看成一种协作工具，而不是答案机器。</p>
-<p>答案机器的使用方式是：“我问一个问题，你给我一个答案。”这种方式适合查概念、写小片段、解释命令，但一旦进入真实项目，就很容易失真。因为真实项目里最重要的不是“这段代码理论上怎么写”，而是“在这个项目已有结构里应该怎么改”。</p>
-<p>协作工具的使用方式则不一样。我们需要先让 AI 了解项目背景，再把任务拆成可验证的小步骤，然后让它读代码、提出方案、做修改、跑检查。最后人再 review 它的 diff，而不是直接相信它的结论。</p>
-<p>这也是我认为 2026 年普通开发者最该掌握的能力：不是会不会问“帮我写一个函数”，而是会不会把问题描述成一个清楚、边界明确、可以验收的开发任务。</p>
-<h2 id="一套可验证的使用方法"><a href="#一套可验证的使用方法" class="headerlink" title="一套可验证的使用方法"></a>一套可验证的使用方法</h2><p>第一步是给上下文。不要只说“帮我修一下这个 bug”，而是说清楚现象、期望、相关文件、怎么复现、什么不能改。如果项目里有测试命令，也应该直接告诉它。AI 最怕的是上下文不完整，它会用猜测填空，而猜测在工程里通常会变成 bug。</p>
-<p>第二步是拆任务。比如要做一个功能，不要一上来就让 AI “完整实现”。更稳妥的方式是先让它读相关代码并说明当前结构，再让它给出改动计划。计划确认之后，再让它动手实现。这样做的好处是，中间每一步都能纠偏，不至于最后得到一大坨看起来很努力但方向不对的代码。</p>
-<p>第三步是看 diff。AI 写代码再快，也不能跳过 review。尤其要看三类地方：有没有改到无关文件，有没有引入过度抽象，有没有把异常路径处理得过于乐观。很多时候 AI 的代码能跑通主流程，但边界条件会比较脆。</p>
-<p>第四步是跑测试。没有测试的项目，至少也要跑构建、启动、本地页面检查，或者准备几个手工验证步骤。AI 的自信程度和代码正确率不是一回事。它说“应该可以”没有意义，命令输出和实际页面才有意义。</p>
-<p>第五步是让它总结。每次完成一个任务后，我会让 AI 说明改了什么、为什么这样改、跑了哪些验证、还有什么风险。这个总结不是形式主义，它能帮助人快速进入 review 状态，也能暴露它有没有真的理解任务。</p>
-<h2 id="风险与使用边界"><a href="#风险与使用边界" class="headerlink" title="风险与使用边界"></a>风险与使用边界</h2><p>第一个坑是把 AI 生成的代码当成最终答案。它可以很快给出一个能看的版本，但工程质量还需要人来兜底。尤其是权限、金额、隐私、并发、删除数据这些地方，不能因为它写得顺手就直接合并。</p>
-<p>第二个坑是一次性给太大的任务。任务越大，AI 越容易在中途丢失重点。一个比较好的经验是，把任务拆到“一个 PR 可以清楚 review”的大小。如果你自己都说不清验收标准，AI 更不可能稳定完成。</p>
-<p>第三个坑是只追求速度。AI 最容易制造一种错觉：好像所有事情都能马上完成。但软件开发里，快只是其中一个指标。可维护、可验证、符合项目风格，很多时候比快更重要。</p>
-<p>第四个坑是忽略成本。2026 年的 AI 工具已经越来越强，但强模型、长上下文、多轮对话、后台 agent 都是有成本的。日常开发中，简单问题可以用轻量方式解决，复杂问题再交给更强的模型或 agent。</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>AI 编程助手真正改变的，不是让开发者不用写代码，而是让开发者可以把一部分明确、重复、可验证的工作委派出去。开发者的价值并没有消失，反而更集中在判断、设计、拆解、验证和取舍上。</p>
-<p>如果把 AI 当成搜索框，它只是一个更快的问答工具；如果把它当成协作对象，就需要给它上下文、边界和验收标准。2026 年重新理解 AI 编程助手，我觉得关键就在这里：少一点神奇想象，多一点工程方法。</p>
-<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
-<li><a href="https://openai.com/index/introducing-codex/">OpenAI Codex announcement</a></li>
-<li><a href="https://developers.openai.com/api/docs/guides/agents">OpenAI Agents docs</a></li>
-<li><a href="https://docs.github.com/en/copilot/concepts/agents/cloud-agent/about-cloud-agent">GitHub Copilot cloud agent docs</a></li>
-</ul>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2026/06/10/2026%E5%B9%B4%E9%87%8D%E6%96%B0%E7%90%86%E8%A7%A3AI%E7%BC%96%E7%A8%8B%E5%8A%A9%E6%89%8B/" data-id="cuidMzlOKlUgAnJqHtXBYIfIY" class="article-share-link">Share</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/AI/" rel="tag">AI</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%BC%96%E7%A8%8B%E6%95%88%E7%8E%87/" rel="tag">编程效率</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-Claude-Code最常用的几个指令" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2026/06/01/Claude-Code%E6%9C%80%E5%B8%B8%E7%94%A8%E7%9A%84%E5%87%A0%E4%B8%AA%E6%8C%87%E4%BB%A4/" class="article-date">
-  <time datetime="2026-06-01T01:00:00.000Z" itemprop="datePublished">2026-06-01</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2026/06/01/Claude-Code%E6%9C%80%E5%B8%B8%E7%94%A8%E7%9A%84%E5%87%A0%E4%B8%AA%E6%8C%87%E4%BB%A4/">Claude Code高频指令实战：从计划到代码审查</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="为什么高频指令值得单独掌握"><a href="#为什么高频指令值得单独掌握" class="headerlink" title="为什么高频指令值得单独掌握"></a>为什么高频指令值得单独掌握</h2><p>前面已经写过一篇比较完整的 Claude Code 常用指令整理，那篇更像一张命令地图；这篇我想写得更贴近日常项目使用：如果只记几个最常用的指令，应该先记哪些？每个指令到底在项目里怎么用？</p>
-<p>Claude Code 的指令很多。官方命令页也提醒，输入 <code>/</code> 可以看到当前环境可用的命令，命令必须放在消息开头才会被识别；并且不是每个命令都会出现在每个人的环境里，平台、计划、版本和登录状态都会影响可见范围。所以我不建议一上来背完整命令表。</p>
-<p>可以先掌握一条主线：项目初始化用 <code>/init</code> 和 <code>/memory</code>，复杂任务用 <code>/plan</code>，长会话用 <code>/context</code> 和 <code>/compact</code>，验收先看 <code>/diff</code>，安全敏感改动用 <code>/security-review</code>，方向错了用 <code>/rewind</code>。这些指令能覆盖大多数日常开发场景。</p>
-<p><img src="/images/ai-flowcharts/claude-code-essential-commands.svg" alt="Claude Code最常用指令工作流"></p>
-<h2 id="先按任务阶段建立使用顺序"><a href="#先按任务阶段建立使用顺序" class="headerlink" title="先按任务阶段建立使用顺序"></a>先按任务阶段建立使用顺序</h2><p>Claude Code 指令的作用，不是让你少写自然语言，而是让会话进入正确模式。一个真实开发任务通常不是“问一句、答一句”，而是要经历理解项目、制定计划、修改文件、验证结果、审查风险几个阶段。</p>
-<p>如果没有指令，你当然也可以用自然语言表达这些意图，比如“先不要改代码，先给计划”。但指令的好处是更稳定、更明确，也更适合形成习惯。</p>
-<p>我会把最常用指令分成四类：</p>
-<p>第一类是项目记忆：<code>/init</code>、<code>/memory</code>。</p>
-<p>第二类是任务控制：<code>/plan</code>、<code>/model</code>、<code>/effort</code>。</p>
-<p>第三类是上下文管理：<code>/context</code>、<code>/compact</code>、<code>/clear</code>。</p>
-<p>第四类是验收和恢复：<code>/diff</code>、<code>/security-review</code>、<code>/rewind</code>。</p>
-<p>不用一口气全记住。先把这四类放进开发流程里，用几次之后自然就熟了。</p>
-<p><img src="/images/ai-flowcharts/claude-code-command-usage-guide.svg" alt="Claude Code常用指令项目用法速查"></p>
-<h2 id="十个高频指令及其场景"><a href="#十个高频指令及其场景" class="headerlink" title="十个高频指令及其场景"></a>十个高频指令及其场景</h2><h3 id="1-init：新项目第一步"><a href="#1-init：新项目第一步" class="headerlink" title="1. /init：新项目第一步"></a>1. <code>/init</code>：新项目第一步</h3><p><code>/init</code> 适合在第一次进入项目时使用。它通常会帮助生成项目级说明，比如 <code>CLAUDE.md</code>，让 Claude Code 了解项目结构、常用命令和开发约定。</p>
-<p>我会这样用：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/init</span><br></pre></td></tr></table></figure>
-
-<p>生成之后不要直接结束。你应该手工检查里面的内容，把真实规则补进去：</p>
-<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="bullet">-</span> 安装依赖使用 npm install --no-package-lock。</span><br><span class="line"><span class="bullet">-</span> 文章源文件在 source/<span class="emphasis">_posts。</span></span><br><span class="line"><span class="emphasis">- 图片放在 source/images。</span></span><br><span class="line"><span class="emphasis">- public 是生成目录，不要手动写业务内容。</span></span><br><span class="line"><span class="emphasis">- 修改文章后要生成静态站并检查 archives 页面。</span></span><br></pre></td></tr></table></figure>
-
-<p><code>/init</code> 的价值不在生成那一刻，而在后面每次任务都能复用这些项目规则。</p>
-<h3 id="2-memory：把重复提醒沉淀下来"><a href="#2-memory：把重复提醒沉淀下来" class="headerlink" title="2. /memory：把重复提醒沉淀下来"></a>2. <code>/memory</code>：把重复提醒沉淀下来</h3><p>如果你发现自己反复对 Claude Code 说同一句话，比如“不要升级依赖”“先看 diff”“生成后检查归档页”，就应该考虑用 <code>/memory</code> 管理项目记忆。</p>
-<p>我会在一次任务结束后补一句：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/memory</span><br></pre></td></tr></table></figure>
-
-<p>然后把稳定规则整理进去。注意，记忆文件不适合放一次性需求。比如“今天新增一篇文章”不该写进去；“新增文章必须包含 title&#x2F;date&#x2F;tags”才适合写进去。</p>
-<h3 id="3-plan：复杂任务先停一下"><a href="#3-plan：复杂任务先停一下" class="headerlink" title="3. /plan：复杂任务先停一下"></a>3. <code>/plan</code>：复杂任务先停一下</h3><p><code>/plan</code> 是我最常用的指令之一。只要任务会改多个文件、涉及配置、可能影响线上页面，我都会先让它计划。</p>
-<p>示例：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/plan 把博客里最近几篇文章日期从 6 月 10 日改成 5 月份随机日期，再新增一篇 6 月 1 日文章。先列出要改的源文件、图片文件、生成和部署验证步骤。</span><br></pre></td></tr></table></figure>
-
-<p>好的计划应该包含四件事：会看哪些文件、会改哪些文件、怎么验证、风险在哪里。如果计划里出现“顺便升级 Hexo”这种越界动作，就要立刻纠正。</p>
-<h3 id="4-model-和-effort：控制成本和思考深度"><a href="#4-model-和-effort：控制成本和思考深度" class="headerlink" title="4. /model 和 /effort：控制成本和思考深度"></a>4. <code>/model</code> 和 <code>/effort</code>：控制成本和思考深度</h3><p>不是所有任务都需要最高强度。改错别字、补一段说明、生成一张简单流程图，可以用较低成本；跨模块重构、排查线上问题、做安全审查，就值得提高推理强度。</p>
-<p>你可以在任务前调整模型或思考深度：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">/model</span><br><span class="line">/effort</span><br></pre></td></tr></table></figure>
-
-<p>我的习惯是：普通写作和小修用默认设置；涉及发布、权限、数据变更、复杂回归时，再提高投入。这样不会为了小任务浪费太多资源。</p>
-<h3 id="5-context：看看会话被什么占满了"><a href="#5-context：看看会话被什么占满了" class="headerlink" title="5. /context：看看会话被什么占满了"></a>5. <code>/context</code>：看看会话被什么占满了</h3><p>长会话最怕的是上下文越来越乱。你已经换了三个任务，但对话里还塞着前一个任务的日志、diff、错误输出，Claude Code 就可能开始抓错重点。</p>
-<p>这时可以用：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/context</span><br></pre></td></tr></table></figure>
-
-<p>它的作用是让你看清上下文占用。如果当前任务已经和前面的内容关系不大，就应该压缩或清空，而不是继续往上堆。</p>
-<h3 id="6-compact：把长会话压成可继续的摘要"><a href="#6-compact：把长会话压成可继续的摘要" class="headerlink" title="6. /compact：把长会话压成可继续的摘要"></a>6. <code>/compact</code>：把长会话压成可继续的摘要</h3><p>如果任务还没完，但上下文太长，我会用 <code>/compact</code>。关键是不要只输入一个裸命令，而是告诉它保留哪些东西：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/compact 请保留当前目标、已经修改的文件、尚未完成的验证、遇到的错误和下一步计划。</span><br></pre></td></tr></table></figure>
-
-<p>这样压缩后继续工作，方向更不容易丢。它适合长任务，不适合完全换题。如果你要做一个全新的任务，<code>/clear</code> 往往更合适。</p>
-<h3 id="7-diff：验收前先看真实改动"><a href="#7-diff：验收前先看真实改动" class="headerlink" title="7. /diff：验收前先看真实改动"></a>7. <code>/diff</code>：验收前先看真实改动</h3><p><code>/diff</code> 是防止 AI 编程失控的核心指令。Claude Code 的总结可能写得很漂亮，但真正要 review 的是文件改动。</p>
-<p>我一般会在实现后说：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/diff</span><br></pre></td></tr></table></figure>
-
-<p>然后重点看这几类问题：</p>
-<p>是否改了无关文件；</p>
-<p>是否误动配置、锁文件、部署脚本；</p>
-<p>是否把临时路径、token、内部地址写进代码；</p>
-<p>是否只改了正文但忘了生成资源；</p>
-<p>是否删除了历史页面。</p>
-<p>不要把 <code>/diff</code> 当成形式。它是开发者重新拿回控制权的地方。</p>
-<h3 id="8-security-review：检查安全敏感改动"><a href="#8-security-review：检查安全敏感改动" class="headerlink" title="8. /security-review：检查安全敏感改动"></a>8. <code>/security-review</code>：检查安全敏感改动</h3><p><code>/security-review</code> 用于分析当前分支待提交改动中的安全风险，例如注入、认证授权缺陷和敏感数据暴露。它不等同于通用代码审查，也不能替代开发者检查业务正确性、性能、兼容性和测试覆盖率。</p>
-<p>可以这样用：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/security-review</span><br></pre></td></tr></table></figure>
-
-<p>对于通用代码审查，应直接给出清晰的自然语言要求，例如“请只读审查当前 diff，按严重程度列出业务错误、兼容性风险和测试缺口”。对于博客项目，可以重点检查 front matter、图片路径、生成页面、归档链接和中文编码。</p>
-<h3 id="9-rewind：方向错了及时回退"><a href="#9-rewind：方向错了及时回退" class="headerlink" title="9. /rewind：方向错了及时回退"></a>9. <code>/rewind</code>：方向错了及时回退</h3><p>很多人用 AI 工具时会有一个坏习惯：发现方向错了，还继续让它“修一下”。补丁叠补丁之后，diff 会越来越难看。</p>
-<p>这时应该考虑：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/rewind</span><br></pre></td></tr></table></figure>
-
-<p>它的意义是回到一个更干净的检查点。特别是当 Claude Code 改了太多无关文件、误解了需求、或者尝试升级依赖导致项目乱掉时，及时回退比继续修补更稳。</p>
-<h3 id="10-clear-和-resume：切换任务与找回会话"><a href="#10-clear-和-resume：切换任务与找回会话" class="headerlink" title="10. /clear 和 /resume：切换任务与找回会话"></a>10. <code>/clear</code> 和 <code>/resume</code>：切换任务与找回会话</h3><p>如果当前任务已经结束，准备开始另一个独立任务，可以用：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/clear</span><br></pre></td></tr></table></figure>
-
-<p>它会开启更干净的上下文。之后如果需要找回旧会话，可以用：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/resume</span><br></pre></td></tr></table></figure>
-
-<p>我的习惯是：同一任务用 <code>/compact</code> 延续，不同任务用 <code>/clear</code> 切开。这样不容易把两个任务的上下文混在一起。</p>
-<h2 id="指令使用中的常见误区"><a href="#指令使用中的常见误区" class="headerlink" title="指令使用中的常见误区"></a>指令使用中的常见误区</h2><p>第一类误区是把命令当成正确性保证。使用 <code>/plan</code> 不代表计划一定正确，使用 <code>/security-review</code> 也不代表不存在业务缺陷。命令用于组织流程，最终判断仍由开发者负责。</p>
-<p>第二个坑，是不看本机可用命令。Claude Code 文档明确说，不是每个命令都会在每个环境出现。最稳的方法是在自己的会话里输入 <code>/</code>，看当前真实可用列表。</p>
-<p>第三个坑，是在长会话里不断换任务。AI 会尽量利用已有上下文，但旧上下文不一定对新任务有帮助。任务之间要么压缩，要么清空。</p>
-<p>第四个坑，是把项目规则只写在聊天里。只在当前会话里说过的规则，很容易下一次就忘。长期规则应该进入 <code>CLAUDE.md</code>、memory、项目文档或 skill。</p>
-<p>第五个坑，是跳过验证。无论用什么指令，最后都要落到测试、构建、页面检查、人工 review 上。没有验证的“完成”，只是文字上的完成。</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>如果只记 Claude Code 的几个常用指令，可以按这个顺序掌握：<code>/init</code>、<code>/memory</code>、<code>/plan</code>、<code>/context</code>、<code>/compact</code>、<code>/diff</code>、<code>/security-review</code>、<code>/rewind</code>。</p>
-<p>它们对应的不是孤立功能，而是一条项目开发主线：建立记忆，计划任务，管理上下文，检查改动，必要时回退。把这条主线用熟，比背完整命令表更有价值。</p>
-<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
-<li><a href="https://code.claude.com/docs/en/commands">Claude Code commands reference</a></li>
-<li><a href="https://code.claude.com/docs/en/cli-reference">Claude Code CLI reference</a></li>
-<li><a href="https://code.claude.com/docs/en/interactive-mode">Claude Code interactive mode</a></li>
-</ul>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2026/06/01/Claude-Code%E6%9C%80%E5%B8%B8%E7%94%A8%E7%9A%84%E5%87%A0%E4%B8%AA%E6%8C%87%E4%BB%A4/" data-id="cuidESKJFl0kcU4XV8N8fn29_" class="article-share-link">Share</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/AI/" rel="tag">AI</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Claude-Code/" rel="tag">Claude Code</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%91%BD%E4%BB%A4%E8%A1%8C/" rel="tag">命令行</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E7%BC%96%E7%A8%8B%E6%95%88%E7%8E%87/" rel="tag">编程效率</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
-    <article id="post-项目使用Codex有哪些注意事项" class="article article-type-post" itemscope itemprop="blogPost">
-  <div class="article-meta">
-    <a href="/2026/05/28/%E9%A1%B9%E7%9B%AE%E4%BD%BF%E7%94%A8Codex%E6%9C%89%E5%93%AA%E4%BA%9B%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9/" class="article-date">
-  <time datetime="2026-05-28T08:00:00.000Z" itemprop="datePublished">2026-05-28</time>
-</a>
-    
-  </div>
-  <div class="article-inner">
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2026/05/28/%E9%A1%B9%E7%9B%AE%E4%BD%BF%E7%94%A8Codex%E6%9C%89%E5%93%AA%E4%BA%9B%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9/">项目中使用Codex：上下文、权限与验收清单</a>
-    </h1>
-  
-
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="为什么项目级使用需要工程约束"><a href="#为什么项目级使用需要工程约束" class="headerlink" title="为什么项目级使用需要工程约束"></a>为什么项目级使用需要工程约束</h2><p>前面写过一篇《Codex提高软件编程效率的10个技巧》，偏方法论；这篇更像一张检查单：项目真正接入 Codex 时，有哪些地方要先想清楚。</p>
-<p>Codex 这类 coding agent 的能力很强。OpenAI 官方把 Codex 描述为用于软件开发的 coding agent，可以帮助写代码、理解陌生代码库、review 代码、调试问题和自动化开发任务。问题也正在这里：它能做的事情越多，项目越需要明确边界。</p>
-<p>如果只是让它写一段 demo，风险不大；如果让它进入真实仓库、读取配置、修改文件、运行命令，情况就完全不同了。我的原则是：先把权限、上下文、验证、审查、回滚想清楚，再谈效率提升。</p>
-<p><img src="/images/ai-flowcharts/codex-project-checklist.svg" alt="项目使用Codex注意事项流程图"></p>
-<h2 id="上下文、权限与验证三项原则"><a href="#上下文、权限与验证三项原则" class="headerlink" title="上下文、权限与验证三项原则"></a>上下文、权限与验证三项原则</h2><p>项目使用 Codex，要守住四条线：权限线、上下文线、验证线、责任线。</p>
-<p>权限线，是指它能读什么、能写什么、能运行什么命令。不要因为方便就给过大的权限。</p>
-<p>上下文线，是指你要告诉它项目规则、任务边界、验收标准。上下文不给清楚，它只能猜。</p>
-<p>验证线，是指所有输出都要能被测试、构建、手工检查或 review 证明。</p>
-<p>责任线，是指最终合并和发布的人仍然是开发者，不是 AI。</p>
-<p>Codex 可以提高速度，但不能替代工程纪律。相反，越是用 AI，越需要清楚的工程纪律。</p>
-<p><img src="/images/ai-flowcharts/codex-project-review-guide.svg" alt="Codex项目审查指引"></p>
-<h2 id="一套可复用的项目接入流程"><a href="#一套可复用的项目接入流程" class="headerlink" title="一套可复用的项目接入流程"></a>一套可复用的项目接入流程</h2><p>第一步，给项目准备 <code>AGENTS.md</code> 或类似规则文件。里面不需要写太多废话，重点写长期有效规则：</p>
-<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="section"># Project Rules</span></span><br><span class="line"></span><br><span class="line"><span class="bullet">-</span> Source posts are under source/<span class="emphasis">_posts.</span></span><br><span class="line"><span class="emphasis">- Static images are under source/images.</span></span><br><span class="line"><span class="emphasis">- public is generated output; do not hand-edit it unless generation is blocked.</span></span><br><span class="line"><span class="emphasis">- After changing posts, generate the site and verify public/archives/index.html.</span></span><br><span class="line"><span class="emphasis">- Do not modify deployment config unless explicitly requested.</span></span><br><span class="line"><span class="emphasis">- New Markdown files must use title/date/tags front matter.</span></span><br></pre></td></tr></table></figure>
-
-<p>这类规则能减少重复沟通。Codex 官方最佳实践也强调，把项目特定指令写进 <code>AGENTS.md</code> 这类文件，可以帮助 agent 按项目约定工作。</p>
-<p>第二步，把任务写小。不要说：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">帮我把博客项目整体优化一下。</span><br></pre></td></tr></table></figure>
-
-<p>更好的写法是：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">新增一篇 2026 年 AI 技术文章，文件放在 source/_posts，图片放在 source/images。</span><br><span class="line">生成静态站后确认 archives 页面出现新标题。</span><br><span class="line">不要修改旧文章内容，不要升级 Hexo 版本。</span><br></pre></td></tr></table></figure>
-
-<p>第三步，让 Codex 先说明计划。真实项目里，我通常会写：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">先不要编辑文件。请先说明你准备查看哪些文件、准备新增或修改哪些文件、验证命令是什么、可能风险是什么。</span><br></pre></td></tr></table></figure>
-
-<p>这个步骤能提前发现误解。比如它准备升级依赖、删除 public、重构主题，而你的需求只是新增文章，这时就要立刻纠偏。</p>
-<p>第四步，要求它自己验证，但不要只相信它的总结。比如：</p>
-<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">完成后请运行生成命令，检查归档页是否包含新标题，并说明验证结果。如果命令失败，请贴出关键错误和你的处理方式。</span><br></pre></td></tr></table></figure>
-
-<p>第五步，人工看 diff。尤其注意：</p>
-<p>是否改了无关文件；</p>
-<p>是否改了部署配置；</p>
-<p>是否把密钥、token、内部地址写进文章或配置；</p>
-<p>是否误删生成文件；</p>
-<p>是否绕过了测试失败；</p>
-<p>是否用“应该可以”代替真实验证。</p>
-<p>第六步，发布前确认回滚路径。对于博客这类项目，至少要知道源文章在哪、生成结果在哪、发布仓库提交是哪一个。如果线上异常，可以回退到上一版发布提交。</p>
-<h2 id="常见风险与处理方式"><a href="#常见风险与处理方式" class="headerlink" title="常见风险与处理方式"></a>常见风险与处理方式</h2><p>第一个坑，是把仓库里的所有东西都当成可改。真实项目里，生成目录、锁文件、迁移脚本、部署配置、密钥模板都需要区别对待。Codex 不一定天然知道哪些文件是“碰不得”的，要写进规则。</p>
-<p>第二个坑，是让它在没有验证命令的情况下提交结论。比如“已完成，应该能运行”。这类话没有工程价值。要么跑了命令，要么说明没跑以及为什么没跑。</p>
-<p>第三个坑，是忽略依赖和环境差异。老项目尤其明显：Node 版本、包管理器、旧框架、编码问题，都可能让生成命令失败。遇到这类问题，不要急着升级全家桶，先找最小兼容方案。</p>
-<p>第四个坑，是把 AI 输出直接发布。文章、代码、配置都一样，最后要有人读一遍。AI 可能写错事实、误解业务、过度自信，也可能把本地临时信息写进正文。</p>
-<p>第五个坑，是没有沉淀经验。每次遇到一个项目级规则，都应该考虑写进 <code>AGENTS.md</code>、README、skill 或检查清单。否则下次还会重复踩。</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>项目使用 Codex，最重要的不是“让它多做点”，而是“让它在清楚边界内稳定做事”。权限要收住，上下文要写清，验证要真实，review 要保留。</p>
-<p>我比较推荐的节奏是：先从低风险任务开始，比如文档、测试、脚本、小 bug；等项目规则沉淀得足够清楚，再让 Codex 参与更复杂的开发任务。这样既能享受效率提升，也不至于把项目交给一团不可控的自动化。</p>
-<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
-<li><a href="https://developers.openai.com/codex/">OpenAI Codex</a></li>
-<li><a href="https://developers.openai.com/codex/learn/best-practices">OpenAI Codex best practices</a></li>
-<li><a href="https://openai.com/index/introducing-codex/">OpenAI Codex announcement</a></li>
-</ul>
-
-      
-    </div>
-    <footer class="article-footer">
-      <a data-url="https://guxingxianyue.github.io/2026/05/28/%E9%A1%B9%E7%9B%AE%E4%BD%BF%E7%94%A8Codex%E6%9C%89%E5%93%AA%E4%BA%9B%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9/" data-id="cuid8fDBBtaBDuapt5Fd-iVe6" class="article-share-link">Share</a>
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/AI/" rel="tag">AI</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Codex/" rel="tag">Codex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/" rel="tag">工程实践</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E8%BD%AF%E4%BB%B6%E5%B7%A5%E7%A8%8B/" rel="tag">软件工程</a></li></ul>
-
-    </footer>
-  </div>
-  
-</article>
-
-
-  
   
     <nav id="page-nav">
-      <a class="extend prev" rel="prev" href="/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><span class="space">&hellip;</span><a class="page-number" href="/page/12/">12</a><a class="extend next" rel="next" href="/page/3/">Next &raquo;</a>
+      <a class="extend prev" rel="prev" href="/">&laquo; Prev</a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><span class="space">&hellip;</span><a class="page-number" href="/page/13/">13</a><a class="extend next" rel="next" href="/page/3/">Next &raquo;</a>
     </nav>
   
 </section>
@@ -485,7 +728,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tags</h3>
     <div class="widget">
-      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AGENTS-md/" rel="tag">AGENTS.md</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI/" rel="tag">AI</a><span class="tag-list-count">17</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI-Agent/" rel="tag">AI Agent</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AQS/" rel="tag">AQS</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Agent/" rel="tag">Agent</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Atomic/" rel="tag">Atomic</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BlockingQueue/" rel="tag">BlockingQueue</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CAP/" rel="tag">CAP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CAS/" rel="tag">CAS</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CC-Switch/" rel="tag">CC Switch</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Claude-Code/" rel="tag">Claude Code</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Codex/" rel="tag">Codex</a><span class="tag-list-count">11</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CompletableFuture/" rel="tag">CompletableFuture</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ConcurrentHashMap/" rel="tag">ConcurrentHashMap</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Condition/" rel="tag">Condition</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CountDownLatch/" rel="tag">CountDownLatch</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DI/" rel="tag">DI</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ERP/" rel="tag">ERP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/FullGC/" rel="tag">FullGC</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/G1/" rel="tag">G1</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GC/" rel="tag">GC</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GC%E6%97%A5%E5%BF%97/" rel="tag">GC日志</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GitHub-Pages/" rel="tag">GitHub Pages</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hexo/" rel="tag">Hexo</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/InnoDB/" rel="tag">InnoDB</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/IoC/" rel="tag">IoC</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JMM/" rel="tag">JMM</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JVM/" rel="tag">JVM</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JVM%E5%8F%82%E6%95%B0/" rel="tag">JVM参数</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JVM%E8%B0%83%E4%BC%98/" rel="tag">JVM调优</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a><span class="tag-list-count">33</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kafka/" rel="tag">Kafka</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LongAdder/" rel="tag">LongAdder</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Loop-Engineering/" rel="tag">Loop Engineering</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MVCC/" rel="tag">MVCC</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Monitor/" rel="tag">Monitor</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MyBatis/" rel="tag">MyBatis</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Next-Key-Lock/" rel="tag">Next-Key Lock</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OOM/" rel="tag">OOM</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Pi/" rel="tag">Pi</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ReadWriteLock/" rel="tag">ReadWriteLock</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Redis/" rel="tag">Redis</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ReentrantLock/" rel="tag">ReentrantLock</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/" rel="tag">SQL</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL%E4%BC%98%E5%8C%96/" rel="tag">SQL优化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Semaphore/" rel="tag">Semaphore</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Skill/" rel="tag">Skill</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spec-Coding/" rel="tag">Spec Coding</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spring/" rel="tag">Spring</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spring-Cloud/" rel="tag">Spring Cloud</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/StampedLock/" rel="tag">StampedLock</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ThreadPoolExecutor/" rel="tag">ThreadPoolExecutor</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TypeScript/" rel="tag">TypeScript</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/synchronized/" rel="tag">synchronized</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/volatile/" rel="tag">volatile</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%B9%90%E8%A7%82%E9%94%81/" rel="tag">乐观锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8B%E5%8A%A1/" rel="tag">事务</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/" rel="tag">事务隔离级别</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BB%93%E5%82%A8%E7%B3%BB%E7%BB%9F/" rel="tag">仓储系统</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE/" rel="tag">供应链</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F/" rel="tag">供应链系统</a><span class="tag-list-count">26</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84/" rel="tag">内存结构</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" rel="tag">分布式</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/" rel="tag">分布式系统</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" rel="tag">分布式锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8D%95%E6%8D%AE%E5%AE%A1%E6%A0%B8/" rel="tag">单据审核</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" rel="tag">可见性</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%91%BD%E4%BB%A4%E8%A1%8C/" rel="tag">命令行</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%9B%9E%E6%94%B6%E7%AE%97%E6%B3%95/" rel="tag">回收算法</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A0%86%E5%86%85%E5%AD%98/" rel="tag">堆内存</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" rel="tag">多线程</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%AD%97%E8%8A%82%E7%A0%81/" rel="tag">字节码</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/" rel="tag">工程实践</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6/" rel="tag">并发控制</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" rel="tag">并发编程</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91%E9%98%9F%E5%88%97/" rel="tag">并发队列</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%BB%E8%AF%BB/" rel="tag">幻读</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BA%93%E5%AD%98%E7%B3%BB%E7%BB%9F/" rel="tag">库存系统</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/" rel="tag">微服务</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BF%AB%E9%80%9F%E6%8E%92%E5%BA%8F/" rel="tag">快速排序</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%82%B2%E8%A7%82%E9%94%81/" rel="tag">悲观锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8A%80%E6%9C%AF%E5%8D%9A%E5%AE%A2/" rel="tag">技术博客</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8A%A5%E8%A1%A8%E7%BB%9F%E8%AE%A1/" rel="tag">报表统计</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8E%92%E5%BA%8F%E7%AE%97%E6%B3%95/" rel="tag">排序算法</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E5%88%86%E6%9E%90/" rel="tag">数据分析</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="tag">数据库</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" rel="tag">数据结构</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/" rel="tag">数据结构与算法</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/" rel="tag">架构设计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%AD%BB%E9%94%81/" rel="tag">死锁</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" rel="tag">消息队列</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%B1%BB%E5%8A%A0%E8%BD%BD/" rel="tag">类加载</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%B3%BB%E7%BB%9F%E4%BC%98%E5%8C%96/" rel="tag">系统优化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/" rel="tag">系统设计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%B4%A2%E5%BC%95/" rel="tag">索引</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E4%B8%8A%E6%8E%92%E6%9F%A5/" rel="tag">线上排查</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E7%A8%8B%E6%B1%A0/" rel="tag">线程池</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E7%A8%8B%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/" rel="tag">线程生命周期</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BC%93%E5%AD%98/" rel="tag">缓存</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BC%96%E7%A8%8B%E6%95%88%E7%8E%87/" rel="tag">编程效率</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%A1%8C%E9%94%81/" rel="tag">行锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%A2%E5%8D%95%E5%B1%A5%E7%BA%A6/" rel="tag">订单履约</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%A2%E5%8D%95%E7%B3%BB%E7%BB%9F/" rel="tag">订单系统</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%BD%AF%E4%BB%B6%E5%B7%A5%E7%A8%8B/" rel="tag">软件工程</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%80%92%E5%BD%92/" rel="tag">递归</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%85%8D%E7%BD%AE%E7%AE%A1%E7%90%86/" rel="tag">配置管理</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%87%87%E8%B4%AD%E7%B3%BB%E7%BB%9F/" rel="tag">采购系统</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%94%81/" rel="tag">锁</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%94%81%E7%AD%89%E5%BE%85/" rel="tag">锁等待</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%97%B4%E9%9A%99%E9%94%81/" rel="tag">间隙锁</a><span class="tag-list-count">1</span></li></ul>
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AGENTS-md/" rel="tag">AGENTS.md</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI/" rel="tag">AI</a><span class="tag-list-count">17</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI-Agent/" rel="tag">AI Agent</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AQS/" rel="tag">AQS</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Agent/" rel="tag">Agent</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Atomic/" rel="tag">Atomic</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BlockingQueue/" rel="tag">BlockingQueue</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CAP/" rel="tag">CAP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CAS/" rel="tag">CAS</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CC-Switch/" rel="tag">CC Switch</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Claude-Code/" rel="tag">Claude Code</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CodeGraph/" rel="tag">CodeGraph</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Codex/" rel="tag">Codex</a><span class="tag-list-count">13</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CompletableFuture/" rel="tag">CompletableFuture</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ConcurrentHashMap/" rel="tag">ConcurrentHashMap</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Condition/" rel="tag">Condition</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CountDownLatch/" rel="tag">CountDownLatch</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DI/" rel="tag">DI</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ERP/" rel="tag">ERP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/FullGC/" rel="tag">FullGC</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/G1/" rel="tag">G1</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GC/" rel="tag">GC</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GC%E6%97%A5%E5%BF%97/" rel="tag">GC日志</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GitHub-Pages/" rel="tag">GitHub Pages</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hexo/" rel="tag">Hexo</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/InnoDB/" rel="tag">InnoDB</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/IoC/" rel="tag">IoC</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JMM/" rel="tag">JMM</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JVM/" rel="tag">JVM</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JVM%E5%8F%82%E6%95%B0/" rel="tag">JVM参数</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JVM%E8%B0%83%E4%BC%98/" rel="tag">JVM调优</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a><span class="tag-list-count">36</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kafka/" rel="tag">Kafka</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LongAdder/" rel="tag">LongAdder</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Loop-Engineering/" rel="tag">Loop Engineering</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MCP/" rel="tag">MCP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MVCC/" rel="tag">MVCC</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Monitor/" rel="tag">Monitor</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MyBatis/" rel="tag">MyBatis</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Next-Key-Lock/" rel="tag">Next-Key Lock</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OOM/" rel="tag">OOM</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Pi/" rel="tag">Pi</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ponytail/" rel="tag">Ponytail</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ReadWriteLock/" rel="tag">ReadWriteLock</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Redis/" rel="tag">Redis</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ReentrantLock/" rel="tag">ReentrantLock</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/" rel="tag">SQL</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL%E4%BC%98%E5%8C%96/" rel="tag">SQL优化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Semaphore/" rel="tag">Semaphore</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Skill/" rel="tag">Skill</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spec-Coding/" rel="tag">Spec Coding</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spring/" rel="tag">Spring</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spring-Cloud/" rel="tag">Spring Cloud</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/StampedLock/" rel="tag">StampedLock</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ThreadPoolExecutor/" rel="tag">ThreadPoolExecutor</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TypeScript/" rel="tag">TypeScript</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/synchronized/" rel="tag">synchronized</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/volatile/" rel="tag">volatile</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%B9%90%E8%A7%82%E9%94%81/" rel="tag">乐观锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8B%E5%8A%A1/" rel="tag">事务</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/" rel="tag">事务隔离级别</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BB%93%E5%82%A8%E7%B3%BB%E7%BB%9F/" rel="tag">仓储系统</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE/" rel="tag">供应链</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F/" rel="tag">供应链系统</a><span class="tag-list-count">26</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84/" rel="tag">内存结构</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" rel="tag">分布式</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/" rel="tag">分布式系统</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" rel="tag">分布式锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8D%95%E6%8D%AE%E5%AE%A1%E6%A0%B8/" rel="tag">单据审核</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" rel="tag">可见性</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%91%BD%E4%BB%A4%E8%A1%8C/" rel="tag">命令行</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%9B%9E%E6%94%B6%E7%AE%97%E6%B3%95/" rel="tag">回收算法</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A0%86%E5%86%85%E5%AD%98/" rel="tag">堆内存</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" rel="tag">多线程</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%AD%97%E8%8A%82%E7%A0%81/" rel="tag">字节码</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/" rel="tag">工程实践</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6/" rel="tag">并发控制</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" rel="tag">并发编程</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91%E9%98%9F%E5%88%97/" rel="tag">并发队列</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%BB%E8%AF%BB/" rel="tag">幻读</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BA%93%E5%AD%98%E7%B3%BB%E7%BB%9F/" rel="tag">库存系统</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/" rel="tag">微服务</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BF%AB%E9%80%9F%E6%8E%92%E5%BA%8F/" rel="tag">快速排序</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%82%B2%E8%A7%82%E9%94%81/" rel="tag">悲观锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8A%80%E6%9C%AF%E5%8D%9A%E5%AE%A2/" rel="tag">技术博客</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8A%A5%E8%A1%A8%E7%BB%9F%E8%AE%A1/" rel="tag">报表统计</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8E%92%E5%BA%8F%E7%AE%97%E6%B3%95/" rel="tag">排序算法</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E5%88%86%E6%9E%90/" rel="tag">数据分析</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="tag">数据库</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" rel="tag">数据结构</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/" rel="tag">数据结构与算法</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/" rel="tag">架构设计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%AD%BB%E9%94%81/" rel="tag">死锁</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" rel="tag">消息队列</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%B1%BB%E5%8A%A0%E8%BD%BD/" rel="tag">类加载</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%B3%BB%E7%BB%9F%E4%BC%98%E5%8C%96/" rel="tag">系统优化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/" rel="tag">系统设计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%B4%A2%E5%BC%95/" rel="tag">索引</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E4%B8%8A%E6%8E%92%E6%9F%A5/" rel="tag">线上排查</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E7%A8%8B%E6%B1%A0/" rel="tag">线程池</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E7%A8%8B%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/" rel="tag">线程生命周期</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BC%93%E5%AD%98/" rel="tag">缓存</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BC%96%E7%A8%8B%E6%95%88%E7%8E%87/" rel="tag">编程效率</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%A1%8C%E9%94%81/" rel="tag">行锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%A2%E5%8D%95%E5%B1%A5%E7%BA%A6/" rel="tag">订单履约</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%A2%E5%8D%95%E7%B3%BB%E7%BB%9F/" rel="tag">订单系统</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%BD%AF%E4%BB%B6%E5%B7%A5%E7%A8%8B/" rel="tag">软件工程</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%80%92%E5%BD%92/" rel="tag">递归</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%85%8D%E7%BD%AE%E7%AE%A1%E7%90%86/" rel="tag">配置管理</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%87%87%E8%B4%AD%E7%B3%BB%E7%BB%9F/" rel="tag">采购系统</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%94%81/" rel="tag">锁</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%94%81%E7%AD%89%E5%BE%85/" rel="tag">锁等待</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%97%B4%E9%9A%99%E9%94%81/" rel="tag">间隙锁</a><span class="tag-list-count">1</span></li></ul>
     </div>
   </div>
 
@@ -494,7 +737,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Tag Cloud</h3>
     <div class="widget tagcloud">
-      <a href="/tags/AGENTS-md/" style="font-size: 10px;">AGENTS.md</a> <a href="/tags/AI/" style="font-size: 18px;">AI</a> <a href="/tags/AI-Agent/" style="font-size: 10px;">AI Agent</a> <a href="/tags/AQS/" style="font-size: 10px;">AQS</a> <a href="/tags/Agent/" style="font-size: 10px;">Agent</a> <a href="/tags/Atomic/" style="font-size: 10px;">Atomic</a> <a href="/tags/BlockingQueue/" style="font-size: 10px;">BlockingQueue</a> <a href="/tags/CAP/" style="font-size: 10px;">CAP</a> <a href="/tags/CAS/" style="font-size: 11px;">CAS</a> <a href="/tags/CC-Switch/" style="font-size: 10px;">CC Switch</a> <a href="/tags/Claude-Code/" style="font-size: 13px;">Claude Code</a> <a href="/tags/Codex/" style="font-size: 17px;">Codex</a> <a href="/tags/CompletableFuture/" style="font-size: 10px;">CompletableFuture</a> <a href="/tags/ConcurrentHashMap/" style="font-size: 10px;">ConcurrentHashMap</a> <a href="/tags/Condition/" style="font-size: 10px;">Condition</a> <a href="/tags/CountDownLatch/" style="font-size: 10px;">CountDownLatch</a> <a href="/tags/DI/" style="font-size: 10px;">DI</a> <a href="/tags/ERP/" style="font-size: 10px;">ERP</a> <a href="/tags/FullGC/" style="font-size: 10px;">FullGC</a> <a href="/tags/G1/" style="font-size: 10px;">G1</a> <a href="/tags/GC/" style="font-size: 11px;">GC</a> <a href="/tags/GC%E6%97%A5%E5%BF%97/" style="font-size: 10px;">GC日志</a> <a href="/tags/GitHub-Pages/" style="font-size: 10px;">GitHub Pages</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/InnoDB/" style="font-size: 13px;">InnoDB</a> <a href="/tags/IoC/" style="font-size: 10px;">IoC</a> <a href="/tags/JMM/" style="font-size: 11px;">JMM</a> <a href="/tags/JVM/" style="font-size: 14px;">JVM</a> <a href="/tags/JVM%E5%8F%82%E6%95%B0/" style="font-size: 10px;">JVM参数</a> <a href="/tags/JVM%E8%B0%83%E4%BC%98/" style="font-size: 10px;">JVM调优</a> <a href="/tags/Java/" style="font-size: 20px;">Java</a> <a href="/tags/Kafka/" style="font-size: 11px;">Kafka</a> <a href="/tags/LongAdder/" style="font-size: 10px;">LongAdder</a> <a href="/tags/Loop-Engineering/" style="font-size: 11px;">Loop Engineering</a> <a href="/tags/MVCC/" style="font-size: 10px;">MVCC</a> <a href="/tags/Monitor/" style="font-size: 10px;">Monitor</a> <a href="/tags/MyBatis/" style="font-size: 11px;">MyBatis</a> <a href="/tags/MySQL/" style="font-size: 16px;">MySQL</a> <a href="/tags/Next-Key-Lock/" style="font-size: 10px;">Next-Key Lock</a> <a href="/tags/OOM/" style="font-size: 10px;">OOM</a> <a href="/tags/Pi/" style="font-size: 10px;">Pi</a> <a href="/tags/ReadWriteLock/" style="font-size: 10px;">ReadWriteLock</a> <a href="/tags/Redis/" style="font-size: 12px;">Redis</a> <a href="/tags/ReentrantLock/" style="font-size: 10px;">ReentrantLock</a> <a href="/tags/SQL/" style="font-size: 11px;">SQL</a> <a href="/tags/SQL%E4%BC%98%E5%8C%96/" style="font-size: 10px;">SQL优化</a> <a href="/tags/Semaphore/" style="font-size: 10px;">Semaphore</a> <a href="/tags/Skill/" style="font-size: 10px;">Skill</a> <a href="/tags/Spec-Coding/" style="font-size: 12px;">Spec Coding</a> <a href="/tags/Spring/" style="font-size: 11px;">Spring</a> <a href="/tags/Spring-Cloud/" style="font-size: 10px;">Spring Cloud</a> <a href="/tags/StampedLock/" style="font-size: 10px;">StampedLock</a> <a href="/tags/ThreadPoolExecutor/" style="font-size: 10px;">ThreadPoolExecutor</a> <a href="/tags/TypeScript/" style="font-size: 10px;">TypeScript</a> <a href="/tags/synchronized/" style="font-size: 11px;">synchronized</a> <a href="/tags/volatile/" style="font-size: 11px;">volatile</a> <a href="/tags/%E4%B9%90%E8%A7%82%E9%94%81/" style="font-size: 10px;">乐观锁</a> <a href="/tags/%E4%BA%8B%E5%8A%A1/" style="font-size: 12px;">事务</a> <a href="/tags/%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/" style="font-size: 10px;">事务隔离级别</a> <a href="/tags/%E4%BB%93%E5%82%A8%E7%B3%BB%E7%BB%9F/" style="font-size: 13px;">仓储系统</a> <a href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE/" style="font-size: 10px;">供应链</a> <a href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F/" style="font-size: 19px;">供应链系统</a> <a href="/tags/%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84/" style="font-size: 10px;">内存结构</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" style="font-size: 11px;">分布式</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/" style="font-size: 12px;">分布式系统</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" style="font-size: 10px;">分布式锁</a> <a href="/tags/%E5%8D%95%E6%8D%AE%E5%AE%A1%E6%A0%B8/" style="font-size: 10px;">单据审核</a> <a href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" style="font-size: 10px;">可见性</a> <a href="/tags/%E5%91%BD%E4%BB%A4%E8%A1%8C/" style="font-size: 11px;">命令行</a> <a href="/tags/%E5%9B%9E%E6%94%B6%E7%AE%97%E6%B3%95/" style="font-size: 10px;">回收算法</a> <a href="/tags/%E5%A0%86%E5%86%85%E5%AD%98/" style="font-size: 10px;">堆内存</a> <a href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" style="font-size: 12px;">多线程</a> <a href="/tags/%E5%AD%97%E8%8A%82%E7%A0%81/" style="font-size: 10px;">字节码</a> <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/" style="font-size: 13px;">工程实践</a> <a href="/tags/%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6/" style="font-size: 10px;">并发控制</a> <a href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" style="font-size: 15px;">并发编程</a> <a href="/tags/%E5%B9%B6%E5%8F%91%E9%98%9F%E5%88%97/" style="font-size: 10px;">并发队列</a> <a href="/tags/%E5%B9%BB%E8%AF%BB/" style="font-size: 10px;">幻读</a> <a href="/tags/%E5%BA%93%E5%AD%98%E7%B3%BB%E7%BB%9F/" style="font-size: 12px;">库存系统</a> <a href="/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/" style="font-size: 10px;">微服务</a> <a href="/tags/%E5%BF%AB%E9%80%9F%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">快速排序</a> <a href="/tags/%E6%82%B2%E8%A7%82%E9%94%81/" style="font-size: 10px;">悲观锁</a> <a href="/tags/%E6%8A%80%E6%9C%AF%E5%8D%9A%E5%AE%A2/" style="font-size: 10px;">技术博客</a> <a href="/tags/%E6%8A%A5%E8%A1%A8%E7%BB%9F%E8%AE%A1/" style="font-size: 10px;">报表统计</a> <a href="/tags/%E6%8E%92%E5%BA%8F%E7%AE%97%E6%B3%95/" style="font-size: 10px;">排序算法</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E5%88%86%E6%9E%90/" style="font-size: 10px;">数据分析</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 11px;">数据库</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" style="font-size: 10px;">数据结构</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/" style="font-size: 12px;">数据结构与算法</a> <a href="/tags/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/" style="font-size: 11px;">架构设计</a> <a href="/tags/%E6%AD%BB%E9%94%81/" style="font-size: 11px;">死锁</a> <a href="/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" style="font-size: 11px;">消息队列</a> <a href="/tags/%E7%B1%BB%E5%8A%A0%E8%BD%BD/" style="font-size: 10px;">类加载</a> <a href="/tags/%E7%B3%BB%E7%BB%9F%E4%BC%98%E5%8C%96/" style="font-size: 10px;">系统优化</a> <a href="/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/" style="font-size: 11px;">系统设计</a> <a href="/tags/%E7%B4%A2%E5%BC%95/" style="font-size: 10px;">索引</a> <a href="/tags/%E7%BA%BF%E4%B8%8A%E6%8E%92%E6%9F%A5/" style="font-size: 10px;">线上排查</a> <a href="/tags/%E7%BA%BF%E7%A8%8B%E6%B1%A0/" style="font-size: 10px;">线程池</a> <a href="/tags/%E7%BA%BF%E7%A8%8B%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/" style="font-size: 10px;">线程生命周期</a> <a href="/tags/%E7%BC%93%E5%AD%98/" style="font-size: 12px;">缓存</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E6%95%88%E7%8E%87/" style="font-size: 15px;">编程效率</a> <a href="/tags/%E8%A1%8C%E9%94%81/" style="font-size: 10px;">行锁</a> <a href="/tags/%E8%AE%A2%E5%8D%95%E5%B1%A5%E7%BA%A6/" style="font-size: 10px;">订单履约</a> <a href="/tags/%E8%AE%A2%E5%8D%95%E7%B3%BB%E7%BB%9F/" style="font-size: 10px;">订单系统</a> <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%B7%A5%E7%A8%8B/" style="font-size: 14px;">软件工程</a> <a href="/tags/%E9%80%92%E5%BD%92/" style="font-size: 10px;">递归</a> <a href="/tags/%E9%85%8D%E7%BD%AE%E7%AE%A1%E7%90%86/" style="font-size: 10px;">配置管理</a> <a href="/tags/%E9%87%87%E8%B4%AD%E7%B3%BB%E7%BB%9F/" style="font-size: 10px;">采购系统</a> <a href="/tags/%E9%94%81/" style="font-size: 12px;">锁</a> <a href="/tags/%E9%94%81%E7%AD%89%E5%BE%85/" style="font-size: 10px;">锁等待</a> <a href="/tags/%E9%97%B4%E9%9A%99%E9%94%81/" style="font-size: 10px;">间隙锁</a>
+      <a href="/tags/AGENTS-md/" style="font-size: 10px;">AGENTS.md</a> <a href="/tags/AI/" style="font-size: 18px;">AI</a> <a href="/tags/AI-Agent/" style="font-size: 13px;">AI Agent</a> <a href="/tags/AQS/" style="font-size: 10px;">AQS</a> <a href="/tags/Agent/" style="font-size: 10px;">Agent</a> <a href="/tags/Atomic/" style="font-size: 10px;">Atomic</a> <a href="/tags/BlockingQueue/" style="font-size: 10px;">BlockingQueue</a> <a href="/tags/CAP/" style="font-size: 10px;">CAP</a> <a href="/tags/CAS/" style="font-size: 11px;">CAS</a> <a href="/tags/CC-Switch/" style="font-size: 10px;">CC Switch</a> <a href="/tags/Claude-Code/" style="font-size: 13px;">Claude Code</a> <a href="/tags/CodeGraph/" style="font-size: 11px;">CodeGraph</a> <a href="/tags/Codex/" style="font-size: 17px;">Codex</a> <a href="/tags/CompletableFuture/" style="font-size: 10px;">CompletableFuture</a> <a href="/tags/ConcurrentHashMap/" style="font-size: 10px;">ConcurrentHashMap</a> <a href="/tags/Condition/" style="font-size: 10px;">Condition</a> <a href="/tags/CountDownLatch/" style="font-size: 10px;">CountDownLatch</a> <a href="/tags/DI/" style="font-size: 10px;">DI</a> <a href="/tags/ERP/" style="font-size: 10px;">ERP</a> <a href="/tags/FullGC/" style="font-size: 10px;">FullGC</a> <a href="/tags/G1/" style="font-size: 10px;">G1</a> <a href="/tags/GC/" style="font-size: 11px;">GC</a> <a href="/tags/GC%E6%97%A5%E5%BF%97/" style="font-size: 10px;">GC日志</a> <a href="/tags/GitHub-Pages/" style="font-size: 10px;">GitHub Pages</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/InnoDB/" style="font-size: 13px;">InnoDB</a> <a href="/tags/IoC/" style="font-size: 10px;">IoC</a> <a href="/tags/JMM/" style="font-size: 11px;">JMM</a> <a href="/tags/JVM/" style="font-size: 14px;">JVM</a> <a href="/tags/JVM%E5%8F%82%E6%95%B0/" style="font-size: 10px;">JVM参数</a> <a href="/tags/JVM%E8%B0%83%E4%BC%98/" style="font-size: 10px;">JVM调优</a> <a href="/tags/Java/" style="font-size: 20px;">Java</a> <a href="/tags/Kafka/" style="font-size: 11px;">Kafka</a> <a href="/tags/LongAdder/" style="font-size: 10px;">LongAdder</a> <a href="/tags/Loop-Engineering/" style="font-size: 11px;">Loop Engineering</a> <a href="/tags/MCP/" style="font-size: 10px;">MCP</a> <a href="/tags/MVCC/" style="font-size: 10px;">MVCC</a> <a href="/tags/Monitor/" style="font-size: 10px;">Monitor</a> <a href="/tags/MyBatis/" style="font-size: 11px;">MyBatis</a> <a href="/tags/MySQL/" style="font-size: 16px;">MySQL</a> <a href="/tags/Next-Key-Lock/" style="font-size: 10px;">Next-Key Lock</a> <a href="/tags/OOM/" style="font-size: 10px;">OOM</a> <a href="/tags/Pi/" style="font-size: 10px;">Pi</a> <a href="/tags/Ponytail/" style="font-size: 11px;">Ponytail</a> <a href="/tags/ReadWriteLock/" style="font-size: 10px;">ReadWriteLock</a> <a href="/tags/Redis/" style="font-size: 12px;">Redis</a> <a href="/tags/ReentrantLock/" style="font-size: 10px;">ReentrantLock</a> <a href="/tags/SQL/" style="font-size: 11px;">SQL</a> <a href="/tags/SQL%E4%BC%98%E5%8C%96/" style="font-size: 10px;">SQL优化</a> <a href="/tags/Semaphore/" style="font-size: 10px;">Semaphore</a> <a href="/tags/Skill/" style="font-size: 10px;">Skill</a> <a href="/tags/Spec-Coding/" style="font-size: 12px;">Spec Coding</a> <a href="/tags/Spring/" style="font-size: 11px;">Spring</a> <a href="/tags/Spring-Cloud/" style="font-size: 10px;">Spring Cloud</a> <a href="/tags/StampedLock/" style="font-size: 10px;">StampedLock</a> <a href="/tags/ThreadPoolExecutor/" style="font-size: 10px;">ThreadPoolExecutor</a> <a href="/tags/TypeScript/" style="font-size: 10px;">TypeScript</a> <a href="/tags/synchronized/" style="font-size: 11px;">synchronized</a> <a href="/tags/volatile/" style="font-size: 11px;">volatile</a> <a href="/tags/%E4%B9%90%E8%A7%82%E9%94%81/" style="font-size: 10px;">乐观锁</a> <a href="/tags/%E4%BA%8B%E5%8A%A1/" style="font-size: 12px;">事务</a> <a href="/tags/%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/" style="font-size: 10px;">事务隔离级别</a> <a href="/tags/%E4%BB%93%E5%82%A8%E7%B3%BB%E7%BB%9F/" style="font-size: 13px;">仓储系统</a> <a href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE/" style="font-size: 13px;">供应链</a> <a href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F/" style="font-size: 19px;">供应链系统</a> <a href="/tags/%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84/" style="font-size: 10px;">内存结构</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" style="font-size: 11px;">分布式</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/" style="font-size: 12px;">分布式系统</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" style="font-size: 10px;">分布式锁</a> <a href="/tags/%E5%8D%95%E6%8D%AE%E5%AE%A1%E6%A0%B8/" style="font-size: 10px;">单据审核</a> <a href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" style="font-size: 10px;">可见性</a> <a href="/tags/%E5%91%BD%E4%BB%A4%E8%A1%8C/" style="font-size: 11px;">命令行</a> <a href="/tags/%E5%9B%9E%E6%94%B6%E7%AE%97%E6%B3%95/" style="font-size: 10px;">回收算法</a> <a href="/tags/%E5%A0%86%E5%86%85%E5%AD%98/" style="font-size: 10px;">堆内存</a> <a href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" style="font-size: 12px;">多线程</a> <a href="/tags/%E5%AD%97%E8%8A%82%E7%A0%81/" style="font-size: 10px;">字节码</a> <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/" style="font-size: 13px;">工程实践</a> <a href="/tags/%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6/" style="font-size: 10px;">并发控制</a> <a href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" style="font-size: 15px;">并发编程</a> <a href="/tags/%E5%B9%B6%E5%8F%91%E9%98%9F%E5%88%97/" style="font-size: 10px;">并发队列</a> <a href="/tags/%E5%B9%BB%E8%AF%BB/" style="font-size: 10px;">幻读</a> <a href="/tags/%E5%BA%93%E5%AD%98%E7%B3%BB%E7%BB%9F/" style="font-size: 12px;">库存系统</a> <a href="/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/" style="font-size: 10px;">微服务</a> <a href="/tags/%E5%BF%AB%E9%80%9F%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">快速排序</a> <a href="/tags/%E6%82%B2%E8%A7%82%E9%94%81/" style="font-size: 10px;">悲观锁</a> <a href="/tags/%E6%8A%80%E6%9C%AF%E5%8D%9A%E5%AE%A2/" style="font-size: 10px;">技术博客</a> <a href="/tags/%E6%8A%A5%E8%A1%A8%E7%BB%9F%E8%AE%A1/" style="font-size: 10px;">报表统计</a> <a href="/tags/%E6%8E%92%E5%BA%8F%E7%AE%97%E6%B3%95/" style="font-size: 10px;">排序算法</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E5%88%86%E6%9E%90/" style="font-size: 10px;">数据分析</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 11px;">数据库</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" style="font-size: 10px;">数据结构</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/" style="font-size: 12px;">数据结构与算法</a> <a href="/tags/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/" style="font-size: 11px;">架构设计</a> <a href="/tags/%E6%AD%BB%E9%94%81/" style="font-size: 11px;">死锁</a> <a href="/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" style="font-size: 11px;">消息队列</a> <a href="/tags/%E7%B1%BB%E5%8A%A0%E8%BD%BD/" style="font-size: 10px;">类加载</a> <a href="/tags/%E7%B3%BB%E7%BB%9F%E4%BC%98%E5%8C%96/" style="font-size: 10px;">系统优化</a> <a href="/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/" style="font-size: 11px;">系统设计</a> <a href="/tags/%E7%B4%A2%E5%BC%95/" style="font-size: 10px;">索引</a> <a href="/tags/%E7%BA%BF%E4%B8%8A%E6%8E%92%E6%9F%A5/" style="font-size: 10px;">线上排查</a> <a href="/tags/%E7%BA%BF%E7%A8%8B%E6%B1%A0/" style="font-size: 10px;">线程池</a> <a href="/tags/%E7%BA%BF%E7%A8%8B%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/" style="font-size: 10px;">线程生命周期</a> <a href="/tags/%E7%BC%93%E5%AD%98/" style="font-size: 12px;">缓存</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E6%95%88%E7%8E%87/" style="font-size: 15px;">编程效率</a> <a href="/tags/%E8%A1%8C%E9%94%81/" style="font-size: 10px;">行锁</a> <a href="/tags/%E8%AE%A2%E5%8D%95%E5%B1%A5%E7%BA%A6/" style="font-size: 10px;">订单履约</a> <a href="/tags/%E8%AE%A2%E5%8D%95%E7%B3%BB%E7%BB%9F/" style="font-size: 10px;">订单系统</a> <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%B7%A5%E7%A8%8B/" style="font-size: 14px;">软件工程</a> <a href="/tags/%E9%80%92%E5%BD%92/" style="font-size: 10px;">递归</a> <a href="/tags/%E9%85%8D%E7%BD%AE%E7%AE%A1%E7%90%86/" style="font-size: 10px;">配置管理</a> <a href="/tags/%E9%87%87%E8%B4%AD%E7%B3%BB%E7%BB%9F/" style="font-size: 10px;">采购系统</a> <a href="/tags/%E9%94%81/" style="font-size: 12px;">锁</a> <a href="/tags/%E9%94%81%E7%AD%89%E5%BE%85/" style="font-size: 10px;">锁等待</a> <a href="/tags/%E9%97%B4%E9%9A%99%E9%94%81/" style="font-size: 10px;">间隙锁</a>
     </div>
   </div>
 
@@ -503,7 +746,7 @@
   <div class="widget-wrap">
     <h3 class="widget-title">Archives</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/08/">八月 2026</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/07/">七月 2026</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/06/">六月 2026</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/05/">五月 2026</a><span class="archive-list-count">9</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/06/">六月 2025</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/05/">五月 2025</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/04/">四月 2025</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/03/">三月 2025</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">十一月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">八月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/05/">五月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">二月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">十一月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/07/">七月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/06/">六月 2023</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">三月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">五月 2022</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">六月 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">四月 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">三月 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">一月 2016</a><span class="archive-list-count">1</span></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/08/">八月 2026</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/07/">七月 2026</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/06/">六月 2026</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/05/">五月 2026</a><span class="archive-list-count">9</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/06/">六月 2025</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/05/">五月 2025</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/04/">四月 2025</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/03/">三月 2025</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">十一月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">八月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/05/">五月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">二月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">十一月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/07/">七月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/06/">六月 2023</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">三月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">五月 2022</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">六月 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">四月 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">三月 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">一月 2016</a><span class="archive-list-count">1</span></li></ul>
     </div>
   </div>
 
@@ -527,11 +770,11 @@
           </li>
         
           <li>
-            <a href="/2026/06/15/Loop-engineering/">Loop Engineering：从单次Agent到可验证的工程循环</a>
+            <a href="/2026/07/03/CodeGraph%E4%B8%8EPonytail%E7%BB%84%E5%90%88%E5%AE%9E%E6%88%98%EF%BC%9A%E8%AE%A9Agent%E6%89%BE%E5%BE%97%E5%87%86%E3%80%81%E6%94%B9%E5%BE%97%E5%B0%91/">CodeGraph与Ponytail组合实战：让Agent找得准、改得少</a>
           </li>
         
           <li>
-            <a href="/2026/06/10/Codex%E6%8F%90%E9%AB%98%E8%BD%AF%E4%BB%B6%E7%BC%96%E7%A8%8B%E6%95%88%E7%8E%87%E7%9A%8410%E4%B8%AA%E6%8A%80%E5%B7%A7/">使用Codex提升软件开发效率的10个工程实践</a>
+            <a href="/2026/07/02/Ponytail%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E7%B2%BE%E9%80%9A%EF%BC%9A%E8%AE%A9Agent%E7%94%A8%E6%9C%80%E5%B0%91%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0%E4%BE%9B%E5%BA%94%E9%93%BE%E9%9C%80%E6%B1%82/">Ponytail从入门到精通：让Agent用最少代码实现供应链需求</a>
           </li>
         
       </ul>
