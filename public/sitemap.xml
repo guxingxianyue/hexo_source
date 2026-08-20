@@ -2,6 +2,15 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>https://guxingxianyue.github.io/2026/08/19/Java-Spring%E9%A1%B9%E7%9B%AE%E5%8D%87%E7%BA%A7%E5%AE%9E%E6%88%98%E7%BB%99Codex%E6%8F%90%E4%BE%9BMCP%E6%9C%8D%E5%8A%A1/</loc>
+    
+    <lastmod>2026-08-20</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
     <loc>https://guxingxianyue.github.io/2026/07/03/CodeGraph%E4%B8%8EPonytail%E7%BB%84%E5%90%88%E5%AE%9E%E6%88%98%EF%BC%9A%E8%AE%A9Agent%E6%89%BE%E5%BE%97%E5%87%86%E3%80%81%E6%94%B9%E5%BE%97%E5%B0%91/</loc>
     
     <lastmod>2026-08-13</lastmod>
@@ -92,7 +101,7 @@
   </url>
   
   <url>
-    <loc>https://guxingxianyue.github.io/2023/11/23/redis%E9%94%81%E6%9C%89%E5%93%AA%E4%BA%9B/</loc>
+    <loc>https://guxingxianyue.github.io/2024/02/18/springcloud%E9%87%8C%E9%9D%A2%E5%B8%B8%E7%94%A8%E7%9A%84%E7%BB%84%E4%BB%B6/</loc>
     
     <lastmod>2026-08-12</lastmod>
     
@@ -101,7 +110,7 @@
   </url>
   
   <url>
-    <loc>https://guxingxianyue.github.io/2024/02/18/springcloud%E9%87%8C%E9%9D%A2%E5%B8%B8%E7%94%A8%E7%9A%84%E7%BB%84%E4%BB%B6/</loc>
+    <loc>https://guxingxianyue.github.io/2023/11/23/redis%E9%94%81%E6%9C%89%E5%93%AA%E4%BA%9B/</loc>
     
     <lastmod>2026-08-12</lastmod>
     
@@ -173,7 +182,7 @@
   </url>
   
   <url>
-    <loc>https://guxingxianyue.github.io/2026/07/07/Loop-Engineering%E5%AE%9E%E6%88%98%E4%BB%8E%E6%97%A5%E5%BF%97%E5%B7%A1%E6%A3%80%E5%88%B0%E4%BE%9B%E5%BA%94%E9%93%BE%E5%BC%82%E5%B8%B8%E4%BF%AE%E5%A4%8D%E9%97%AD%E7%8E%AF/</loc>
+    <loc>https://guxingxianyue.github.io/2026/06/15/Loop-engineering/</loc>
     
     <lastmod>2026-08-12</lastmod>
     
@@ -182,7 +191,7 @@
   </url>
   
   <url>
-    <loc>https://guxingxianyue.github.io/2026/06/15/Loop-engineering/</loc>
+    <loc>https://guxingxianyue.github.io/2026/07/07/Loop-Engineering%E5%AE%9E%E6%88%98%E4%BB%8E%E6%97%A5%E5%BF%97%E5%B7%A1%E6%A3%80%E5%88%B0%E4%BE%9B%E5%BA%94%E9%93%BE%E5%BC%82%E5%B8%B8%E4%BF%AE%E5%A4%8D%E9%97%AD%E7%8E%AF/</loc>
     
     <lastmod>2026-08-12</lastmod>
     
@@ -254,7 +263,7 @@
   </url>
   
   <url>
-    <loc>https://guxingxianyue.github.io/2026/06/10/2026%E5%B9%B4%E9%87%8D%E6%96%B0%E7%90%86%E8%A7%A3AI%E7%BC%96%E7%A8%8B%E5%8A%A9%E6%89%8B/</loc>
+    <loc>https://guxingxianyue.github.io/2026/06/10/AI-Agent%E6%97%B6%E4%BB%A3%E7%9A%84%E5%BC%80%E5%8F%91%E5%B7%A5%E4%BD%9C%E6%B5%81/</loc>
     
     <lastmod>2026-08-12</lastmod>
     
@@ -263,7 +272,7 @@
   </url>
   
   <url>
-    <loc>https://guxingxianyue.github.io/2026/06/10/AI-Agent%E6%97%B6%E4%BB%A3%E7%9A%84%E5%BC%80%E5%8F%91%E5%B7%A5%E4%BD%9C%E6%B5%81/</loc>
+    <loc>https://guxingxianyue.github.io/2026/06/10/2026%E5%B9%B4%E9%87%8D%E6%96%B0%E7%90%86%E8%A7%A3AI%E7%BC%96%E7%A8%8B%E5%8A%A9%E6%89%8B/</loc>
     
     <lastmod>2026-08-12</lastmod>
     
@@ -317,7 +326,7 @@
   </url>
   
   <url>
-    <loc>https://guxingxianyue.github.io/2017/05/10/redis%E5%85%A5%E9%97%A8/</loc>
+    <loc>https://guxingxianyue.github.io/2016/01/05/my-new-post/</loc>
     
     <lastmod>2026-07-07</lastmod>
     
@@ -326,7 +335,7 @@
   </url>
   
   <url>
-    <loc>https://guxingxianyue.github.io/2016/01/05/my-new-post/</loc>
+    <loc>https://guxingxianyue.github.io/2017/05/10/redis%E5%85%A5%E9%97%A8/</loc>
     
     <lastmod>2026-07-07</lastmod>
     
@@ -371,7 +380,7 @@
   </url>
   
   <url>
-    <loc>https://guxingxianyue.github.io/2025/05/15/MySQL%E6%AD%BB%E9%94%81%E4%B8%8E%E9%94%81%E7%AD%89%E5%BE%85%E6%8E%92%E6%9F%A5%EF%BC%9A%E5%85%A5%E5%BA%93%E4%B8%8A%E6%9E%B6%E5%92%8C%E5%BA%93%E5%AD%98%E6%B5%81%E6%B0%B4%E6%A1%88%E4%BE%8B/</loc>
+    <loc>https://guxingxianyue.github.io/2025/04/03/MySQL%E8%A1%8C%E9%94%81%E4%B8%8E%E7%B4%A2%E5%BC%95%EF%BC%9A%E5%BA%93%E5%AD%98%E9%A2%84%E5%8D%A0%E4%B8%BA%E4%BB%80%E4%B9%88%E5%BF%85%E9%A1%BB%E5%91%BD%E4%B8%AD%E7%B4%A2%E5%BC%95/</loc>
     
     <lastmod>2026-07-07</lastmod>
     
@@ -380,7 +389,7 @@
   </url>
   
   <url>
-    <loc>https://guxingxianyue.github.io/2025/04/03/MySQL%E8%A1%8C%E9%94%81%E4%B8%8E%E7%B4%A2%E5%BC%95%EF%BC%9A%E5%BA%93%E5%AD%98%E9%A2%84%E5%8D%A0%E4%B8%BA%E4%BB%80%E4%B9%88%E5%BF%85%E9%A1%BB%E5%91%BD%E4%B8%AD%E7%B4%A2%E5%BC%95/</loc>
+    <loc>https://guxingxianyue.github.io/2025/05/15/MySQL%E6%AD%BB%E9%94%81%E4%B8%8E%E9%94%81%E7%AD%89%E5%BE%85%E6%8E%92%E6%9F%A5%EF%BC%9A%E5%85%A5%E5%BA%93%E4%B8%8A%E6%9E%B6%E5%92%8C%E5%BA%93%E5%AD%98%E6%B5%81%E6%B0%B4%E6%A1%88%E4%BE%8B/</loc>
     
     <lastmod>2026-07-07</lastmod>
     
@@ -407,7 +416,7 @@
   </url>
   
   <url>
-    <loc>https://guxingxianyue.github.io/2025/05/22/Java%E8%AF%BB%E5%86%99%E9%94%81%E5%92%8CStampedLock%EF%BC%9A%E4%BB%B7%E6%A0%BC%E4%B8%8E%E5%BA%93%E5%AD%98%E5%BF%AB%E7%85%A7%E7%BC%93%E5%AD%98/</loc>
+    <loc>https://guxingxianyue.github.io/2025/03/20/Java%E9%94%81%E6%80%BB%E8%A7%88%EF%BC%9A%E4%BB%8Esynchronized%E5%88%B0AQS%E4%BF%9D%E6%8A%A4%E4%BE%9B%E5%BA%94%E9%93%BE%E5%8D%95%E6%8D%AE/</loc>
     
     <lastmod>2026-07-07</lastmod>
     
@@ -416,7 +425,7 @@
   </url>
   
   <url>
-    <loc>https://guxingxianyue.github.io/2025/03/20/Java%E9%94%81%E6%80%BB%E8%A7%88%EF%BC%9A%E4%BB%8Esynchronized%E5%88%B0AQS%E4%BF%9D%E6%8A%A4%E4%BE%9B%E5%BA%94%E9%93%BE%E5%8D%95%E6%8D%AE/</loc>
+    <loc>https://guxingxianyue.github.io/2025/05/22/Java%E8%AF%BB%E5%86%99%E9%94%81%E5%92%8CStampedLock%EF%BC%9A%E4%BB%B7%E6%A0%BC%E4%B8%8E%E5%BA%93%E5%AD%98%E5%BF%AB%E7%85%A7%E7%BC%93%E5%AD%98/</loc>
     
     <lastmod>2026-07-07</lastmod>
     
@@ -461,7 +470,7 @@
   </url>
   
   <url>
-    <loc>https://guxingxianyue.github.io/2023/06/08/Java%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84%EF%BC%9A%E5%BA%93%E5%AD%98%E6%9C%8D%E5%8A%A1%E9%87%8C%E7%9A%84%E5%A0%86%E6%A0%88%E5%85%83%E7%A9%BA%E9%97%B4/</loc>
+    <loc>https://guxingxianyue.github.io/2022/05/10/Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E4%B8%8E%E9%94%81%EF%BC%9A%E5%BA%93%E5%AD%98%E5%90%8C%E6%AD%A5%E4%B8%AD%E7%9A%84%E5%8F%AF%E8%A7%81%E6%80%A7%E5%92%8C%E4%BA%92%E6%96%A5/</loc>
     
     <lastmod>2026-07-07</lastmod>
     
@@ -470,7 +479,7 @@
   </url>
   
   <url>
-    <loc>https://guxingxianyue.github.io/2022/05/10/Java%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E4%B8%8E%E9%94%81%EF%BC%9A%E5%BA%93%E5%AD%98%E5%90%8C%E6%AD%A5%E4%B8%AD%E7%9A%84%E5%8F%AF%E8%A7%81%E6%80%A7%E5%92%8C%E4%BA%92%E6%96%A5/</loc>
+    <loc>https://guxingxianyue.github.io/2023/06/08/Java%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84%EF%BC%9A%E5%BA%93%E5%AD%98%E6%9C%8D%E5%8A%A1%E9%87%8C%E7%9A%84%E5%A0%86%E6%A0%88%E5%85%83%E7%A9%BA%E9%97%B4/</loc>
     
     <lastmod>2026-07-07</lastmod>
     
@@ -580,7 +589,7 @@
 
   <url>
     <loc>https://guxingxianyue.github.io/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
@@ -588,798 +597,812 @@
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/AI/</loc>
-    <lastmod>2026-08-13</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://guxingxianyue.github.io/tags/Claude-Code/</loc>
-    <lastmod>2026-08-13</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://guxingxianyue.github.io/tags/%E7%BC%96%E7%A8%8B%E6%95%88%E7%8E%87/</loc>
-    <lastmod>2026-08-13</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://guxingxianyue.github.io/tags/%E5%91%BD%E4%BB%A4%E8%A1%8C/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/Agent/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/%E8%BD%AF%E4%BB%B6%E5%B7%A5%E7%A8%8B/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://guxingxianyue.github.io/tags/Claude-Code/</loc>
+    <lastmod>2026-08-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://guxingxianyue.github.io/tags/%E7%BC%96%E7%A8%8B%E6%95%88%E7%8E%87/</loc>
+    <lastmod>2026-08-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://guxingxianyue.github.io/tags/%E5%91%BD%E4%BB%A4%E8%A1%8C/</loc>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/CodeGraph/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/Ponytail/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/AI-Agent/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/Codex/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/%E4%BE%9B%E5%BA%94%E9%93%BE/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/Java/</loc>
-    <lastmod>2026-08-13</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://guxingxianyue.github.io/tags/JVM/</loc>
-    <lastmod>2026-08-13</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://guxingxianyue.github.io/tags/GC/</loc>
-    <lastmod>2026-08-13</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://guxingxianyue.github.io/tags/%E5%9B%9E%E6%94%B6%E7%AE%97%E6%B3%95/</loc>
-    <lastmod>2026-08-13</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://guxingxianyue.github.io/tags/%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/MCP/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/JVM%E8%B0%83%E4%BC%98/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/JVM%E5%8F%82%E6%95%B0/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://guxingxianyue.github.io/tags/%E7%B1%BB%E5%8A%A0%E8%BD%BD/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <loc>https://guxingxianyue.github.io/tags/GC/</loc>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://guxingxianyue.github.io/tags/%E5%AD%97%E8%8A%82%E7%A0%81/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <loc>https://guxingxianyue.github.io/tags/%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F/</loc>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://guxingxianyue.github.io/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <loc>https://guxingxianyue.github.io/tags/JVM/</loc>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://guxingxianyue.github.io/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <loc>https://guxingxianyue.github.io/tags/%E5%9B%9E%E6%94%B6%E7%AE%97%E6%B3%95/</loc>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/OOM/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/FullGC/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/%E7%BA%BF%E4%B8%8A%E6%8E%92%E6%9F%A5/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/CAS/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/Atomic/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/LongAdder/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://guxingxianyue.github.io/tags/synchronized/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <loc>https://guxingxianyue.github.io/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/</loc>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://guxingxianyue.github.io/tags/Monitor/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <loc>https://guxingxianyue.github.io/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/</loc>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://guxingxianyue.github.io/tags/%E4%BB%93%E5%82%A8%E7%B3%BB%E7%BB%9F/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <loc>https://guxingxianyue.github.io/tags/%E7%B1%BB%E5%8A%A0%E8%BD%BD/</loc>
+    <lastmod>2026-08-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://guxingxianyue.github.io/tags/%E5%AD%97%E8%8A%82%E7%A0%81/</loc>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/ReentrantLock/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/Condition/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/%E5%B9%B6%E5%8F%91%E9%98%9F%E5%88%97/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://guxingxianyue.github.io/tags/%E4%BB%93%E5%82%A8%E7%B3%BB%E7%BB%9F/</loc>
+    <lastmod>2026-08-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://guxingxianyue.github.io/tags/synchronized/</loc>
+    <lastmod>2026-08-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://guxingxianyue.github.io/tags/Monitor/</loc>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/volatile/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/JMM/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/%E5%BA%93%E5%AD%98%E7%B3%BB%E7%BB%9F/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/%E5%A0%86%E5%86%85%E5%AD%98/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://guxingxianyue.github.io/tags/Spring-Boot/</loc>
+    <lastmod>2026-08-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://guxingxianyue.github.io/tags/Spring-AI/</loc>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/CAP/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/CountDownLatch/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/Semaphore/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/CompletableFuture/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/ConcurrentHashMap/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/BlockingQueue/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/%E6%AD%BB%E9%94%81/</loc>
-    <lastmod>2026-08-13</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://guxingxianyue.github.io/tags/%E7%BA%BF%E7%A8%8B%E6%B1%A0/</loc>
-    <lastmod>2026-08-13</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://guxingxianyue.github.io/tags/ThreadPoolExecutor/</loc>
-    <lastmod>2026-08-13</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://guxingxianyue.github.io/tags/%E8%AE%A2%E5%8D%95%E5%B1%A5%E7%BA%A6/</loc>
-    <lastmod>2026-08-13</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://guxingxianyue.github.io/tags/AGENTS-md/</loc>
-    <lastmod>2026-08-13</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://guxingxianyue.github.io/tags/ReadWriteLock/</loc>
-    <lastmod>2026-08-13</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://guxingxianyue.github.io/tags/StampedLock/</loc>
-    <lastmod>2026-08-13</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://guxingxianyue.github.io/tags/%E7%BC%93%E5%AD%98/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/%E9%94%81/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/AQS/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://guxingxianyue.github.io/tags/%E7%BA%BF%E7%A8%8B%E6%B1%A0/</loc>
+    <lastmod>2026-08-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://guxingxianyue.github.io/tags/ThreadPoolExecutor/</loc>
+    <lastmod>2026-08-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://guxingxianyue.github.io/tags/%E8%AE%A2%E5%8D%95%E5%B1%A5%E7%BA%A6/</loc>
+    <lastmod>2026-08-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://guxingxianyue.github.io/tags/AGENTS-md/</loc>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/Loop-Engineering/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://guxingxianyue.github.io/tags/ReadWriteLock/</loc>
+    <lastmod>2026-08-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://guxingxianyue.github.io/tags/StampedLock/</loc>
+    <lastmod>2026-08-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://guxingxianyue.github.io/tags/%E7%BC%93%E5%AD%98/</loc>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/MySQL/</loc>
-    <lastmod>2026-08-13</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://guxingxianyue.github.io/tags/%E9%94%81%E7%AD%89%E5%BE%85/</loc>
-    <lastmod>2026-08-13</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://guxingxianyue.github.io/tags/InnoDB/</loc>
-    <lastmod>2026-08-13</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://guxingxianyue.github.io/tags/SQL%E4%BC%98%E5%8C%96/</loc>
-    <lastmod>2026-08-13</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://guxingxianyue.github.io/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/MVCC/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://guxingxianyue.github.io/tags/InnoDB/</loc>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/%E8%AE%A2%E5%8D%95%E7%B3%BB%E7%BB%9F/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/%E6%82%B2%E8%A7%82%E9%94%81/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/%E4%B9%90%E8%A7%82%E9%94%81/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/%E5%8D%95%E6%8D%AE%E5%AE%A1%E6%A0%B8/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://guxingxianyue.github.io/tags/%E4%BA%8B%E5%8A%A1/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <loc>https://guxingxianyue.github.io/tags/SQL%E4%BC%98%E5%8C%96/</loc>
+    <lastmod>2026-08-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://guxingxianyue.github.io/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/</loc>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/%E8%A1%8C%E9%94%81/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/%E7%B4%A2%E5%BC%95/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://guxingxianyue.github.io/tags/%E4%BA%8B%E5%8A%A1/</loc>
+    <lastmod>2026-08-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://guxingxianyue.github.io/tags/%E9%94%81%E7%AD%89%E5%BE%85/</loc>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/%E9%97%B4%E9%9A%99%E9%94%81/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/Next-Key-Lock/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/%E5%B9%BB%E8%AF%BB/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/%E9%87%87%E8%B4%AD%E7%B3%BB%E7%BB%9F/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/MyBatis/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/SQL/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/Spring/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/Pi/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/TypeScript/</loc>
-    <lastmod>2026-08-13</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://guxingxianyue.github.io/tags/Kafka/</loc>
-    <lastmod>2026-08-13</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://guxingxianyue.github.io/tags/%E5%88%86%E5%B8%83%E5%BC%8F/</loc>
-    <lastmod>2026-08-13</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://guxingxianyue.github.io/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/</loc>
-    <lastmod>2026-08-13</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://guxingxianyue.github.io/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/CC-Switch/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/%E9%85%8D%E7%BD%AE%E7%AE%A1%E7%90%86/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://guxingxianyue.github.io/tags/Redis/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <loc>https://guxingxianyue.github.io/tags/Kafka/</loc>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://guxingxianyue.github.io/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <loc>https://guxingxianyue.github.io/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/</loc>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://guxingxianyue.github.io/tags/Hexo/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <loc>https://guxingxianyue.github.io/tags/%E5%88%86%E5%B8%83%E5%BC%8F/</loc>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://guxingxianyue.github.io/tags/GitHub-Pages/</loc>
-    <lastmod>2026-08-13</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://guxingxianyue.github.io/tags/%E6%8A%80%E6%9C%AF%E5%8D%9A%E5%AE%A2/</loc>
-    <lastmod>2026-08-13</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://guxingxianyue.github.io/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <loc>https://guxingxianyue.github.io/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/</loc>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/ERP/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/%E6%8A%A5%E8%A1%A8%E7%BB%9F%E8%AE%A1/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/%E6%95%B0%E6%8D%AE%E5%88%86%E6%9E%90/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/%E7%B3%BB%E7%BB%9F%E4%BC%98%E5%8C%96/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://guxingxianyue.github.io/tags/IoC/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <loc>https://guxingxianyue.github.io/tags/Hexo/</loc>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://guxingxianyue.github.io/tags/DI/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <loc>https://guxingxianyue.github.io/tags/GitHub-Pages/</loc>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://guxingxianyue.github.io/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <loc>https://guxingxianyue.github.io/tags/%E6%8A%80%E6%9C%AF%E5%8D%9A%E5%AE%A2/</loc>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
-    <loc>https://guxingxianyue.github.io/tags/%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <loc>https://guxingxianyue.github.io/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/</loc>
+    <lastmod>2026-08-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://guxingxianyue.github.io/tags/Redis/</loc>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/Spec-Coding/</loc>
-    <lastmod>2026-08-13</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://guxingxianyue.github.io/tags/%E7%BA%BF%E7%A8%8B%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/Spring-Cloud/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://guxingxianyue.github.io/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/</loc>
+    <lastmod>2026-08-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://guxingxianyue.github.io/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/</loc>
+    <lastmod>2026-08-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://guxingxianyue.github.io/tags/%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6/</loc>
+    <lastmod>2026-08-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://guxingxianyue.github.io/tags/IoC/</loc>
+    <lastmod>2026-08-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://guxingxianyue.github.io/tags/DI/</loc>
+    <lastmod>2026-08-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://guxingxianyue.github.io/tags/%E7%BA%BF%E7%A8%8B%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/</loc>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/Skill/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/%E6%8E%92%E5%BA%8F%E7%AE%97%E6%B3%95/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/GC%E6%97%A5%E5%BF%97/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/G1/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/%E5%BF%AB%E9%80%9F%E6%8E%92%E5%BA%8F/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://guxingxianyue.github.io/tags/%E9%80%92%E5%BD%92/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <lastmod>2026-08-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>

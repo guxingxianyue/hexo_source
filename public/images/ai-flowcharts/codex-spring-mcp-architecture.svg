@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700" role="img" aria-labelledby="title desc">
+  <title id="title">Codex 调用 Spring MCP 服务架构</title>
+  <desc id="desc">展示 Codex 通过 Streamable HTTP 调用 Spring MCP 工具，再复用应用服务访问数据库、缓存和内部服务的架构。</desc>
+  <rect width="1200" height="700" fill="#f8fafc"/>
+  <text x="600" y="52" text-anchor="middle" font-family="Arial, 'Microsoft YaHei', sans-serif" font-size="28" font-weight="700" fill="#111827">Codex 调用 Spring MCP 服务</text>
+  <text x="600" y="82" text-anchor="middle" font-family="Arial, 'Microsoft YaHei', sans-serif" font-size="15" fill="#475569">MCP 层只做协议适配，业务规则仍由 Spring Application Service 负责</text>
+
+  <g font-family="Arial, 'Microsoft YaHei', sans-serif" fill="#111827">
+    <rect x="55" y="160" width="190" height="150" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
+    <text x="150" y="202" text-anchor="middle" font-size="21" font-weight="700">Codex</text>
+    <text x="150" y="236" text-anchor="middle" font-size="15">理解开发任务</text>
+    <text x="150" y="263" text-anchor="middle" font-size="15">选择工具并填写参数</text>
+    <text x="150" y="290" text-anchor="middle" font-size="15">展示结果并请求确认</text>
+
+    <rect x="330" y="135" width="260" height="200" rx="8" fill="#ffffff" stroke="#0891b2" stroke-width="2"/>
+    <text x="460" y="175" text-anchor="middle" font-size="20" font-weight="700">Spring MCP Adapter</text>
+    <text x="460" y="207" text-anchor="middle" font-size="14" fill="#475569">Streamable HTTP /mcp</text>
+    <rect x="365" y="230" width="190" height="38" rx="6" fill="#ecfeff" stroke="#06b6d4"/>
+    <text x="460" y="255" text-anchor="middle" font-size="14">query_inventory_snapshot</text>
+    <rect x="365" y="282" width="190" height="38" rx="6" fill="#fff7ed" stroke="#f97316"/>
+    <text x="460" y="307" text-anchor="middle" font-size="14">create_replenishment_draft</text>
+
+    <rect x="675" y="160" width="210" height="150" rx="8" fill="#ffffff" stroke="#059669" stroke-width="2"/>
+    <text x="780" y="202" text-anchor="middle" font-size="20" font-weight="700">Application Service</text>
+    <text x="780" y="236" text-anchor="middle" font-size="15">业务规则与权限</text>
+    <text x="780" y="263" text-anchor="middle" font-size="15">事务与幂等</text>
+    <text x="780" y="290" text-anchor="middle" font-size="15">返回字段裁剪</text>
+
+    <rect x="975" y="115" width="170" height="82" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="2"/>
+    <text x="1060" y="149" text-anchor="middle" font-size="17" font-weight="700">数据库 / 缓存</text>
+    <text x="1060" y="176" text-anchor="middle" font-size="14">库存与单据数据</text>
+    <rect x="975" y="235" width="170" height="82" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="2"/>
+    <text x="1060" y="269" text-anchor="middle" font-size="17" font-weight="700">内部服务</text>
+    <text x="1060" y="296" text-anchor="middle" font-size="14">采购 / 仓储 / 主数据</text>
+
+    <rect x="220" y="445" width="760" height="145" rx="8" fill="#ffffff" stroke="#7c3aed" stroke-width="2"/>
+    <text x="600" y="482" text-anchor="middle" font-size="19" font-weight="700">安全与治理贯穿整条调用链</text>
+    <text x="305" y="525" text-anchor="middle" font-size="15">工具白名单</text>
+    <text x="455" y="525" text-anchor="middle" font-size="15">人工确认写操作</text>
+    <text x="615" y="525" text-anchor="middle" font-size="15">身份与数据权限</text>
+    <text x="765" y="525" text-anchor="middle" font-size="15">限流与超时</text>
+    <text x="900" y="525" text-anchor="middle" font-size="15">审计与追踪</text>
+    <text x="600" y="563" text-anchor="middle" font-size="14" fill="#475569">模型提示只帮助选择工具，最终授权和校验必须由服务端完成</text>
+  </g>
+
+  <g stroke="#64748b" stroke-width="2.5" fill="none" marker-end="url(#arrow)">
+    <path d="M245 235H330"/>
+    <path d="M590 235H675"/>
+    <path d="M885 215C925 200 940 160 975 156"/>
+    <path d="M885 255C925 260 940 275 975 276"/>
+    <path d="M780 310C770 375 700 400 650 445"/>
+    <path d="M460 335C470 390 515 410 550 445"/>
+  </g>
+  <g font-family="Arial, 'Microsoft YaHei', sans-serif" font-size="13" fill="#475569">
+    <text x="286" y="220" text-anchor="middle">MCP</text>
+    <text x="633" y="220" text-anchor="middle">Java 调用</text>
+  </g>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#64748b"/>
+    </marker>
+  </defs>
+</svg>

@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Java Spring项目升级实战：给Codex提供MCP服务 | 陈金星写字的地方</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="为什么要把 Spring 项目升级成 MCP 服务最近在使用 Codex 维护 Java 项目时，我发现一个很明显的限制：Codex 可以读取当前代码仓库，但它并不知道测试环境里的实时库存、采购订单状态、供应商履约数据，也不能直接复用公司系统已经实现的查询和操作能力。 最简单的处理方式，是人工把数据复制到对话里。但数据很快会过期，复制过程还容易遗漏字段。另一种方式，是临时给 Codex 数据库账号">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java Spring项目升级实战：给Codex提供MCP服务">
+<meta property="og:url" content="https://guxingxianyue.github.io/2026/08/19/Java-Spring%E9%A1%B9%E7%9B%AE%E5%8D%87%E7%BA%A7%E5%AE%9E%E6%88%98%E7%BB%99Codex%E6%8F%90%E4%BE%9BMCP%E6%9C%8D%E5%8A%A1/index.html">
+<meta property="og:site_name" content="陈金星写字的地方">
+<meta property="og:description" content="为什么要把 Spring 项目升级成 MCP 服务最近在使用 Codex 维护 Java 项目时，我发现一个很明显的限制：Codex 可以读取当前代码仓库，但它并不知道测试环境里的实时库存、采购订单状态、供应商履约数据，也不能直接复用公司系统已经实现的查询和操作能力。 最简单的处理方式，是人工把数据复制到对话里。但数据很快会过期，复制过程还容易遗漏字段。另一种方式，是临时给 Codex 数据库账号">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://guxingxianyue.github.io/images/ai-flowcharts/codex-spring-mcp-architecture.svg">
+<meta property="og:image" content="https://guxingxianyue.github.io/images/ai-flowcharts/spring-mcp-upgrade-and-validation.svg">
+<meta property="article:published_time" content="2026-08-19T02:00:00.000Z">
+<meta property="article:modified_time" content="2026-08-20T03:15:49.861Z">
+<meta property="article:author" content="Jinxing Chen">
+<meta property="article:tag" content="Codex">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="MCP">
+<meta property="article:tag" content="Spring AI">
+<meta property="article:tag" content="Spring Boot">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://guxingxianyue.github.io/images/ai-flowcharts/codex-spring-mcp-architecture.svg">
+  
+    <link rel="alternative" href="/atom.xml" title="陈金星写字的地方" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+
+<meta name="generator" content="Hexo 8.1.2"></head>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">陈金星写字的地方</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">首页</a>
+        
+          <a class="main-nav-link" href="/archives">存档</a>
+        
+          <a class="main-nav-link" href="/about">关于</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="https://guxingxianyue.github.io"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-Java-Spring项目升级实战给Codex提供MCP服务" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2026/08/19/Java-Spring%E9%A1%B9%E7%9B%AE%E5%8D%87%E7%BA%A7%E5%AE%9E%E6%88%98%E7%BB%99Codex%E6%8F%90%E4%BE%9BMCP%E6%9C%8D%E5%8A%A1/" class="article-date">
+  <time datetime="2026-08-19T02:00:00.000Z" itemprop="datePublished">2026-08-19</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Java Spring项目升级实战：给Codex提供MCP服务
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="为什么要把-Spring-项目升级成-MCP-服务"><a href="#为什么要把-Spring-项目升级成-MCP-服务" class="headerlink" title="为什么要把 Spring 项目升级成 MCP 服务"></a>为什么要把 Spring 项目升级成 MCP 服务</h2><p>最近在使用 Codex 维护 Java 项目时，我发现一个很明显的限制：Codex 可以读取当前代码仓库，但它并不知道测试环境里的实时库存、采购订单状态、供应商履约数据，也不能直接复用公司系统已经实现的查询和操作能力。</p>
+<p>最简单的处理方式，是人工把数据复制到对话里。但数据很快会过期，复制过程还容易遗漏字段。另一种方式，是临时给 Codex 数据库账号或让它调用内部 REST API，这会把表结构、鉴权、接口拼装和业务规则都暴露给客户端，风险也很难控制。</p>
+<p>MCP（Model Context Protocol）提供了一个更合适的边界：Spring 项目继续负责业务规则、事务、权限和数据访问，只把少量经过设计的能力暴露成 MCP tools；Codex 负责理解任务、选择工具、填写参数，并把结果用于代码分析、故障排查或业务验证。</p>
+<p>本文用供应链系统做示例，把一个已有的 Spring Boot 项目升级为 Codex 可以调用的 MCP 服务。最终提供两个工具：</p>
+<ul>
+<li><code>query_inventory_snapshot</code>：查询某个仓库中 SKU 的库存快照，只读。</li>
+<li><code>create_replenishment_draft</code>：创建补货草稿，不自动审批、不自动下单。</li>
+</ul>
+<p><img src="/images/ai-flowcharts/codex-spring-mcp-architecture.svg" alt="Codex调用Spring MCP服务架构"></p>
+<p>这次升级最重要的原则是：MCP 层只是适配器，不重新实现业务。Controller、定时任务和 MCP tool 都应该调用同一套 Application Service，库存口径、权限规则和事务边界仍然只有一份。</p>
+<h2 id="先选传输方式：为什么使用-Streamable-HTTP"><a href="#先选传输方式：为什么使用-Streamable-HTTP" class="headerlink" title="先选传输方式：为什么使用 Streamable HTTP"></a>先选传输方式：为什么使用 Streamable HTTP</h2><p>Codex 当前可以连接两类 MCP 服务：</p>
+<ul>
+<li>STDIO：Codex 通过命令启动本地进程，并使用标准输入输出通信，适合只在开发机运行的工具。</li>
+<li>Streamable HTTP：MCP 服务作为独立应用运行，Codex 通过 URL 连接，适合已有 Spring Web 项目、团队共享服务和远程部署。</li>
+</ul>
+<p>本文升级的是已经运行在服务器上的 Spring Boot 项目，因此选择 Streamable HTTP。它不会要求 Codex 启动 Java 进程，也便于复用 Spring Security、Actuator、日志、限流和现有发布体系。</p>
+<p>不要再把旧的 HTTP+SSE 教程当成默认方案。Spring AI 当前文档把 Streamable HTTP 作为新的 HTTP 传输方式，Spring MVC 和 WebFlux 都有对应 starter。普通 Servlet 项目使用 WebMVC；项目本身已经是响应式链路时再选择 WebFlux。</p>
+<h2 id="第一步：确认版本兼容关系"><a href="#第一步：确认版本兼容关系" class="headerlink" title="第一步：确认版本兼容关系"></a>第一步：确认版本兼容关系</h2><p>示例采用下面的基线：</p>
+<table>
+<thead>
+<tr>
+<th>组件</th>
+<th>示例版本</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Java</td>
+<td>21</td>
+<td>适合作为当前项目基线，示例会使用 record</td>
+</tr>
+<tr>
+<td>Spring Boot</td>
+<td>4.x</td>
+<td>Spring AI 2.0.x 支持 Spring Boot 4.0.x 和 4.1.x</td>
+</tr>
+<tr>
+<td>Spring AI</td>
+<td>2.0.0</td>
+<td>使用当前正式版 BOM 管理依赖</td>
+</tr>
+<tr>
+<td>传输方式</td>
+<td>Streamable HTTP</td>
+<td>Codex 通过 <code>/mcp</code> URL 连接</td>
+</tr>
+</tbody></table>
+<p>如果现有项目还是 Spring Boot 3.x，不要为了增加一个 MCP tool 就直接把整个项目升级到 Boot 4。更稳的做法是先查看对应 Spring AI 1.1.x 文档，选择与现有 Boot 版本兼容的发布线；如果项目本来就计划升级 Boot 4，再把 Jakarta、Jackson 3、Spring Framework 7 等迁移内容作为独立任务完成。</p>
+<p>可以先运行下面的命令确认项目当前版本：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">java -version</span><br><span class="line">./mvnw <span class="built_in">help</span>:evaluate -Dexpression=project.parent.version -q -DforceStdout</span><br><span class="line">./mvnw dependency:tree -Dincludes=org.springframework.ai</span><br></pre></td></tr></table></figure>
+
+<p>版本没有对齐时，常见结果不是启动失败，而是运行到工具扫描或 JSON 序列化时才出现 <code>ClassNotFoundException</code>、<code>NoSuchMethodError</code>。因此先确定版本矩阵，再写业务代码。</p>
+<h2 id="第二步：增加-Spring-AI-MCP-依赖"><a href="#第二步：增加-Spring-AI-MCP-依赖" class="headerlink" title="第二步：增加 Spring AI MCP 依赖"></a>第二步：增加 Spring AI MCP 依赖</h2><p>项目已经使用 Spring Boot parent 的情况下，可以在 <code>pom.xml</code> 中导入 Spring AI BOM，再添加 WebMVC MCP Server starter：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependencyManagement</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.ai<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-ai-bom<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.0.0<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">type</span>&gt;</span>pom<span class="tag">&lt;/<span class="name">type</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">scope</span>&gt;</span>import<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependencyManagement</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.ai<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-ai-starter-mcp-server-webmvc<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>BOM 的作用是统一 Spring AI 内部模块和 MCP Java SDK 的版本，不要给每个 Spring AI 依赖单独写版本号。依赖增加后先做一次构建：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./mvnw clean <span class="built_in">test</span></span><br></pre></td></tr></table></figure>
+
+<p>如果项目以前使用过早期 MCP 依赖，还要检查两个变化：</p>
+<ul>
+<li>旧的 MCP starter 命名已经调整为 <code>spring-ai-starter-mcp-*</code> 风格。</li>
+<li>Spring AI 2.0 的注解包是 <code>org.springframework.ai.mcp.annotation.*</code>，不要继续引用旧的 <code>org.springaicommunity.mcp.annotation.*</code>。</li>
+</ul>
+<h2 id="第三步：配置-MCP-Server"><a href="#第三步：配置-MCP-Server" class="headerlink" title="第三步：配置 MCP Server"></a>第三步：配置 MCP Server</h2><p>在 <code>application.yml</code> 中增加 MCP Server 配置：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">server:</span></span><br><span class="line">  <span class="attr">port:</span> <span class="number">8088</span></span><br><span class="line"></span><br><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">ai:</span></span><br><span class="line">    <span class="attr">mcp:</span></span><br><span class="line">      <span class="attr">server:</span></span><br><span class="line">        <span class="attr">name:</span> <span class="string">supply-chain-mcp</span></span><br><span class="line">        <span class="attr">version:</span> <span class="number">1.0</span><span class="number">.0</span></span><br><span class="line">        <span class="attr">type:</span> <span class="string">SYNC</span></span><br><span class="line">        <span class="attr">protocol:</span> <span class="string">STREAMABLE</span></span><br><span class="line">        <span class="attr">instructions:</span> <span class="string">&gt;</span></span><br><span class="line"><span class="string">          本服务提供供应链库存查询和补货草稿能力。优先调用只读查询工具；</span></span><br><span class="line"><span class="string">          创建草稿前必须向用户展示 SKU、仓库、数量和原因；不得把草稿描述为已审批或已下单。</span></span><br><span class="line"><span class="string"></span>        <span class="attr">capabilities:</span></span><br><span class="line">          <span class="attr">tool:</span> <span class="literal">true</span></span><br><span class="line">          <span class="attr">resource:</span> <span class="literal">false</span></span><br><span class="line">          <span class="attr">prompt:</span> <span class="literal">false</span></span><br><span class="line">          <span class="attr">completion:</span> <span class="literal">false</span></span><br><span class="line">        <span class="attr">streamable-http:</span></span><br><span class="line">          <span class="attr">mcp-endpoint:</span> <span class="string">/mcp</span></span><br><span class="line">          <span class="attr">keep-alive-interval:</span> <span class="string">30s</span></span><br></pre></td></tr></table></figure>
+
+<p>这里有几个值得注意的配置：</p>
+<p>第一，<code>protocol</code> 必须是 <code>STREAMABLE</code>，Codex 配置中的 URL 则需要写到完整的 <code>/mcp</code> 路径。</p>
+<p>第二，示例只暴露 tools，所以关闭了暂时不用的 resource、prompt 和 completion。能力越少，服务行为越容易理解，攻击面也越小。</p>
+<p>第三，<code>instructions</code> 是服务级说明。Codex 初始化 MCP 连接后可以读取它，用来理解跨工具都适用的规则。最重要的约束应该放在开头，并让前 512 个字符可以独立表达意思。它是给模型的使用指南，不是权限系统，真正的权限和业务校验仍然必须写在服务端。</p>
+<h2 id="第四步：把现有业务能力包装成-MCP-Tool"><a href="#第四步：把现有业务能力包装成-MCP-Tool" class="headerlink" title="第四步：把现有业务能力包装成 MCP Tool"></a>第四步：把现有业务能力包装成 MCP Tool</h2><p>假设原项目已经有 <code>InventoryQueryService</code>，负责按统一口径查询可用量、锁定量和在途量。MCP 层只做参数校验、调用 Service 和结果裁剪。</p>
+<p>先定义一个稳定的返回对象：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.supplychain.mcp;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.math.BigDecimal;</span><br><span class="line"><span class="keyword">import</span> java.time.Instant;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">record</span> <span class="title class_">InventorySnapshot</span><span class="params">(</span></span><br><span class="line"><span class="params">        String skuCode,</span></span><br><span class="line"><span class="params">        Long warehouseId,</span></span><br><span class="line"><span class="params">        BigDecimal onHandQuantity,</span></span><br><span class="line"><span class="params">        BigDecimal lockedQuantity,</span></span><br><span class="line"><span class="params">        BigDecimal availableQuantity,</span></span><br><span class="line"><span class="params">        BigDecimal inTransitQuantity,</span></span><br><span class="line"><span class="params">        Instant refreshedAt)</span> &#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>再新增 MCP 工具适配器：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.supplychain.mcp;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.example.supplychain.inventory.InventoryQueryService;</span><br><span class="line"><span class="keyword">import</span> com.example.supplychain.replenishment.ReplenishmentApplicationService;</span><br><span class="line"><span class="keyword">import</span> org.springframework.ai.mcp.annotation.McpTool;</span><br><span class="line"><span class="keyword">import</span> org.springframework.ai.mcp.annotation.McpToolParam;</span><br><span class="line"><span class="keyword">import</span> org.springframework.stereotype.Component;</span><br><span class="line"><span class="keyword">import</span> org.springframework.util.StringUtils;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SupplyChainMcpTools</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> InventoryQueryService inventoryQueryService;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> ReplenishmentApplicationService replenishmentApplicationService;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">SupplyChainMcpTools</span><span class="params">(</span></span><br><span class="line"><span class="params">            InventoryQueryService inventoryQueryService,</span></span><br><span class="line"><span class="params">            ReplenishmentApplicationService replenishmentApplicationService)</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.inventoryQueryService = inventoryQueryService;</span><br><span class="line">        <span class="built_in">this</span>.replenishmentApplicationService = replenishmentApplicationService;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@McpTool(</span></span><br><span class="line"><span class="meta">            name = &quot;query_inventory_snapshot&quot;,</span></span><br><span class="line"><span class="meta">            description = &quot;查询指定SKU在指定仓库的实时库存快照，返回现存、锁定、可用和在途数量。只读，不修改库存。&quot;,</span></span><br><span class="line"><span class="meta">            generateOutputSchema = true,</span></span><br><span class="line"><span class="meta">            annotations = @McpTool.McpAnnotations(</span></span><br><span class="line"><span class="meta">                    readOnlyHint = true,</span></span><br><span class="line"><span class="meta">                    destructiveHint = false,</span></span><br><span class="line"><span class="meta">                    idempotentHint = true,</span></span><br><span class="line"><span class="meta">                    openWorldHint = false))</span></span><br><span class="line">    <span class="keyword">public</span> InventorySnapshot <span class="title function_">queryInventorySnapshot</span><span class="params">(</span></span><br><span class="line"><span class="params">            <span class="meta">@McpToolParam(description = &quot;SKU编码，例如 SKU-10086&quot;, required = true)</span></span></span><br><span class="line"><span class="params">            String skuCode,</span></span><br><span class="line"><span class="params">            <span class="meta">@McpToolParam(description = &quot;仓库ID，例如 3101&quot;, required = true)</span></span></span><br><span class="line"><span class="params">            Long warehouseId)</span> &#123;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (!StringUtils.hasText(skuCode)) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalArgumentException</span>(<span class="string">&quot;skuCode不能为空&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (warehouseId == <span class="literal">null</span> || warehouseId &lt;= <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalArgumentException</span>(<span class="string">&quot;warehouseId必须是正整数&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="type">var</span> <span class="variable">snapshot</span> <span class="operator">=</span> inventoryQueryService.querySnapshot(</span><br><span class="line">                skuCode.trim().toUpperCase(), warehouseId);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">InventorySnapshot</span>(</span><br><span class="line">                snapshot.skuCode(),</span><br><span class="line">                snapshot.warehouseId(),</span><br><span class="line">                snapshot.onHandQuantity(),</span><br><span class="line">                snapshot.lockedQuantity(),</span><br><span class="line">                snapshot.availableQuantity(),</span><br><span class="line">                snapshot.inTransitQuantity(),</span><br><span class="line">                snapshot.refreshedAt());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Spring AI 会扫描 <code>@McpTool</code>，根据方法参数生成输入 JSON Schema，并把方法注册为 MCP tool。<code>@McpToolParam</code> 的描述会直接影响 Codex 如何填写参数，所以不要只写“ID”或“编码”，要说明业务含义、格式和示例。</p>
+<p><code>readOnlyHint</code>、<code>destructiveHint</code>、<code>idempotentHint</code> 等注解是客户端提示，有助于 Codex 判断工具风险，但服务端不能依赖这些提示保障安全。无论模型怎么调用，方法内部都要执行参数校验，Application Service 仍要执行数据权限和业务校验。</p>
+<h3 id="为什么不直接把-Repository-暴露成工具"><a href="#为什么不直接把-Repository-暴露成工具" class="headerlink" title="为什么不直接把 Repository 暴露成工具"></a>为什么不直接把 Repository 暴露成工具</h3><p>下面这类工具看起来很灵活，实际上应该禁止：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">execute_sql(sql)</span><br><span class="line">call_any_url(url, body)</span><br><span class="line">update_order(tableName, where, values)</span><br></pre></td></tr></table></figure>
+
+<p>它们把业务边界交给了模型，还会带来 SQL 注入、越权查询、任意网络访问和不可审计修改等问题。MCP tool 应该使用业务语言，例如“查询库存快照”“创建补货草稿”，并让每个工具只有一个明确职责。</p>
+<h2 id="第五步：增加一个受控的写工具"><a href="#第五步：增加一个受控的写工具" class="headerlink" title="第五步：增加一个受控的写工具"></a>第五步：增加一个受控的写工具</h2><p>真实项目最终可能需要写操作，但不应该一上来就让 Codex 直接提交采购单。可以先提供“创建草稿”这样的可回退操作，把审批和正式下单留在人类流程中。</p>
+<p>先定义一个只返回草稿编号、状态和幂等命中情况的结果对象：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">record</span> <span class="title class_">ReplenishmentDraftResult</span><span class="params">(</span></span><br><span class="line"><span class="params">        String draftNo,</span></span><br><span class="line"><span class="params">        String status,</span></span><br><span class="line"><span class="params">        <span class="type">boolean</span> reused)</span> &#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在前面的 <code>SupplyChainMcpTools</code> 中注入 <code>ReplenishmentApplicationService</code>，再增加写工具：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@McpTool(</span></span><br><span class="line"><span class="meta">        name = &quot;create_replenishment_draft&quot;,</span></span><br><span class="line"><span class="meta">        description = &quot;创建补货建议草稿。仅保存草稿，不审批、不生成采购订单。相同idempotencyKey重复调用不会重复创建。&quot;,</span></span><br><span class="line"><span class="meta">        generateOutputSchema = true,</span></span><br><span class="line"><span class="meta">        annotations = @McpTool.McpAnnotations(</span></span><br><span class="line"><span class="meta">                readOnlyHint = false,</span></span><br><span class="line"><span class="meta">                destructiveHint = false,</span></span><br><span class="line"><span class="meta">                idempotentHint = true,</span></span><br><span class="line"><span class="meta">                openWorldHint = false))</span></span><br><span class="line"><span class="keyword">public</span> ReplenishmentDraftResult <span class="title function_">createReplenishmentDraft</span><span class="params">(</span></span><br><span class="line"><span class="params">        <span class="meta">@McpToolParam(description = &quot;SKU编码&quot;, required = true)</span></span></span><br><span class="line"><span class="params">        String skuCode,</span></span><br><span class="line"><span class="params">        <span class="meta">@McpToolParam(description = &quot;目标仓库ID&quot;, required = true)</span></span></span><br><span class="line"><span class="params">        Long warehouseId,</span></span><br><span class="line"><span class="params">        <span class="meta">@McpToolParam(description = &quot;建议补货数量，必须大于0&quot;, required = true)</span></span></span><br><span class="line"><span class="params">        Integer quantity,</span></span><br><span class="line"><span class="params">        <span class="meta">@McpToolParam(description = &quot;本次操作的幂等键，建议使用UUID&quot;, required = true)</span></span></span><br><span class="line"><span class="params">        String idempotencyKey)</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (quantity == <span class="literal">null</span> || quantity &lt;= <span class="number">0</span> || quantity &gt; <span class="number">100_000</span>) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalArgumentException</span>(<span class="string">&quot;quantity必须在1到100000之间&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> replenishmentApplicationService.createDraft(</span><br><span class="line">            skuCode, warehouseId, quantity, idempotencyKey);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个写工具需要同时满足几条工程约束：</p>
+<ul>
+<li>幂等键必须由服务端落库并建立唯一约束，不能只在内存里判断。</li>
+<li>创建人应来自认证身份或服务账号，不能信任模型传入的 <code>operatorId</code>。</li>
+<li>草稿、审批、提交采购单要拆成不同工具，权限分别控制。</li>
+<li>每次调用记录 tool 名、参数摘要、调用身份、结果、耗时和 trace ID。</li>
+<li>返回结果要包含草稿编号和状态，但不要返回供应商银行卡、完整成本明细等无关敏感字段。</li>
+</ul>
+<h2 id="第六步：启动服务并让-Codex-连接"><a href="#第六步：启动服务并让-Codex-连接" class="headerlink" title="第六步：启动服务并让 Codex 连接"></a>第六步：启动服务并让 Codex 连接</h2><p>先在本地启动 Spring Boot 应用：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./mvnw spring-boot:run</span><br></pre></td></tr></table></figure>
+
+<p>然后在另一个终端把服务加入 Codex：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">codex mcp add supply-chain-local --url http://127.0.0.1:8088/mcp</span><br><span class="line">codex mcp list</span><br></pre></td></tr></table></figure>
+
+<p>也可以直接编辑全局的 <code>~/.codex/config.toml</code>，或者在受信任项目中使用 <code>.codex/config.toml</code>：</p>
+<figure class="highlight toml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[mcp_servers.supply_chain_local]</span></span><br><span class="line"><span class="attr">url</span> = <span class="string">&quot;http://127.0.0.1:8088/mcp&quot;</span></span><br><span class="line"><span class="attr">enabled</span> = <span class="literal">true</span></span><br><span class="line"><span class="attr">enabled_tools</span> = [</span><br><span class="line">  <span class="string">&quot;query_inventory_snapshot&quot;</span>,</span><br><span class="line">  <span class="string">&quot;create_replenishment_draft&quot;</span></span><br><span class="line">]</span><br><span class="line"><span class="attr">default_tools_approval_mode</span> = <span class="string">&quot;writes&quot;</span></span><br><span class="line"><span class="attr">startup_timeout_sec</span> = <span class="number">10</span></span><br><span class="line"><span class="attr">tool_timeout_sec</span> = <span class="number">30</span></span><br></pre></td></tr></table></figure>
+
+<p><code>default_tools_approval_mode = &quot;writes&quot;</code> 的含义是：只读工具可以顺畅使用，可能写数据的工具需要经过确认。还可以用 <code>enabled_tools</code> 做工具白名单，避免服务以后新增工具时自动扩大 Codex 的权限。</p>
+<p>配置完成后重新启动 Codex 客户端。在 Codex CLI 中输入 <code>/mcp</code>，可以查看当前已连接的 MCP Server 和工具列表。ChatGPT 桌面端和 Codex IDE 扩展也可以在 MCP servers 设置中添加相同的 Streamable HTTP URL。</p>
+<h2 id="第七步：在-Codex-中验证真实调用"><a href="#第七步：在-Codex-中验证真实调用" class="headerlink" title="第七步：在 Codex 中验证真实调用"></a>第七步：在 Codex 中验证真实调用</h2><p>第一轮先只测试读工具，提示词可以这样写：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">请使用 supply-chain-local MCP 查询 SKU-10086 在仓库 3101 的库存快照。</span><br><span class="line">列出现存、锁定、可用和在途数量，并说明数据刷新时间。</span><br><span class="line">本次只允许查询，不要创建补货草稿。</span><br></pre></td></tr></table></figure>
+
+<p>确认 Codex 调用了 <code>query_inventory_snapshot</code>，再测试一段完整业务流程：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">请先查询 SKU-10086 在仓库 3101 的库存。</span><br><span class="line">如果可用量低于 100，计算补到 500 所需的数量并解释计算过程。</span><br><span class="line">先把建议展示给我，等我明确确认后，才能调用 create_replenishment_draft。</span><br><span class="line">不要审批草稿，也不要创建采购订单。</span><br></pre></td></tr></table></figure>
+
+<p>这段提示词故意把“查询、分析、确认、写入”拆开。合理的执行顺序应该是：</p>
+<ol>
+<li>Codex 调用只读工具获得实时库存。</li>
+<li>Codex 根据数据计算建议补货量。</li>
+<li>用户检查 SKU、仓库、数量和原因。</li>
+<li>用户确认后，Codex 才调用写工具。</li>
+<li>Spring 服务校验权限和幂等键，创建草稿并写审计日志。</li>
+</ol>
+<p><img src="/images/ai-flowcharts/spring-mcp-upgrade-and-validation.svg" alt="Spring项目升级为MCP服务的实施流程"></p>
+<h2 id="第八步：生产环境认证与权限控制"><a href="#第八步：生产环境认证与权限控制" class="headerlink" title="第八步：生产环境认证与权限控制"></a>第八步：生产环境认证与权限控制</h2><p>本地开发可以绑定 <code>127.0.0.1</code> 并暂时不启用认证，但远程 MCP 服务绝不能裸奔在公网或办公网中。</p>
+<p>Codex 的 Streamable HTTP MCP 配置支持从环境变量读取 Bearer Token：</p>
+<figure class="highlight toml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[mcp_servers.supply_chain_prod]</span></span><br><span class="line"><span class="attr">url</span> = <span class="string">&quot;https://mcp.example.internal/mcp&quot;</span></span><br><span class="line"><span class="attr">bearer_token_env_var</span> = <span class="string">&quot;SUPPLY_CHAIN_MCP_TOKEN&quot;</span></span><br><span class="line"><span class="attr">enabled_tools</span> = [<span class="string">&quot;query_inventory_snapshot&quot;</span>]</span><br><span class="line"><span class="attr">default_tools_approval_mode</span> = <span class="string">&quot;writes&quot;</span></span><br><span class="line"><span class="attr">tool_timeout_sec</span> = <span class="number">30</span></span><br></pre></td></tr></table></figure>
+
+<p>Token 应由系统凭据库、CI&#x2F;CD Secret 或企业身份系统注入，不要写进 Git 仓库、<code>AGENTS.md</code>、提示词或博客示例配置。需要用户级权限时，应采用 OAuth；机器到机器的固定任务可以使用独立服务身份，但必须限制作用域和有效期。</p>
+<p>生产环境至少要建立下面几层保护：</p>
+<ul>
+<li>网络层：优先部署在内网、VPN 或零信任访问边界后，只开放 HTTPS。</li>
+<li>身份层：验证 Bearer Token 或 OAuth 身份，不把模型提供的用户名当成真实身份。</li>
+<li>授权层：按工具和业务对象授权，例如只能查看所属组织的仓库。</li>
+<li>业务层：继续执行库存状态、单据状态、数量上限和审批规则。</li>
+<li>审计层：保留谁在什么时间调用了哪个工具、影响了什么业务对象。</li>
+<li>客户端层：Codex 配置工具白名单，并让写工具进入人工确认。</li>
+</ul>
+<h2 id="第九步：测试不能只看“工具能被发现”"><a href="#第九步：测试不能只看“工具能被发现”" class="headerlink" title="第九步：测试不能只看“工具能被发现”"></a>第九步：测试不能只看“工具能被发现”</h2><p>一个 MCP Server 能在 <code>/mcp</code> 中列出工具，只说明协议接通了，不代表它可以安全上线。测试应该分四层。</p>
+<h3 id="1-普通单元测试"><a href="#1-普通单元测试" class="headerlink" title="1. 普通单元测试"></a>1. 普通单元测试</h3><p>直接测试 MCP 适配器的参数校验和返回字段，保证空 SKU、非法仓库和超大数量会被拒绝。</p>
+<h3 id="2-业务服务测试"><a href="#2-业务服务测试" class="headerlink" title="2. 业务服务测试"></a>2. 业务服务测试</h3><p>继续测试原来的库存口径、数据权限、事务和幂等性。特别要验证相同 <code>idempotencyKey</code> 调用两次，只产生一条补货草稿。</p>
+<h3 id="3-MCP-集成测试"><a href="#3-MCP-集成测试" class="headerlink" title="3. MCP 集成测试"></a>3. MCP 集成测试</h3><p>启动完整 Spring 上下文，通过 MCP client 完成 <code>initialize</code>、<code>tools/list</code> 和 <code>tools/call</code>。不要把 <code>/mcp</code> 当普通 REST 接口，只用浏览器或一条简单 <code>curl</code> 判断成功，因为 MCP 请求包含协议握手、JSON-RPC 消息和会话信息。</p>
+<h3 id="4-Codex-验收测试"><a href="#4-Codex-验收测试" class="headerlink" title="4. Codex 验收测试"></a>4. Codex 验收测试</h3><p>至少准备一组固定问题，验证 Codex 是否选择了正确工具、参数是否正确、只读任务是否不会误调用写工具，以及服务异常时是否会停止而不是猜测结果。</p>
+<p>推荐把下面这些检查加入发布清单：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">[ ] codex mcp list 能看到服务</span><br><span class="line">[ ] /mcp 能看到预期工具</span><br><span class="line">[ ] 只读工具不会写数据库</span><br><span class="line">[ ] 写工具需要人工确认</span><br><span class="line">[ ] 非法参数返回可理解的错误</span><br><span class="line">[ ] 幂等键重复调用不会重复写入</span><br><span class="line">[ ] 超时、限流和下游异常有明确结果</span><br><span class="line">[ ] 日志包含 traceId，但不记录 Token 和敏感字段</span><br><span class="line">[ ] enabled_tools 只包含本次批准上线的工具</span><br></pre></td></tr></table></figure>
+
+<h2 id="常见问题排查"><a href="#常见问题排查" class="headerlink" title="常见问题排查"></a>常见问题排查</h2><table>
+<thead>
+<tr>
+<th>现象</th>
+<th>优先检查</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Codex 连接时报 404</td>
+<td>Codex URL 是否包含 <code>/mcp</code>，<code>mcp-endpoint</code> 是否被 context-path 或网关改写</td>
+</tr>
+<tr>
+<td>服务启动成功但没有工具</td>
+<td>工具类是否在 Spring 扫描范围，是否使用新的 <code>org.springframework.ai.mcp.annotation</code> 包，annotation scanner 是否启用</td>
+</tr>
+<tr>
+<td>返回 400 或 415</td>
+<td>是否把 MCP 端点当作普通 REST API 调用，客户端协议和 <code>STREAMABLE</code> 配置是否一致</td>
+</tr>
+<tr>
+<td>Codex 仍显示旧的工具描述</td>
+<td>修改 schema 后重启 Spring 服务，并让 Codex 客户端重新连接</td>
+</tr>
+<tr>
+<td>写工具重复产生数据</td>
+<td>幂等键是否真正落库并建立唯一约束，事务边界是否覆盖检查和写入</td>
+</tr>
+<tr>
+<td>调用经常超时</td>
+<td>同时检查 Spring 的 <code>request-timeout</code>、Codex 的 <code>tool_timeout_sec</code> 和下游数据库&#x2F;HTTP 超时</td>
+</tr>
+<tr>
+<td>本地正常，经过网关后断流</td>
+<td>检查反向代理对流式 HTTP、缓冲、空闲超时和长连接的配置</td>
+</tr>
+<tr>
+<td>Boot 3 项目出现类或方法不存在</td>
+<td>Spring Boot、Spring AI、MCP Java SDK 是否跨发布线混用</td>
+</tr>
+</tbody></table>
+<h2 id="工具设计比接通协议更重要"><a href="#工具设计比接通协议更重要" class="headerlink" title="工具设计比接通协议更重要"></a>工具设计比接通协议更重要</h2><p>把 Spring 项目改造成 MCP Server，技术上只需要增加 starter、配置端点、写几个注解方法。但真正决定它能不能长期使用的，是工具边界。</p>
+<p>我会坚持几个原则：默认只读；写操作从草稿开始；一个工具只做一件业务动作；参数使用业务语言；输出字段最小化；服务端永远重新鉴权和校验；每次调用可审计、可追踪、可限流。</p>
+<p>这样设计后，Codex 不需要知道库存表有多少张、订单状态分散在哪些服务里，也不需要持有数据库账号。它只需要知道“什么时候查询库存”和“什么时候创建补货草稿”。Spring 项目则继续守住真正重要的业务边界。</p>
+<p>MCP 的价值不是让 AI 获得无限权限，而是把原来散落在数据库、接口和人工操作里的能力，收敛成一组清楚、最小、可验证的工具。对 Java 项目来说，这种升级方式既能复用成熟的 Spring 工程体系，也能让 Codex 真正参与到实时业务诊断和开发验证中。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a href="https://docs.spring.io/spring-ai/reference/getting-started.html">Spring AI Getting Started</a></li>
+<li><a href="https://docs.spring.io/spring-ai/reference/api/mcp/mcp-streamable-http-server-boot-starter-docs.html">Spring AI Streamable HTTP MCP Server</a></li>
+<li><a href="https://docs.spring.io/spring-ai/reference/api/mcp/mcp-annotations-server.html">Spring AI MCP Server Annotations</a></li>
+<li><a href="https://docs.spring.io/spring-ai/reference/upgrade-notes.html">Spring AI 2.0 Upgrade Notes</a></li>
+<li><a href="https://learn.chatgpt.com/docs/extend/mcp">Codex Model Context Protocol</a></li>
+<li><a href="https://java.sdk.modelcontextprotocol.io/latest/server/">MCP Java SDK Server Guide</a></li>
+</ul>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="https://guxingxianyue.github.io/2026/08/19/Java-Spring%E9%A1%B9%E7%9B%AE%E5%8D%87%E7%BA%A7%E5%AE%9E%E6%88%98%E7%BB%99Codex%E6%8F%90%E4%BE%9BMCP%E6%9C%8D%E5%8A%A1/" data-id="cuidOvWCnX5Zz-bxQ90c4eli6" class="article-share-link">Share</a>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Codex/" rel="tag">Codex</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MCP/" rel="tag">MCP</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Spring-AI/" rel="tag">Spring AI</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Spring-Boot/" rel="tag">Spring Boot</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2026/08/01/Pi%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E7%B2%BE%E9%80%9A%EF%BC%9A%E7%94%A8%E6%9E%81%E7%AE%80Agent%E6%9E%84%E5%BB%BA%E4%BE%9B%E5%BA%94%E9%93%BE%E6%99%BA%E8%83%BD%E5%8A%A9%E6%89%8B/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">Pi从入门到精通：用极简Agent构建供应链智能助手</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/AGENTS-md/" rel="tag">AGENTS.md</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI/" rel="tag">AI</a><span class="tag-list-count">17</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AI-Agent/" rel="tag">AI Agent</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/AQS/" rel="tag">AQS</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Agent/" rel="tag">Agent</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Atomic/" rel="tag">Atomic</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/BlockingQueue/" rel="tag">BlockingQueue</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CAP/" rel="tag">CAP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CAS/" rel="tag">CAS</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CC-Switch/" rel="tag">CC Switch</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Claude-Code/" rel="tag">Claude Code</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CodeGraph/" rel="tag">CodeGraph</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Codex/" rel="tag">Codex</a><span class="tag-list-count">14</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CompletableFuture/" rel="tag">CompletableFuture</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ConcurrentHashMap/" rel="tag">ConcurrentHashMap</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Condition/" rel="tag">Condition</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/CountDownLatch/" rel="tag">CountDownLatch</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/DI/" rel="tag">DI</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ERP/" rel="tag">ERP</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/FullGC/" rel="tag">FullGC</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/G1/" rel="tag">G1</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GC/" rel="tag">GC</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GC%E6%97%A5%E5%BF%97/" rel="tag">GC日志</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/GitHub-Pages/" rel="tag">GitHub Pages</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Hexo/" rel="tag">Hexo</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/InnoDB/" rel="tag">InnoDB</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/IoC/" rel="tag">IoC</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JMM/" rel="tag">JMM</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JVM/" rel="tag">JVM</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JVM%E5%8F%82%E6%95%B0/" rel="tag">JVM参数</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/JVM%E8%B0%83%E4%BC%98/" rel="tag">JVM调优</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Java/" rel="tag">Java</a><span class="tag-list-count">37</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Kafka/" rel="tag">Kafka</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/LongAdder/" rel="tag">LongAdder</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Loop-Engineering/" rel="tag">Loop Engineering</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MCP/" rel="tag">MCP</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MVCC/" rel="tag">MVCC</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Monitor/" rel="tag">Monitor</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MyBatis/" rel="tag">MyBatis</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a><span class="tag-list-count">8</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Next-Key-Lock/" rel="tag">Next-Key Lock</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/OOM/" rel="tag">OOM</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Pi/" rel="tag">Pi</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Ponytail/" rel="tag">Ponytail</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ReadWriteLock/" rel="tag">ReadWriteLock</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Redis/" rel="tag">Redis</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ReentrantLock/" rel="tag">ReentrantLock</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL/" rel="tag">SQL</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/SQL%E4%BC%98%E5%8C%96/" rel="tag">SQL优化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Semaphore/" rel="tag">Semaphore</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Skill/" rel="tag">Skill</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spec-Coding/" rel="tag">Spec Coding</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spring/" rel="tag">Spring</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spring-AI/" rel="tag">Spring AI</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spring-Boot/" rel="tag">Spring Boot</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/Spring-Cloud/" rel="tag">Spring Cloud</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/StampedLock/" rel="tag">StampedLock</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/ThreadPoolExecutor/" rel="tag">ThreadPoolExecutor</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/TypeScript/" rel="tag">TypeScript</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/synchronized/" rel="tag">synchronized</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/volatile/" rel="tag">volatile</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%B9%90%E8%A7%82%E9%94%81/" rel="tag">乐观锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8B%E5%8A%A1/" rel="tag">事务</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/" rel="tag">事务隔离级别</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BB%93%E5%82%A8%E7%B3%BB%E7%BB%9F/" rel="tag">仓储系统</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE/" rel="tag">供应链</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F/" rel="tag">供应链系统</a><span class="tag-list-count">26</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84/" rel="tag">内存结构</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" rel="tag">分布式</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/" rel="tag">分布式系统</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" rel="tag">分布式锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8D%95%E6%8D%AE%E5%AE%A1%E6%A0%B8/" rel="tag">单据审核</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" rel="tag">可见性</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%91%BD%E4%BB%A4%E8%A1%8C/" rel="tag">命令行</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%9B%9E%E6%94%B6%E7%AE%97%E6%B3%95/" rel="tag">回收算法</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A0%86%E5%86%85%E5%AD%98/" rel="tag">堆内存</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" rel="tag">多线程</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%AD%97%E8%8A%82%E7%A0%81/" rel="tag">字节码</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/" rel="tag">工程实践</a><span class="tag-list-count">4</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6/" rel="tag">并发控制</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" rel="tag">并发编程</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%B6%E5%8F%91%E9%98%9F%E5%88%97/" rel="tag">并发队列</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%B9%BB%E8%AF%BB/" rel="tag">幻读</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BA%93%E5%AD%98%E7%B3%BB%E7%BB%9F/" rel="tag">库存系统</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/" rel="tag">微服务</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E5%BF%AB%E9%80%9F%E6%8E%92%E5%BA%8F/" rel="tag">快速排序</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%82%B2%E8%A7%82%E9%94%81/" rel="tag">悲观锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8A%80%E6%9C%AF%E5%8D%9A%E5%AE%A2/" rel="tag">技术博客</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8A%A5%E8%A1%A8%E7%BB%9F%E8%AE%A1/" rel="tag">报表统计</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%8E%92%E5%BA%8F%E7%AE%97%E6%B3%95/" rel="tag">排序算法</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E5%88%86%E6%9E%90/" rel="tag">数据分析</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="tag">数据库</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" rel="tag">数据结构</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/" rel="tag">数据结构与算法</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/" rel="tag">架构设计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%AD%BB%E9%94%81/" rel="tag">死锁</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" rel="tag">消息队列</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%B1%BB%E5%8A%A0%E8%BD%BD/" rel="tag">类加载</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%B3%BB%E7%BB%9F%E4%BC%98%E5%8C%96/" rel="tag">系统优化</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/" rel="tag">系统设计</a><span class="tag-list-count">2</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%B4%A2%E5%BC%95/" rel="tag">索引</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E4%B8%8A%E6%8E%92%E6%9F%A5/" rel="tag">线上排查</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E7%A8%8B%E6%B1%A0/" rel="tag">线程池</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BA%BF%E7%A8%8B%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/" rel="tag">线程生命周期</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BC%93%E5%AD%98/" rel="tag">缓存</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E7%BC%96%E7%A8%8B%E6%95%88%E7%8E%87/" rel="tag">编程效率</a><span class="tag-list-count">6</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%A1%8C%E9%94%81/" rel="tag">行锁</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%A2%E5%8D%95%E5%B1%A5%E7%BA%A6/" rel="tag">订单履约</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%AE%A2%E5%8D%95%E7%B3%BB%E7%BB%9F/" rel="tag">订单系统</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E8%BD%AF%E4%BB%B6%E5%B7%A5%E7%A8%8B/" rel="tag">软件工程</a><span class="tag-list-count">5</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%80%92%E5%BD%92/" rel="tag">递归</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%85%8D%E7%BD%AE%E7%AE%A1%E7%90%86/" rel="tag">配置管理</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%87%87%E8%B4%AD%E7%B3%BB%E7%BB%9F/" rel="tag">采购系统</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%94%81/" rel="tag">锁</a><span class="tag-list-count">3</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%94%81%E7%AD%89%E5%BE%85/" rel="tag">锁等待</a><span class="tag-list-count">1</span></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/%E9%97%B4%E9%9A%99%E9%94%81/" rel="tag">间隙锁</a><span class="tag-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/AGENTS-md/" style="font-size: 10px;">AGENTS.md</a> <a href="/tags/AI/" style="font-size: 18px;">AI</a> <a href="/tags/AI-Agent/" style="font-size: 13px;">AI Agent</a> <a href="/tags/AQS/" style="font-size: 10px;">AQS</a> <a href="/tags/Agent/" style="font-size: 10px;">Agent</a> <a href="/tags/Atomic/" style="font-size: 10px;">Atomic</a> <a href="/tags/BlockingQueue/" style="font-size: 10px;">BlockingQueue</a> <a href="/tags/CAP/" style="font-size: 10px;">CAP</a> <a href="/tags/CAS/" style="font-size: 11px;">CAS</a> <a href="/tags/CC-Switch/" style="font-size: 10px;">CC Switch</a> <a href="/tags/Claude-Code/" style="font-size: 13px;">Claude Code</a> <a href="/tags/CodeGraph/" style="font-size: 11px;">CodeGraph</a> <a href="/tags/Codex/" style="font-size: 17px;">Codex</a> <a href="/tags/CompletableFuture/" style="font-size: 10px;">CompletableFuture</a> <a href="/tags/ConcurrentHashMap/" style="font-size: 10px;">ConcurrentHashMap</a> <a href="/tags/Condition/" style="font-size: 10px;">Condition</a> <a href="/tags/CountDownLatch/" style="font-size: 10px;">CountDownLatch</a> <a href="/tags/DI/" style="font-size: 10px;">DI</a> <a href="/tags/ERP/" style="font-size: 10px;">ERP</a> <a href="/tags/FullGC/" style="font-size: 10px;">FullGC</a> <a href="/tags/G1/" style="font-size: 10px;">G1</a> <a href="/tags/GC/" style="font-size: 11px;">GC</a> <a href="/tags/GC%E6%97%A5%E5%BF%97/" style="font-size: 10px;">GC日志</a> <a href="/tags/GitHub-Pages/" style="font-size: 10px;">GitHub Pages</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/InnoDB/" style="font-size: 13px;">InnoDB</a> <a href="/tags/IoC/" style="font-size: 10px;">IoC</a> <a href="/tags/JMM/" style="font-size: 11px;">JMM</a> <a href="/tags/JVM/" style="font-size: 14px;">JVM</a> <a href="/tags/JVM%E5%8F%82%E6%95%B0/" style="font-size: 10px;">JVM参数</a> <a href="/tags/JVM%E8%B0%83%E4%BC%98/" style="font-size: 10px;">JVM调优</a> <a href="/tags/Java/" style="font-size: 20px;">Java</a> <a href="/tags/Kafka/" style="font-size: 11px;">Kafka</a> <a href="/tags/LongAdder/" style="font-size: 10px;">LongAdder</a> <a href="/tags/Loop-Engineering/" style="font-size: 11px;">Loop Engineering</a> <a href="/tags/MCP/" style="font-size: 11px;">MCP</a> <a href="/tags/MVCC/" style="font-size: 10px;">MVCC</a> <a href="/tags/Monitor/" style="font-size: 10px;">Monitor</a> <a href="/tags/MyBatis/" style="font-size: 11px;">MyBatis</a> <a href="/tags/MySQL/" style="font-size: 16px;">MySQL</a> <a href="/tags/Next-Key-Lock/" style="font-size: 10px;">Next-Key Lock</a> <a href="/tags/OOM/" style="font-size: 10px;">OOM</a> <a href="/tags/Pi/" style="font-size: 10px;">Pi</a> <a href="/tags/Ponytail/" style="font-size: 11px;">Ponytail</a> <a href="/tags/ReadWriteLock/" style="font-size: 10px;">ReadWriteLock</a> <a href="/tags/Redis/" style="font-size: 12px;">Redis</a> <a href="/tags/ReentrantLock/" style="font-size: 10px;">ReentrantLock</a> <a href="/tags/SQL/" style="font-size: 11px;">SQL</a> <a href="/tags/SQL%E4%BC%98%E5%8C%96/" style="font-size: 10px;">SQL优化</a> <a href="/tags/Semaphore/" style="font-size: 10px;">Semaphore</a> <a href="/tags/Skill/" style="font-size: 10px;">Skill</a> <a href="/tags/Spec-Coding/" style="font-size: 12px;">Spec Coding</a> <a href="/tags/Spring/" style="font-size: 11px;">Spring</a> <a href="/tags/Spring-AI/" style="font-size: 10px;">Spring AI</a> <a href="/tags/Spring-Boot/" style="font-size: 10px;">Spring Boot</a> <a href="/tags/Spring-Cloud/" style="font-size: 10px;">Spring Cloud</a> <a href="/tags/StampedLock/" style="font-size: 10px;">StampedLock</a> <a href="/tags/ThreadPoolExecutor/" style="font-size: 10px;">ThreadPoolExecutor</a> <a href="/tags/TypeScript/" style="font-size: 10px;">TypeScript</a> <a href="/tags/synchronized/" style="font-size: 11px;">synchronized</a> <a href="/tags/volatile/" style="font-size: 11px;">volatile</a> <a href="/tags/%E4%B9%90%E8%A7%82%E9%94%81/" style="font-size: 10px;">乐观锁</a> <a href="/tags/%E4%BA%8B%E5%8A%A1/" style="font-size: 12px;">事务</a> <a href="/tags/%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB/" style="font-size: 10px;">事务隔离级别</a> <a href="/tags/%E4%BB%93%E5%82%A8%E7%B3%BB%E7%BB%9F/" style="font-size: 13px;">仓储系统</a> <a href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE/" style="font-size: 13px;">供应链</a> <a href="/tags/%E4%BE%9B%E5%BA%94%E9%93%BE%E7%B3%BB%E7%BB%9F/" style="font-size: 19px;">供应链系统</a> <a href="/tags/%E5%86%85%E5%AD%98%E7%BB%93%E6%9E%84/" style="font-size: 10px;">内存结构</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" style="font-size: 11px;">分布式</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F/" style="font-size: 12px;">分布式系统</a> <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" style="font-size: 10px;">分布式锁</a> <a href="/tags/%E5%8D%95%E6%8D%AE%E5%AE%A1%E6%A0%B8/" style="font-size: 10px;">单据审核</a> <a href="/tags/%E5%8F%AF%E8%A7%81%E6%80%A7/" style="font-size: 10px;">可见性</a> <a href="/tags/%E5%91%BD%E4%BB%A4%E8%A1%8C/" style="font-size: 11px;">命令行</a> <a href="/tags/%E5%9B%9E%E6%94%B6%E7%AE%97%E6%B3%95/" style="font-size: 10px;">回收算法</a> <a href="/tags/%E5%A0%86%E5%86%85%E5%AD%98/" style="font-size: 10px;">堆内存</a> <a href="/tags/%E5%A4%9A%E7%BA%BF%E7%A8%8B/" style="font-size: 12px;">多线程</a> <a href="/tags/%E5%AD%97%E8%8A%82%E7%A0%81/" style="font-size: 10px;">字节码</a> <a href="/tags/%E5%B7%A5%E7%A8%8B%E5%AE%9E%E8%B7%B5/" style="font-size: 13px;">工程实践</a> <a href="/tags/%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6/" style="font-size: 10px;">并发控制</a> <a href="/tags/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" style="font-size: 15px;">并发编程</a> <a href="/tags/%E5%B9%B6%E5%8F%91%E9%98%9F%E5%88%97/" style="font-size: 10px;">并发队列</a> <a href="/tags/%E5%B9%BB%E8%AF%BB/" style="font-size: 10px;">幻读</a> <a href="/tags/%E5%BA%93%E5%AD%98%E7%B3%BB%E7%BB%9F/" style="font-size: 12px;">库存系统</a> <a href="/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/" style="font-size: 10px;">微服务</a> <a href="/tags/%E5%BF%AB%E9%80%9F%E6%8E%92%E5%BA%8F/" style="font-size: 10px;">快速排序</a> <a href="/tags/%E6%82%B2%E8%A7%82%E9%94%81/" style="font-size: 10px;">悲观锁</a> <a href="/tags/%E6%8A%80%E6%9C%AF%E5%8D%9A%E5%AE%A2/" style="font-size: 10px;">技术博客</a> <a href="/tags/%E6%8A%A5%E8%A1%A8%E7%BB%9F%E8%AE%A1/" style="font-size: 10px;">报表统计</a> <a href="/tags/%E6%8E%92%E5%BA%8F%E7%AE%97%E6%B3%95/" style="font-size: 10px;">排序算法</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E5%88%86%E6%9E%90/" style="font-size: 10px;">数据分析</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" style="font-size: 11px;">数据库</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/" style="font-size: 10px;">数据结构</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/" style="font-size: 12px;">数据结构与算法</a> <a href="/tags/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/" style="font-size: 11px;">架构设计</a> <a href="/tags/%E6%AD%BB%E9%94%81/" style="font-size: 11px;">死锁</a> <a href="/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/" style="font-size: 11px;">消息队列</a> <a href="/tags/%E7%B1%BB%E5%8A%A0%E8%BD%BD/" style="font-size: 10px;">类加载</a> <a href="/tags/%E7%B3%BB%E7%BB%9F%E4%BC%98%E5%8C%96/" style="font-size: 10px;">系统优化</a> <a href="/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/" style="font-size: 11px;">系统设计</a> <a href="/tags/%E7%B4%A2%E5%BC%95/" style="font-size: 10px;">索引</a> <a href="/tags/%E7%BA%BF%E4%B8%8A%E6%8E%92%E6%9F%A5/" style="font-size: 10px;">线上排查</a> <a href="/tags/%E7%BA%BF%E7%A8%8B%E6%B1%A0/" style="font-size: 10px;">线程池</a> <a href="/tags/%E7%BA%BF%E7%A8%8B%E7%94%9F%E5%91%BD%E5%91%A8%E6%9C%9F/" style="font-size: 10px;">线程生命周期</a> <a href="/tags/%E7%BC%93%E5%AD%98/" style="font-size: 12px;">缓存</a> <a href="/tags/%E7%BC%96%E7%A8%8B%E6%95%88%E7%8E%87/" style="font-size: 15px;">编程效率</a> <a href="/tags/%E8%A1%8C%E9%94%81/" style="font-size: 10px;">行锁</a> <a href="/tags/%E8%AE%A2%E5%8D%95%E5%B1%A5%E7%BA%A6/" style="font-size: 10px;">订单履约</a> <a href="/tags/%E8%AE%A2%E5%8D%95%E7%B3%BB%E7%BB%9F/" style="font-size: 10px;">订单系统</a> <a href="/tags/%E8%BD%AF%E4%BB%B6%E5%B7%A5%E7%A8%8B/" style="font-size: 14px;">软件工程</a> <a href="/tags/%E9%80%92%E5%BD%92/" style="font-size: 10px;">递归</a> <a href="/tags/%E9%85%8D%E7%BD%AE%E7%AE%A1%E7%90%86/" style="font-size: 10px;">配置管理</a> <a href="/tags/%E9%87%87%E8%B4%AD%E7%B3%BB%E7%BB%9F/" style="font-size: 10px;">采购系统</a> <a href="/tags/%E9%94%81/" style="font-size: 12px;">锁</a> <a href="/tags/%E9%94%81%E7%AD%89%E5%BE%85/" style="font-size: 10px;">锁等待</a> <a href="/tags/%E9%97%B4%E9%9A%99%E9%94%81/" style="font-size: 10px;">间隙锁</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/08/">八月 2026</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/07/">七月 2026</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/06/">六月 2026</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2026/05/">五月 2026</a><span class="archive-list-count">9</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/06/">六月 2025</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/05/">五月 2025</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/04/">四月 2025</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/03/">三月 2025</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/11/">十一月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/08/">八月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/05/">五月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2024/02/">二月 2024</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/11/">十一月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/07/">七月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/06/">六月 2023</a><span class="archive-list-count">6</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2023/03/">三月 2023</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/09/">九月 2022</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2022/05/">五月 2022</a><span class="archive-list-count">5</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/05/">五月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2017/01/">一月 2017</a><span class="archive-list-count">1</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/06/">六月 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/04/">四月 2016</a><span class="archive-list-count">3</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/03/">三月 2016</a><span class="archive-list-count">2</span></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2016/01/">一月 2016</a><span class="archive-list-count">1</span></li></ul>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recents</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2026/08/19/Java-Spring%E9%A1%B9%E7%9B%AE%E5%8D%87%E7%BA%A7%E5%AE%9E%E6%88%98%E7%BB%99Codex%E6%8F%90%E4%BE%9BMCP%E6%9C%8D%E5%8A%A1/">Java Spring项目升级实战：给Codex提供MCP服务</a>
+          </li>
+        
+          <li>
+            <a href="/2026/08/01/Pi%E4%BB%8E%E5%85%A5%E9%97%A8%E5%88%B0%E7%B2%BE%E9%80%9A%EF%BC%9A%E7%94%A8%E6%9E%81%E7%AE%80Agent%E6%9E%84%E5%BB%BA%E4%BE%9B%E5%BA%94%E9%93%BE%E6%99%BA%E8%83%BD%E5%8A%A9%E6%89%8B/">Pi从入门到精通：用极简Agent构建供应链智能助手</a>
+          </li>
+        
+          <li>
+            <a href="/2026/07/07/Loop-Engineering%E5%AE%9E%E6%88%98%E4%BB%8E%E6%97%A5%E5%BF%97%E5%B7%A1%E6%A3%80%E5%88%B0%E4%BE%9B%E5%BA%94%E9%93%BE%E5%BC%82%E5%B8%B8%E4%BF%AE%E5%A4%8D%E9%97%AD%E7%8E%AF/">Loop Engineering实战：从日志巡检到供应链异常修复闭环</a>
+          </li>
+        
+          <li>
+            <a href="/2026/07/05/cc-switch%E7%AE%A1%E7%90%86%E5%A4%9A%E4%B8%AAGPT%E8%B4%A6%E5%8F%B7%E7%BB%99Codex%E4%BD%BF%E7%94%A8/">CC Switch管理Codex多套配置：认证、供应商与本地路由</a>
+          </li>
+        
+          <li>
+            <a href="/2026/07/03/CodeGraph%E4%B8%8EPonytail%E7%BB%84%E5%90%88%E5%AE%9E%E6%88%98%EF%BC%9A%E8%AE%A9Agent%E6%89%BE%E5%BE%97%E5%87%86%E3%80%81%E6%94%B9%E5%BE%97%E5%B0%91/">CodeGraph与Ponytail组合实战：让Agent找得准、改得少</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2026 Jinxing Chen<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">首页</a>
+  
+    <a href="/archives" class="mobile-nav-link">存档</a>
+  
+    <a href="/about" class="mobile-nav-link">关于</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+
+  
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+  </div>
+</body>
+</html>

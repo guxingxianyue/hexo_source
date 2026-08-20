@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">Spring 项目升级为 MCP 服务的实施流程</title>
+  <desc id="desc">从版本检查、依赖配置、工具设计到 Codex 接入、验证和生产治理的完整升级流程。</desc>
+  <rect width="1200" height="760" fill="#f8fafc"/>
+  <text x="600" y="50" text-anchor="middle" font-family="Arial, 'Microsoft YaHei', sans-serif" font-size="28" font-weight="700" fill="#111827">Spring 项目升级为 MCP 服务：实施与验收</text>
+
+  <g font-family="Arial, 'Microsoft YaHei', sans-serif" fill="#111827">
+    <rect x="65" y="105" width="210" height="96" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
+    <text x="170" y="138" text-anchor="middle" font-size="17" font-weight="700">1. 确认版本基线</text>
+    <text x="170" y="166" text-anchor="middle" font-size="14">Boot / Spring AI / Java</text>
+    <text x="170" y="188" text-anchor="middle" font-size="13" fill="#475569">先解决兼容关系</text>
+
+    <rect x="355" y="105" width="210" height="96" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
+    <text x="460" y="138" text-anchor="middle" font-size="17" font-weight="700">2. 增加 MCP Starter</text>
+    <text x="460" y="166" text-anchor="middle" font-size="14">BOM + WebMVC Starter</text>
+    <text x="460" y="188" text-anchor="middle" font-size="13" fill="#475569">先构建再写工具</text>
+
+    <rect x="645" y="105" width="210" height="96" rx="8" fill="#ffffff" stroke="#0891b2" stroke-width="2"/>
+    <text x="750" y="138" text-anchor="middle" font-size="17" font-weight="700">3. 配置服务端点</text>
+    <text x="750" y="166" text-anchor="middle" font-size="14">STREAMABLE /mcp</text>
+    <text x="750" y="188" text-anchor="middle" font-size="13" fill="#475569">声明 instructions</text>
+
+    <rect x="935" y="105" width="210" height="96" rx="8" fill="#ffffff" stroke="#0891b2" stroke-width="2"/>
+    <text x="1040" y="138" text-anchor="middle" font-size="17" font-weight="700">4. 包装业务工具</text>
+    <text x="1040" y="166" text-anchor="middle" font-size="14">@McpTool + 参数说明</text>
+    <text x="1040" y="188" text-anchor="middle" font-size="13" fill="#475569">复用 Application Service</text>
+
+    <rect x="935" y="310" width="210" height="96" rx="8" fill="#ffffff" stroke="#059669" stroke-width="2"/>
+    <text x="1040" y="343" text-anchor="middle" font-size="17" font-weight="700">5. 本地协议验证</text>
+    <text x="1040" y="371" text-anchor="middle" font-size="14">tools/list / tools/call</text>
+    <text x="1040" y="393" text-anchor="middle" font-size="13" fill="#475569">校验 Schema 与错误</text>
+
+    <rect x="645" y="310" width="210" height="96" rx="8" fill="#ffffff" stroke="#059669" stroke-width="2"/>
+    <text x="750" y="343" text-anchor="middle" font-size="17" font-weight="700">6. 接入 Codex</text>
+    <text x="750" y="371" text-anchor="middle" font-size="14">URL / 白名单 / 审批策略</text>
+    <text x="750" y="393" text-anchor="middle" font-size="13" fill="#475569">先读后写</text>
+
+    <rect x="355" y="310" width="210" height="96" rx="8" fill="#ffffff" stroke="#f97316" stroke-width="2"/>
+    <text x="460" y="343" text-anchor="middle" font-size="17" font-weight="700">7. 业务场景验收</text>
+    <text x="460" y="371" text-anchor="middle" font-size="14">查询 → 分析 → 确认 → 草稿</text>
+    <text x="460" y="393" text-anchor="middle" font-size="13" fill="#475569">验证幂等与权限</text>
+
+    <rect x="65" y="310" width="210" height="96" rx="8" fill="#ffffff" stroke="#f97316" stroke-width="2"/>
+    <text x="170" y="343" text-anchor="middle" font-size="17" font-weight="700">8. 生产治理</text>
+    <text x="170" y="371" text-anchor="middle" font-size="14">认证 / 限流 / 审计</text>
+    <text x="170" y="393" text-anchor="middle" font-size="13" fill="#475569">监控工具成功率</text>
+
+    <rect x="170" y="525" width="860" height="135" rx="8" fill="#ffffff" stroke="#7c3aed" stroke-width="2"/>
+    <text x="600" y="563" text-anchor="middle" font-size="19" font-weight="700">上线门槛</text>
+    <text x="315" y="605" text-anchor="middle" font-size="15">只读默认开放</text>
+    <text x="505" y="605" text-anchor="middle" font-size="15">写操作人工确认</text>
+    <text x="695" y="605" text-anchor="middle" font-size="15">重复调用保持幂等</text>
+    <text x="885" y="605" text-anchor="middle" font-size="15">每次调用可追踪</text>
+    <text x="600" y="636" text-anchor="middle" font-size="14" fill="#475569">任何一项未通过，都不应扩大工具权限或开放到远程环境</text>
+  </g>
+
+  <g stroke="#64748b" stroke-width="2.5" fill="none" marker-end="url(#arrow)">
+    <path d="M275 153H355"/>
+    <path d="M565 153H645"/>
+    <path d="M855 153H935"/>
+    <path d="M1040 201V310"/>
+    <path d="M935 358H855"/>
+    <path d="M645 358H565"/>
+    <path d="M355 358H275"/>
+    <path d="M170 406C170 475 300 490 410 525"/>
+  </g>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#64748b"/>
+    </marker>
+  </defs>
+</svg>
