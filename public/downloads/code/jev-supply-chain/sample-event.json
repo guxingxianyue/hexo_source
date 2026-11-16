@@ -1,0 +1,1 @@
+{"event_id":"supplier-message-20261004-001","tenant_id":"demo-tenant","order_id":"PO-202610-001","as_of":"2026-10-04T10:00:00+08:00","promised_at":"2026-10-05T18:00:00+08:00","on_hand_qty":80,"reserved_qty":60,"required_qty":100,"supplier_message":"原材料还在等复检，原定明天到货的连接器赶不上了。目前争取10月7日安排发出，但还不能保证。你们反馈这批料不到会导致产线停工，请采购尽快确认替代料。"}

@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="900" viewBox="0 0 1080 900" role="img" aria-labelledby="title desc">
+  <title id="title">Jev 供应链异常决策流程</title>
+  <desc id="desc">供应商消息与 ERP 快照经代码校验，先执行确定性规则，再由 Jev 回答原子问题；应用检查概率、保留人工复核分支并生成任务草稿，执行仍由 ERP 控制，结果用于离线评估。</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="4" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#61706b"/></marker>
+    <style>
+      text { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; fill: #243c32; }
+      .title { font-size: 30px; font-weight: 700; }
+      .label { font-size: 22px; font-weight: 700; }
+      .body { font-size: 19px; }
+      .note { font-size: 17px; fill: #53645c; }
+      .box { fill: #f4f8f5; stroke: #95b1a0; stroke-width: 2; rx: 8; }
+      .line { fill: none; stroke: #61706b; stroke-width: 2; }
+      .arrow { fill: none; stroke: #61706b; stroke-width: 2; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect width="1080" height="900" fill="#fff"/>
+  <text x="540" y="53" text-anchor="middle" class="title">Jev 供应链异常决策流程</text>
+  <text x="540" y="86" text-anchor="middle" class="note">模型判断语义，代码计算事实，ERP 执行业务</text>
+
+  <rect x="65" y="113" width="450" height="91" class="box"/>
+  <text x="290" y="150" text-anchor="middle" class="label">供应商消息</text>
+  <text x="290" y="181" text-anchor="middle" class="body">延迟通知、交期承诺、异常说明</text>
+  <rect x="565" y="113" width="450" height="91" class="box"/>
+  <text x="790" y="150" text-anchor="middle" class="label">经过授权的 ERP 快照</text>
+  <text x="790" y="181" text-anchor="middle" class="body">库存、预占、需求、约定到货时间</text>
+  <path d="M290 204V225H790V204" class="line"/>
+  <path d="M540 225V244" class="arrow"/>
+
+  <rect x="140" y="246" width="800" height="91" class="box"/>
+  <text x="540" y="282" text-anchor="middle" class="label">代码校验与规则预处理</text>
+  <text x="540" y="314" text-anchor="middle" class="body">校验租户和版本，精确计算缺料与超期，硬规则优先</text>
+  <path d="M540 337V375" class="arrow"/>
+  <path d="M140 291H35V735H63" class="arrow"/>
+  <text x="25" y="566" text-anchor="middle" class="note" transform="rotate(-90 25 566)">ERP 硬规则命中</text>
+
+  <rect x="65" y="378" width="950" height="148" fill="#e9f6f2" stroke="#218267" stroke-width="2" rx="8"/>
+  <text x="540" y="414" text-anchor="middle" class="label">Jev 原子语义判断</text>
+  <text x="105" y="453" class="body">Choice：谁先处理</text>
+  <text x="105" y="490" class="note">采购 / 物流 / 质检 / 财务</text>
+  <text x="430" y="453" class="body">Noul：是否适用</text>
+  <text x="430" y="490" class="note">范围、影响信息、明确承诺</text>
+  <text x="765" y="453" class="body">Score：影响程度</text>
+  <text x="765" y="490" class="note">返回分数与各档概率</text>
+  <path d="M540 526V562" class="arrow"/>
+
+  <rect x="140" y="565" width="800" height="82" class="box"/>
+  <text x="540" y="599" text-anchor="middle" class="label">代码分流策略</text>
+  <text x="540" y="629" text-anchor="middle" class="body">判断是否适用，检查概率分布与阈值，记录模型版本</text>
+  <path d="M540 647V692" class="arrow"/>
+  <path d="M540 668H218V692" class="arrow"/>
+  <path d="M540 668H862V692" class="arrow"/>
+
+  <rect x="65" y="695" width="306" height="81" class="box"/>
+  <text x="218" y="729" text-anchor="middle" class="label">明确且可处理</text>
+  <text x="218" y="758" text-anchor="middle" class="body">普通或优先任务草稿</text>
+  <rect x="387" y="695" width="306" height="81" class="box"/>
+  <text x="540" y="729" text-anchor="middle" class="label">未知或接口失败</text>
+  <text x="540" y="758" text-anchor="middle" class="body">保留证据，人工复核</text>
+  <rect x="709" y="695" width="306" height="81" class="box"/>
+  <text x="862" y="729" text-anchor="middle" class="label">范围不适用</text>
+  <text x="862" y="758" text-anchor="middle" class="body">进入通用消息队列</text>
+
+  <path d="M218 776V808H862V776" class="line"/>
+  <path d="M540 776V825" class="arrow"/>
+  <rect x="140" y="827" width="800" height="48" class="box"/>
+  <text x="540" y="858" text-anchor="middle" class="body">ERP 校验后执行 → 记录人工结论 → 离线回放与概率校准</text>
+</svg>
