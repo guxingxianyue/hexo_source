@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="800" viewBox="0 0 1080 800" role="img" aria-labelledby="title desc">
+  <title id="title">Gemma 4在MacBook上的本地部署架构</title>
+  <desc id="desc">终端、Python和Java客户端访问本机Ollama接口，由运行时加载Gemma 4权重，使用Apple Silicon统一内存和GPU完成推理。</desc>
+  <defs>
+    <marker id="arrow" markerWidth="9" markerHeight="9" refX="8" refY="4" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#54666d"/></marker>
+    <style>
+      text { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; fill: #173b3c; }
+      .heading { font-size: 31px; font-weight: 700; }
+      .label { font-size: 23px; font-weight: 700; }
+      .body { font-size: 21px; }
+      .note { font-size: 19px; fill: #52686c; }
+      .box { fill: #f0f8f7; stroke: #75a7a1; stroke-width: 2; rx: 8; }
+      .line { fill: none; stroke: #54666d; stroke-width: 2; }
+      .arrow { fill: none; stroke: #54666d; stroke-width: 2; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect width="1080" height="800" fill="#ffffff"/>
+  <text x="540" y="53" text-anchor="middle" class="heading">Gemma 4 在 MacBook 上怎样运行</text>
+  <text x="540" y="89" text-anchor="middle" class="note">先跑通本地推理，再接入开发和业务流程</text>
+  <rect x="60" y="125" width="285" height="100" class="box"/>
+  <text x="202" y="164" text-anchor="middle" class="label">终端与桌面聊天</text>
+  <text x="202" y="198" text-anchor="middle" class="body">提问与快速验证</text>
+  <rect x="398" y="125" width="285" height="100" class="box"/>
+  <text x="540" y="164" text-anchor="middle" class="label">Python 程序</text>
+  <text x="540" y="198" text-anchor="middle" class="body">结构化抽取与评估</text>
+  <rect x="735" y="125" width="285" height="100" class="box"/>
+  <text x="877" y="164" text-anchor="middle" class="label">Java 与 Spring</text>
+  <text x="877" y="198" text-anchor="middle" class="body">组织业务与校验结果</text>
+  <path d="M202 225V260H877V225" class="line"/>
+  <path d="M540 225V299" class="arrow"/>
+  <rect x="130" y="302" width="820" height="115" fill="#e6f4f5" stroke="#168b98" stroke-width="2" rx="8"/>
+  <text x="540" y="342" text-anchor="middle" class="label">Ollama 本地服务</text>
+  <text x="540" y="377" text-anchor="middle" class="body">127.0.0.1:11434 /api/chat</text>
+  <text x="540" y="402" text-anchor="middle" class="note">模型管理、输入模板、推理调度和返回结果</text>
+  <path d="M540 417V458" class="arrow"/>
+  <rect x="130" y="461" width="820" height="108" class="box"/>
+  <text x="540" y="501" text-anchor="middle" class="label">匹配的运行时与 Gemma 4 权重</text>
+  <text x="540" y="540" text-anchor="middle" class="body">普通标签或 MLX 标签，明确模型尺寸和量化</text>
+  <path d="M540 569V610" class="arrow"/>
+  <rect x="130" y="613" width="820" height="108" fill="#f3f6fb" stroke="#7794bf" stroke-width="2" rx="8"/>
+  <text x="540" y="653" text-anchor="middle" class="label">Apple Silicon 与统一内存</text>
+  <text x="540" y="690" text-anchor="middle" class="body">权重 + KV Cache + 运行时 + 系统占用</text>
+  <text x="540" y="766" text-anchor="middle" class="note">模型下载完成后，可断网验证本地标签的聊天和 API</text>
+</svg>

@@ -1,0 +1,7 @@
+{
+  "order_no": "PO-20261005-001",
+  "required_quantity": 400,
+  "on_hand_quantity": 180,
+  "locked_quantity": 80,
+  "supplier_message": "由于外协厂停电，原定2026-10-06交付的物料可能推迟。目前争取2026-10-08发货，但暂时不能保证，请采购同事协助确认替代方案。"
+}

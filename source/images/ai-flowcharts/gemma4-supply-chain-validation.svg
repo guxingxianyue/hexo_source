@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="940" viewBox="0 0 1080 940" role="img" aria-labelledby="title desc">
+  <title id="title">Gemma 4供应链异常处理流程</title>
+  <desc id="desc">程序校验ERP快照并计算缺口，本地模型提取供应商消息；代码校验Schema、日期、证据和完成状态，失败进入人工复核，通过后展示建议。</desc>
+  <defs>
+    <marker id="arrow" markerWidth="9" markerHeight="9" refX="8" refY="4" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#54666d"/></marker>
+    <style>
+      text { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; fill: #173b3c; }
+      .heading { font-size: 31px; font-weight: 700; }
+      .label { font-size: 23px; font-weight: 700; }
+      .body { font-size: 21px; }
+      .note { font-size: 19px; fill: #52686c; }
+      .box { fill: #f0f8f7; stroke: #75a7a1; stroke-width: 2; rx: 8; }
+      .line { fill: none; stroke: #54666d; stroke-width: 2; }
+      .arrow { fill: none; stroke: #54666d; stroke-width: 2; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect width="1080" height="940" fill="#ffffff"/>
+  <text x="540" y="52" text-anchor="middle" class="heading">供应链异常分析如何使用本地模型</text>
+  <text x="540" y="87" text-anchor="middle" class="note">代码确定数量事实，模型理解消息，再校验并复核</text>
+  <rect x="60" y="119" width="450" height="100" class="box"/>
+  <text x="285" y="158" text-anchor="middle" class="label">ERP 库存快照</text>
+  <text x="285" y="192" text-anchor="middle" class="body">需求 400 / 现存 180 / 锁定 80</text>
+  <rect x="570" y="119" width="450" height="100" class="box"/>
+  <text x="795" y="158" text-anchor="middle" class="label">供应商原始消息</text>
+  <text x="795" y="192" text-anchor="middle" class="body">争取发货，但尚未明确承诺</text>
+  <path d="M285 219V258" class="arrow"/>
+  <path d="M795 219V258" class="arrow"/>
+  <rect x="60" y="261" width="450" height="114" class="box"/>
+  <text x="285" y="302" text-anchor="middle" class="label">程序校验并计算</text>
+  <text x="285" y="340" text-anchor="middle" class="body">可用 100 / 缺口 300</text>
+  <rect x="570" y="261" width="450" height="114" fill="#e6f4f5" stroke="#168b98" stroke-width="2" rx="8"/>
+  <text x="795" y="302" text-anchor="middle" class="label">Gemma 4 本地抽取</text>
+  <text x="795" y="340" text-anchor="middle" class="body">异常类型、日期、证据和摘要</text>
+  <path d="M285 375V413H795V375" class="line"/>
+  <path d="M540 413V450" class="arrow"/>
+  <rect x="140" y="453" width="800" height="111" class="box"/>
+  <text x="540" y="493" text-anchor="middle" class="label">应用验证结果</text>
+  <text x="540" y="533" text-anchor="middle" class="body">Schema、枚举、日期、原文证据和输出完成状态</text>
+  <path d="M540 564V599H285V635" class="arrow"/>
+  <path d="M540 599H795V635" class="arrow"/>
+  <text x="310" y="624" class="note">通过</text>
+  <text x="820" y="624" class="note">失败或不明确</text>
+  <rect x="60" y="638" width="450" height="108" class="box"/>
+  <text x="285" y="678" text-anchor="middle" class="label">展示事实与跟进建议</text>
+  <text x="285" y="715" text-anchor="middle" class="body">保留人工确认环节</text>
+  <rect x="570" y="638" width="450" height="108" fill="#fff1f2" stroke="#c87887" stroke-width="2" rx="8"/>
+  <text x="795" y="678" text-anchor="middle" class="label">转人工复核</text>
+  <text x="795" y="715" text-anchor="middle" class="body">保留输入、错误和模型版本</text>
+  <path d="M285 746V788H795V746" class="line"/>
+  <path d="M540 788V821" class="arrow"/>
+  <rect x="140" y="824" width="800" height="70" fill="#f3f6fb" stroke="#7794bf" stroke-width="2" rx="8"/>
+  <text x="540" y="867" text-anchor="middle" class="body">记录人工结论，回放评估集，再比较参数与模型</text>
+</svg>

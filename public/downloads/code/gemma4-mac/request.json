@@ -1,0 +1,1 @@
+{"model":"gemma4:e4b","messages":[{"role":"system","content":"你是供应链开发助手。用中文解释用户提供的材料，缺少信息时明确说明。"},{"role":"user","content":"请解释MySQL库存预占中使用available_quantity >= quantity作为更新条件的作用。"}],"stream":false,"think":false,"keep_alive":"5m","options":{"num_ctx":4096,"num_predict":512}}
