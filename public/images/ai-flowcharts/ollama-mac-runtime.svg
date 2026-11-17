@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="780" viewBox="0 0 1080 780" role="img" aria-labelledby="title desc">
+<title id="title">Ollama在MacBook上的本地运行架构</title><desc id="desc">CLI、Python和Java通过HTTP访问Ollama服务，由服务加载磁盘模型并使用Apple Silicon推理，应用负责管理聊天历史与业务结果。</desc>
+<defs><marker id="arrow" markerWidth="9" markerHeight="9" refX="8" refY="4" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#526771"/></marker><style>text{font-family:'Microsoft YaHei','PingFang SC',sans-serif;fill:#203a45}.title{font-size:30px;font-weight:700}.label{font-size:23px;font-weight:700}.body{font-size:21px}.note{font-size:19px;fill:#536c74}.box{fill:#eef7fa;stroke:#649bac;stroke-width:2;rx:8}.line{fill:none;stroke:#526771;stroke-width:2}.arrow{fill:none;stroke:#526771;stroke-width:2;marker-end:url(#arrow)}</style></defs>
+<rect width="1080" height="780" fill="white"/>
+<text x="540" y="51" text-anchor="middle" class="title">Ollama 在 MacBook 上怎样工作</text>
+<text x="540" y="87" text-anchor="middle" class="note">下载到磁盘、加载到内存、发起推理，分别管理</text>
+<rect x="65" y="121" width="280" height="90" class="box"/><text x="205" y="159" text-anchor="middle" class="label">CLI 与聊天界面</text><text x="205" y="190" text-anchor="middle" class="body">下载、管理、交互</text>
+<rect x="400" y="121" width="280" height="90" class="box"/><text x="540" y="159" text-anchor="middle" class="label">Python 客户端</text><text x="540" y="190" text-anchor="middle" class="body">流式读取与统计</text>
+<rect x="735" y="121" width="280" height="90" class="box"/><text x="875" y="159" text-anchor="middle" class="label">Java 与 Spring</text><text x="875" y="190" text-anchor="middle" class="body">业务上下文与校验</text>
+<path d="M205 211V245H875V211" class="line"/><path d="M540 211V286" class="arrow"/>
+<rect x="200" y="289" width="680" height="112" class="box"/><text x="540" y="331" text-anchor="middle" class="label">Ollama 本地服务</text><text x="540" y="365" text-anchor="middle" class="body">127.0.0.1:11434</text><text x="540" y="390" text-anchor="middle" class="note">聊天 / 文本生成 / 向量接口</text>
+<path d="M540 401V443" class="arrow"/>
+<rect x="65" y="446" width="450" height="112" fill="#f2f7ec" stroke="#829d64" stroke-width="2" rx="8"/><text x="290" y="489" text-anchor="middle" class="label">磁盘中的模型</text><text x="290" y="527" text-anchor="middle" class="body">manifest + 权重 blob</text>
+<rect x="565" y="446" width="450" height="112" class="box"/><text x="790" y="489" text-anchor="middle" class="label">内存中的推理实例</text><text x="790" y="527" text-anchor="middle" class="body">权重、KV 缓存、运行缓冲</text>
+<path d="M540 443H290V446" class="line"/><path d="M540 443H790V446" class="line"/>
+<path d="M515 503H563" class="arrow"/>
+<path d="M790 558V608" class="arrow"/>
+<rect x="200" y="611" width="680" height="90" fill="#f3f4fb" stroke="#8796be" stroke-width="2" rx="8"/><text x="540" y="648" text-anchor="middle" class="label">Apple Silicon CPU / GPU 与统一内存</text><text x="540" y="681" text-anchor="middle" class="body">性能受模型、上下文、并发与系统占用影响</text>
+<text x="540" y="747" text-anchor="middle" class="note">聊天历史由客户端传入，模型驻留不会自动保存用户会话</text>
+</svg>

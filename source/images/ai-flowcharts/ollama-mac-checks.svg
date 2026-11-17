@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="780" viewBox="0 0 1080 780" role="img" aria-labelledby="title desc">
+<title id="title">Ollama安装与排障顺序</title><desc id="desc">按照客户端、服务端、模型、资源、协议与业务六层逐步确认问题。</desc>
+<defs><marker id="arrow" markerWidth="9" markerHeight="9" refX="8" refY="4" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#526771"/></marker><style>text{font-family:'Microsoft YaHei','PingFang SC',sans-serif;fill:#203a45}.title{font-size:30px;font-weight:700}.label{font-size:22px;font-weight:700}.body{font-size:20px}.box{fill:#eef7fa;stroke:#649bac;stroke-width:2;rx:8}.arrow{fill:none;stroke:#526771;stroke-width:2;marker-end:url(#arrow)}</style></defs>
+<rect width="1080" height="780" fill="white"/><text x="540" y="51" text-anchor="middle" class="title">Ollama 分层检查顺序</text>
+<rect x="100" y="93" width="880" height="78" class="box"/><text x="130" y="124" class="label">1. 客户端</text><text x="130" y="154" class="body">ollama --version：命令存在，版本符合模型要求</text>
+<path d="M540 171V200" class="arrow"/>
+<rect x="100" y="203" width="880" height="78" class="box"/><text x="130" y="234" class="label">2. 服务端</text><text x="130" y="264" class="body">GET /api/tags：服务可达，地址和端口正确</text>
+<path d="M540 281V310" class="arrow"/>
+<rect x="100" y="313" width="880" height="78" class="box"/><text x="130" y="344" class="label">3. 模型</text><text x="130" y="374" class="body">ollama ls / show：名称、标签与权重正确</text>
+<path d="M540 391V420" class="arrow"/>
+<rect x="100" y="423" width="880" height="78" class="box"/><text x="130" y="454" class="label">4. 资源</text><text x="130" y="484" class="body">ollama ps + 活动监视器：GPU、内存、上下文与并发</text>
+<path d="M540 501V530" class="arrow"/>
+<rect x="100" y="533" width="880" height="78" class="box"/><text x="130" y="564" class="label">5. 协议</text><text x="130" y="594" class="body">HTTP状态、JSON或NDJSON、完成事件、超时与错误</text>
+<path d="M540 611V640" class="arrow"/>
+<rect x="100" y="643" width="880" height="78" fill="#f2f7ec" stroke="#829d64" stroke-width="2" rx="8"/><text x="130" y="674" class="label">6. 业务</text><text x="130" y="704" class="body">证据是否真实、口径是否一致、建议是否满足验收条件</text>
+</svg>

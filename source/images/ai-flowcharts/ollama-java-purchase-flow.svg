@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="790" viewBox="0 0 1080 790" role="img" aria-labelledby="title desc">
+<title id="title">Ollama与Java采购异常分析流程</title><desc id="desc">采购消息经过Java业务服务准备上下文，Ollama返回结构化抽取，应用检查协议完成状态和证据，异常进入人工复核。</desc>
+<defs><marker id="arrow" markerWidth="9" markerHeight="9" refX="8" refY="4" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#526771"/></marker><style>text{font-family:'Microsoft YaHei','PingFang SC',sans-serif;fill:#203a45}.title{font-size:30px;font-weight:700}.label{font-size:23px;font-weight:700}.body{font-size:21px}.note{font-size:19px;fill:#536c74}.box{fill:#eef7fa;stroke:#649bac;stroke-width:2;rx:8}.line{fill:none;stroke:#526771;stroke-width:2}.arrow{fill:none;stroke:#526771;stroke-width:2;marker-end:url(#arrow)}</style></defs>
+<rect width="1080" height="790" fill="white"/><text x="540" y="51" text-anchor="middle" class="title">从采购邮件到可以检查的业务建议</text>
+<rect x="140" y="98" width="800" height="90" class="box"/><text x="540" y="135" text-anchor="middle" class="label">Java 准备业务上下文</text><text x="540" y="167" text-anchor="middle" class="body">采购消息 + 可信订单快照 + 输出 Schema</text>
+<path d="M540 188V226" class="arrow"/>
+<rect x="140" y="229" width="800" height="90" class="box"/><text x="540" y="266" text-anchor="middle" class="label">Ollama 调用本地模型</text><text x="540" y="298" text-anchor="middle" class="body">识别异常类型、明确承诺日期与原文证据</text>
+<path d="M540 319V357" class="arrow"/>
+<rect x="140" y="360" width="800" height="90" class="box"/><text x="540" y="397" text-anchor="middle" class="label">应用验证响应</text><text x="540" y="429" text-anchor="middle" class="body">正常结束 / 字段类型 / 日期 / 证据 / 业务语义</text>
+<path d="M540 450V484H295V528" class="arrow"/><path d="M540 484H785V528" class="arrow"/>
+<text x="320" y="516" class="note">通过</text><text x="810" y="516" class="note">失败或存疑</text>
+<rect x="65" y="531" width="460" height="90" class="box"/><text x="295" y="568" text-anchor="middle" class="label">展示异常与跟进建议</text><text x="295" y="600" text-anchor="middle" class="body">用户确认后执行业务操作</text>
+<rect x="555" y="531" width="460" height="90" fill="#fff2f2" stroke="#c58b8b" stroke-width="2" rx="8"/><text x="785" y="568" text-anchor="middle" class="label">进入人工处理</text><text x="785" y="600" text-anchor="middle" class="body">保留输入、版本与失败原因</text>
+<path d="M295 621V657H785V621" class="line"/><path d="M540 657V690" class="arrow"/>
+<rect x="140" y="693" width="800" height="58" fill="#f2f7ec" stroke="#829d64" stroke-width="2" rx="8"/><text x="540" y="730" text-anchor="middle" class="body">记录人工结论，加入固定案例集，评估模型升级</text>
+</svg>
